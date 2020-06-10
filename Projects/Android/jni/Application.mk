@@ -16,7 +16,7 @@ GL4ES_PATH		:= $(SUPPORT_LIBS)/gl4es
 
 APP_ALLOW_MISSING_DEPS=true
 
-APP_MODULES := yquake2 yquake2_game gl4es yquake2_gl1
+APP_MODULES := gl4es qagamearm rtcw_client uiarm cgamearm
 APP_STL := c++_shared
 
 
