@@ -5,6 +5,6 @@
 
 <resources>
     <!-- Simple strings. -->
-    <string name="quake2quest">Quake2Quest</string>
+    <string name="rtcwquest">RTCWQuest</string>
 
 </resources>

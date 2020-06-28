@@ -18,9 +18,9 @@ GNU General Public License for more details.
 
 #include <math.h>
 
-#include "../quake2/src/common/header/common.h"
-#include "../quake2/src/client/header/keyboard.h"
-
+//#include "../rtcw/src/common/header/common.h"
+//#include "../rtcw/src/client/header/keyboard.h"
+#include "../rtcw/src//game/q_shared.h"
 
 // euler angle order
 #define PITCH		0

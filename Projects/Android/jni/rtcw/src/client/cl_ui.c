@@ -1164,7 +1164,7 @@ int CL_UISystemCalls( int *args ) {
 		// -NERVE - SMF
 	case UI_CIN_SHOWSOFTKEYBOARD:
 		showKeyboard(args[1]);
-		return;
+		return 0;
 	default:
 		Com_Error( ERR_DROP, "Bad UI system trap: %i", args[0] );
 

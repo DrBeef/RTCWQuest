@@ -21,8 +21,8 @@
 #include <jni.h>
 #include <android/log.h>
 
-#include "TouchControlsContainer.h"
-#include "JNITouchControlsUtils.h"
+//#include "TouchControlsContainer.h"
+//#include "JNITouchControlsUtils.h"
 
 extern "C"
 {

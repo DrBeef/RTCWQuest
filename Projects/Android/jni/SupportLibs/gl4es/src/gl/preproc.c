@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include "khash.h"
+#include <include/khash.h>
 
 #include "preproc.h"
 #include "string_utils.h"

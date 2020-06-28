@@ -16,7 +16,7 @@ Authors		:	Simon Brown
 #include "VrInput.h"
 #include "VrCvars.h"
 
-#include "../quake2/src/client/header/client.h"
+#include "../rtcw/src/client/client.h"
 
 extern cvar_t	*cl_forwardspeed;
 cvar_t	*sv_cheats;
@@ -54,7 +54,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 	//Menu button
 	handleTrackedControllerButton(&leftTrackedRemoteState_new, &leftTrackedRemoteState_old, ovrButton_Enter, K_ESCAPE);
 
-    if (cls.key_dest == key_menu)
+/*    if (cls.key_dest == key_menu)
     {
         int leftJoyState = (pOffTrackedRemoteNew->Joystick.x > 0.7f ? 1 : 0);
         if (leftJoyState != (pOffTrackedRemoteOld->Joystick.x > 0.7f ? 1 : 0)) {
@@ -77,7 +77,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, ovrButton_Trigger, K_ENTER);
         handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton2, K_ESCAPE);
     }
-    else
+    else */
     {
         float distance = sqrtf(powf(pOffTracking->HeadPose.Pose.Position.x - pDominantTracking->HeadPose.Pose.Position.x, 2) +
                                powf(pOffTracking->HeadPose.Pose.Position.y - pDominantTracking->HeadPose.Pose.Position.y, 2) +
@@ -91,12 +91,12 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             {
                 if (distance < 0.50f)
                 {
-                    Cvar_ForceSet("vr_weapon_stabilised", "1.0");
+//                    Cvar_ForceSet("vr_weapon_stabilised", "1.0");
                 }
             }
             else
             {
-                Cvar_ForceSet("vr_weapon_stabilised", "0.0");
+//                Cvar_ForceSet("vr_weapon_stabilised", "0.0");
             }
         }
 
@@ -109,7 +109,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
 			{
 				vec2_t v;
-				rotateAboutOrigin(-weaponoffset[0], weaponoffset[2], (cl.refdef.viewangles[YAW] - hmdorientation[YAW]), v);
+				rotateAboutOrigin(-weaponoffset[0], weaponoffset[2], (cl.viewangles[YAW] - hmdorientation[YAW]), v);
 				weaponoffset[0] = v[0];
 				weaponoffset[2] = v[1];
 			}
@@ -117,7 +117,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             //Set gun angles - We need to calculate all those we might need (including adjustments) for the client to then take its pick
             const ovrQuatf quatRemote = pDominantTracking->HeadPose.Pose.Orientation;
             QuatToYawPitchRoll(quatRemote, vr_weapon_pitchadjust->value, weaponangles);
-            weaponangles[YAW] += (cl.refdef.viewangles[YAW] - hmdorientation[YAW]);
+            weaponangles[YAW] += (cl.viewangles[YAW] - hmdorientation[YAW]);
             weaponangles[ROLL] *= -1.0f;
 
 
@@ -129,7 +129,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 float zxDist = length(x, z);
 
                 if (zxDist != 0.0f && z != 0.0f) {
-                    VectorSet(weaponangles, -degrees(atanf(y / zxDist)), (cl.refdef.viewangles[YAW] - hmdorientation[YAW]) - degrees(atan2f(x, -z)), weaponangles[ROLL]);
+                    VectorSet(weaponangles, -degrees(atanf(y / zxDist)), (cl.viewangles[YAW] - hmdorientation[YAW]) - degrees(atan2f(x, -z)), weaponangles[ROLL]);
                 }
             }
 
@@ -149,16 +149,16 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             flashlightoffset[2] = pOffTracking->HeadPose.Pose.Position.z - hmdPosition[2];
 
 			vec2_t v;
-			rotateAboutOrigin(-flashlightoffset[0], flashlightoffset[2], (cl.refdef.viewangles[YAW] - hmdorientation[YAW]), v);
+			rotateAboutOrigin(-flashlightoffset[0], flashlightoffset[2], (cl.viewangles[YAW] - hmdorientation[YAW]), v);
 			flashlightoffset[0] = v[0];
 			flashlightoffset[2] = v[1];
 
             QuatToYawPitchRoll(pOffTracking->HeadPose.Pose.Orientation, 15.0f, flashlightangles);
 
-            flashlightangles[YAW] += (cl.refdef.viewangles[YAW] - hmdorientation[YAW]);
+            flashlightangles[YAW] += (cl.viewangles[YAW] - hmdorientation[YAW]);
 
 			if (vr_walkdirection->value == 0) {
-				controllerYawHeading = -cl.refdef.viewangles[YAW] + flashlightangles[YAW];
+				controllerYawHeading = -cl.viewangles[YAW] + flashlightangles[YAW];
 			}
 			else
 			{
@@ -180,7 +180,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             vec2_t v;
             rotateAboutOrigin(-positionDeltaThisFrame[0] * multiplier,
-                              positionDeltaThisFrame[2] * multiplier, /*cl.refdef.viewangles[YAW]*/ - hmdorientation[YAW], v);
+                              positionDeltaThisFrame[2] * multiplier, /*cl.viewangles[YAW]*/ - hmdorientation[YAW], v);
             positional_movementSideways = v[0];
             positional_movementForward = v[1];
 
@@ -274,9 +274,9 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
 			    if (vr_lasersight->value != 0.0)
                 {
-                    Cvar_ForceSet("vr_lasersight", "0.0");
+//                    Cvar_ForceSet("vr_lasersight", "0.0");
                 } else {
-                    Cvar_ForceSet("vr_lasersight", "1.0");
+//                    Cvar_ForceSet("vr_lasersight", "1.0");
 			    }
 			}
 

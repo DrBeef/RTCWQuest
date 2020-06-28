@@ -1,14 +1,13 @@
 #if !defined(vrcommon_h)
 #define vrcommon_h
 
-#include <VrApi_Ext.h>
 #include <VrApi_Input.h>
 
 #include <android/log.h>
 
 #include "mathlib.h"
 
-#define LOG_TAG "Quake2VR"
+#define LOG_TAG "RTCWVR"
 
 #ifndef NDEBUG
 #define DEBUG 1
@@ -22,14 +21,14 @@
 #define ALOGV(...)
 #endif
 
-bool quake2_initialised;
+qboolean rtcw_initialised;
 
 long long global_time;
 
 float playerHeight;
 float playerYaw;
 
-bool showingScreenLayer;
+qboolean showingScreenLayer;
 float vrFOV;
 
 vec3_t worldPosition;
@@ -49,7 +48,7 @@ vec3_t flashlightoffset;
 #define DUCK_CROUCHED 2
 int ducked;
 
-bool player_moving;
+qboolean player_moving;
 
 
 float radians(float deg);
@@ -58,10 +57,10 @@ qboolean isMultiplayer();
 double GetTimeInMilliSeconds();
 float length(float x, float y);
 float nonLinearFilter(float in);
-bool between(float min, float val, float max);
+qboolean between(float min, float val, float max);
 void rotateAboutOrigin(float v1, float v2, float rotation, vec2_t out);
 void QuatToYawPitchRoll(ovrQuatf q, float pitchAdjust, vec3_t out);
-bool useScreenLayer();
+qboolean useScreenLayer();
 void handleTrackedControllerButton(ovrInputStateTrackedRemote * trackedRemoteState, ovrInputStateTrackedRemote * prevTrackedRemoteState, uint32_t button, int key);
 
 #endif //vrcommon_h

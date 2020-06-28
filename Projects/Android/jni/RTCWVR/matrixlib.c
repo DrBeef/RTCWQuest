@@ -843,10 +843,10 @@ qboolean Matrix4x4_Invert_Full( matrix4x4 out, cmatrix4x4 in1 )
 					out[3][2]	= r[3][6];
 					out[3][3]	= r[3][7];
 
-					return true;
+					return qtrue;
 				}
 			}
 		}
 	}
-	return false;
+	return qfalse;
 }

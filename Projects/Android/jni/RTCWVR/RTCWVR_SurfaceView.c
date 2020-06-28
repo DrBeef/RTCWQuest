@@ -1,6 +1,6 @@
 /************************************************************************************
 
-Filename	:	Q2VR_SurfaceView.c based on VrCubeWorld_SurfaceView.c
+Filename	:	RTCWVR_SurfaceView.c based on VrCubeWorld_SurfaceView.c
 Content		:	This sample uses a plain Android SurfaceView and handles all
 				Activity and Surface life cycle events in native code. This sample
 				does not use the application framework and also does not use LibOVR.
@@ -41,14 +41,12 @@ Copyright	:	Copyright 2015 Oculus VR, LLC. All Rights reserved.
 
 #include <src/gl/loader.h>
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_main.h>
-#include <src/client/header/client.h>
+//#include <SDL2/SDL.h>
+//#include <SDL2/SDL_main.h>
+#include <src/client/client.h>
 
 #include "VrCompositor.h"
 #include "VrInput.h"
-
-#include "../quake2/src/client/header/client.h"
 
 #if !defined( EGL_OPENGL_ES3_BIT_KHR )
 #define EGL_OPENGL_ES3_BIT_KHR		0x0040
@@ -137,14 +135,14 @@ LAMBDA1VR Stuff
 
 void Qcommon_Init (int argc, char **argv);
 
-bool useScreenLayer()
+qboolean useScreenLayer()
 {
 	//TODO
-	return (showingScreenLayer || (cls.state != ca_connected && cls.state != ca_active) || cls.key_dest != key_game) || cl.cinematictime != 0;
+	return qtrue;//(showingScreenLayer || (cls.state != ca_connected && cls.state != ca_active) || cls.key_dest != key_game) || cl.cinematictime != 0;
 }
 
 int runStatus = -1;
-void Q2VR_exit(int exitCode)
+void RTCWVR_exit(int exitCode)
 {
 	runStatus = exitCode;
 }
@@ -1374,9 +1372,6 @@ void VR_Init()
 	vr_worldscale = Cvar_Get( "vr_worldscale", "26.2467", CVAR_ARCHIVE);
 }
 
-/* Called before SDL_main() to initialize JNI bindings in SDL library */
-extern void SDL_Android_Init(JNIEnv* env, jclass cls);
-void FS_AddDirToSearchPath(char *dir, qboolean create);
 
 void * AppThreadFunction( void * parm )
 {
@@ -1389,15 +1384,10 @@ void * AppThreadFunction( void * parm )
 
     jclass cls = (*java.Env)->GetObjectClass(java.Env, java.ActivityObject);
 
-    /* This interface could expand with ABI negotiation, callbacks, etc. */
-    SDL_Android_Init(java.Env, cls);
-
-    SDL_SetMainReady();
-
 	// Note that AttachCurrentThread will reset the thread name.
 	prctl( PR_SET_NAME, (long)"OVR::Main", 0, 0, 0 );
 
-	quake2_initialised = false;
+	rtcw_initialised = qfalse;
 
 	const ovrInitParms initParms = vrapi_DefaultInitParms( &java );
 	int32_t initResult = vrapi_Initialize( &initParms );
@@ -1450,25 +1440,25 @@ void * AppThreadFunction( void * parm )
 				}
 				case MESSAGE_ON_START:
 				{
-					if (!quake2_initialised)
+					if (!rtcw_initialised)
 					{
-						ALOGV( "    Initialising Quake2 Engine" );
+						ALOGV( "    Initialising RTCW Engine" );
 
 						if (argc != 0)
 						{
 							//TODO
-                            Qcommon_Init(argc, (const char**)argv);
+                            RTCW_Init(argc, (const char**)argv);
 						}
 						else
 						{
-							int argc = 1; char *argv[] = { "quake2" };
+							int argc = 1; char *argv[] = { "rtcw" };
 
-							Qcommon_Init(argc, (const char**)argv);
+							RTCW_Init(argc, (const char**)argv);
 						}
 
-                        FS_AddDirToSearchPath("/sdcard/Quake2Quest", true);
+                        FS_AddDirToSearchPath("/sdcard/RTCWQuest", true);
 
-						quake2_initialised = true;
+						rtcw_initialised = true;
 					}
 					break;
 				}
@@ -1523,7 +1513,7 @@ void * AppThreadFunction( void * parm )
 
         // Create the scene if not yet created.
 		// The scene is created here to be able to show a loading icon.
-		if (!quake2_initialised || runStatus != -1)
+		if (!rtcw_initialised || runStatus != -1)
 		{
 			// Show a loading icon.
 			int frameFlags = 0;
@@ -1801,8 +1791,6 @@ Activity lifecycle
 ================================================================================
 */
 
-JNIEXPORT jint JNICALL SDL_JNI_OnLoad(JavaVM* vm, void* reserved);
-
 int JNI_OnLoad(JavaVM* vm, void* reserved)
 {
 	JNIEnv *env;
@@ -1812,10 +1800,11 @@ int JNI_OnLoad(JavaVM* vm, void* reserved)
 		return -1;
 	}
 
-	return SDL_JNI_OnLoad(vm, reserved);
+	//1 correct??!
+	return 1;//SDL_JNI_OnLoad(vm, reserved);
 }
 
-JNIEXPORT jlong JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onCreate( JNIEnv * env, jclass activityClass, jobject activity,
+JNIEXPORT jlong JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onCreate( JNIEnv * env, jclass activityClass, jobject activity,
 																	   jstring commandLineParams)
 {
 	ALOGV( "    GLES3JNILib::onCreate()" );
@@ -1878,7 +1867,7 @@ JNIEXPORT jlong JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onCreate( JNIEnv
 }
 
 
-JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onStart( JNIEnv * env, jobject obj, jlong handle)
+JNIEXPORT void JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onStart( JNIEnv * env, jobject obj, jlong handle)
 {
 	ALOGV( "    GLES3JNILib::onStart()" );
 
@@ -1888,7 +1877,7 @@ JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onStart( JNIEnv *
 	ovrMessageQueue_PostMessage( &appThread->MessageQueue, &message );
 }
 
-JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onResume( JNIEnv * env, jobject obj, jlong handle )
+JNIEXPORT void JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onResume( JNIEnv * env, jobject obj, jlong handle )
 {
 	ALOGV( "    GLES3JNILib::onResume()" );
 	ovrAppThread * appThread = (ovrAppThread *)((size_t)handle);
@@ -1897,7 +1886,7 @@ JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onResume( JNIEnv 
 	ovrMessageQueue_PostMessage( &appThread->MessageQueue, &message );
 }
 
-JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onPause( JNIEnv * env, jobject obj, jlong handle )
+JNIEXPORT void JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onPause( JNIEnv * env, jobject obj, jlong handle )
 {
 	ALOGV( "    GLES3JNILib::onPause()" );
 	ovrAppThread * appThread = (ovrAppThread *)((size_t)handle);
@@ -1906,7 +1895,7 @@ JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onPause( JNIEnv *
 	ovrMessageQueue_PostMessage( &appThread->MessageQueue, &message );
 }
 
-JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onStop( JNIEnv * env, jobject obj, jlong handle )
+JNIEXPORT void JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onStop( JNIEnv * env, jobject obj, jlong handle )
 {
 	ALOGV( "    GLES3JNILib::onStop()" );
 	ovrAppThread * appThread = (ovrAppThread *)((size_t)handle);
@@ -1915,7 +1904,7 @@ JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onStop( JNIEnv * 
 	ovrMessageQueue_PostMessage( &appThread->MessageQueue, &message );
 }
 
-JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onDestroy( JNIEnv * env, jobject obj, jlong handle )
+JNIEXPORT void JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onDestroy( JNIEnv * env, jobject obj, jlong handle )
 {
 	ALOGV( "    GLES3JNILib::onDestroy()" );
 	ovrAppThread * appThread = (ovrAppThread *)((size_t)handle);
@@ -1936,7 +1925,7 @@ Surface lifecycle
 ================================================================================
 */
 
-JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onSurfaceCreated( JNIEnv * env, jobject obj, jlong handle, jobject surface )
+JNIEXPORT void JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onSurfaceCreated( JNIEnv * env, jobject obj, jlong handle, jobject surface )
 {
 	ALOGV( "    GLES3JNILib::onSurfaceCreated()" );
 	ovrAppThread * appThread = (ovrAppThread *)((size_t)handle);
@@ -1959,7 +1948,7 @@ JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onSurfaceCreated(
 	ovrMessageQueue_PostMessage( &appThread->MessageQueue, &message );
 }
 
-JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onSurfaceChanged( JNIEnv * env, jobject obj, jlong handle, jobject surface )
+JNIEXPORT void JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onSurfaceChanged( JNIEnv * env, jobject obj, jlong handle, jobject surface )
 {
 	ALOGV( "    GLES3JNILib::onSurfaceChanged()" );
 	ovrAppThread * appThread = (ovrAppThread *)((size_t)handle);
@@ -2001,7 +1990,7 @@ JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onSurfaceChanged(
 	}
 }
 
-JNIEXPORT void JNICALL Java_com_drbeef_quake2quest_GLES3JNILib_onSurfaceDestroyed( JNIEnv * env, jobject obj, jlong handle )
+JNIEXPORT void JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onSurfaceDestroyed( JNIEnv * env, jobject obj, jlong handle )
 {
 	ALOGV( "    GLES3JNILib::onSurfaceDestroyed()" );
 	ovrAppThread * appThread = (ovrAppThread *)((size_t)handle);

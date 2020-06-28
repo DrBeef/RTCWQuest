@@ -86,10 +86,10 @@ void sendButtonActionSimple(const char* action)
 {
     char command[256];
     snprintf( command, sizeof( command ), "%s\n", action );
-    Cbuf_AddText( command );
+//    Cbuf_AddText( command );
 }
 
-bool between(float min, float val, float max)
+qboolean between(float min, float val, float max)
 {
     return (min < val) && (val < max);
 }
@@ -102,7 +102,7 @@ void sendButtonAction(const char* action, long buttonDown)
     {
         command[0] = '-';
     }
-    Cbuf_AddText( command );
+//    Cbuf_AddText( command );
 }
 
 void acquireTrackedRemotesData(const ovrMobile *Ovr, double displayTime) {//The amount of yaw changed by controller
