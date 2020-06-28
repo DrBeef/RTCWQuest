@@ -907,7 +907,7 @@ void RenderFrame( ovrRenderer * renderer, const ovrJava * java,
 {
     //if we are now shutting down, drop out here
 	//TODO
-    if (true)//isHostAlive()) {
+    if (qtrue)//isHostAlive()) {
     {
 		int 	time;
 
@@ -917,7 +917,7 @@ void RenderFrame( ovrRenderer * renderer, const ovrJava * java,
             time = global_time - oldtime;
         } while (time < 1);
 
-        Qcommon_BeginFrame (time * 1000);
+//        RTCW_BeginFrame (time * 1000);
 
 		// Render the eye images.
         for (int eye = 0; eye < renderer->NumBuffers && isHostAlive(); eye++) {
@@ -939,7 +939,7 @@ void RenderFrame( ovrRenderer * renderer, const ovrJava * java,
                 GL(glDisable(GL_SCISSOR_TEST));
 
                 //Now do the drawing for this eye (or draw for left eye twice if using screen layer)
-                Qcommon_Frame(useScreenLayer() ? 0 : eye);
+//                RTCW_Frame(useScreenLayer() ? 0 : eye);
             }
 
             //Clear edge to prevent smearing
@@ -948,7 +948,7 @@ void RenderFrame( ovrRenderer * renderer, const ovrJava * java,
             ovrFramebuffer_Advance(frameBuffer);
         }
 
-		Qcommon_EndFrame(time * 1000);
+//        RTCW_EndFrame(time * 1000);
 
         oldtime = global_time;
     }
@@ -1447,18 +1447,18 @@ void * AppThreadFunction( void * parm )
 						if (argc != 0)
 						{
 							//TODO
-                            RTCW_Init(argc, (const char**)argv);
+//                            RTCW_Init(argc, (const char**)argv);
 						}
 						else
 						{
 							int argc = 1; char *argv[] = { "rtcw" };
 
-							RTCW_Init(argc, (const char**)argv);
+//							RTCW_Init(argc, (const char**)argv);
 						}
 
-                        FS_AddDirToSearchPath("/sdcard/RTCWQuest", true);
+//                        FS_AddDirToSearchPath("/sdcard/RTCWQuest", true);
 
-						rtcw_initialised = true;
+						rtcw_initialised = qtrue;
 					}
 					break;
 				}
@@ -1466,13 +1466,13 @@ void * AppThreadFunction( void * parm )
 				{
 					//If we get here, then user has opted not to quit
 					//jni_resumeAudio();
-					appState.Resumed = true;
+					appState.Resumed = qtrue;
 					break;
 				}
 				case MESSAGE_ON_PAUSE:
 				{
 					//jni_pauseAudio();
-					appState.Resumed = false;
+					appState.Resumed = qfalse;
 					break;
 				}
 				case MESSAGE_ON_STOP:

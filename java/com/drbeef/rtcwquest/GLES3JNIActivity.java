@@ -1,5 +1,5 @@
 
-package com.drbeef.quake2quest;
+package com.drbeef.rtcwquest;
 
 
 import java.io.BufferedReader;
@@ -41,10 +41,10 @@ import static android.system.Os.setenv;
 	// Load the gles3jni library right away to make sure JNI_OnLoad() gets called as the very first thing.
 	static
 	{
-		System.loadLibrary( "yquake2" );
+		System.loadLibrary( "rtcw_client" );
 	}
 
-	private static final String TAG = "Quake2Quest";
+	private static final String TAG = "RTCWQuest";
 
 	private int permissionCount = 0;
 	private static final int READ_EXTERNAL_STORAGE_PERMISSION_ID = 1;
@@ -161,32 +161,20 @@ import static android.system.Os.setenv;
 
 	public void create()
 	{
-		//This will copy the shareware version of quake2 if user doesn't have anything installed
-		copy_asset("/sdcard/Quake2Quest", "pak0.pak");
-
-		//HD Textures
-		copy_asset("/sdcard/Quake2Quest", "pak6.pak");
-
-		//Custom weapons
-		copy_asset("/sdcard/Quake2Quest", "pak99.pak");
-
 		//Configuration files
-		copy_asset("/sdcard/Quake2Quest", "config.cfg");
-		copy_asset("/sdcard/Quake2Quest", "autoexec.cfg");
-		copy_asset("/sdcard/Quake2Quest", "commandline.txt");
-
-		//Comfort Vignette Mask
-		copy_asset("/sdcard/Quake2Quest", "vignette.tga");
+		copy_asset("/sdcard/RTCWQuest", "config.cfg");
+		copy_asset("/sdcard/RTCWQuest", "autoexec.cfg");
+		copy_asset("/sdcard/RTCWQuest", "commandline.txt");
 
 		//Read these from a file and pass through
-		commandLineParams = new String("quake2");
+		commandLineParams = new String("rtcw");
 
 		//See if user is trying to use command line params
-		if(new File("/sdcard/Quake2Quest/commandline.txt").exists()) // should exist!
+		if(new File("/sdcard/RTCWQuest/commandline.txt").exists()) // should exist!
 		{
 			BufferedReader br;
 			try {
-				br = new BufferedReader(new FileReader("/sdcard/Quake2Quest/commandline.txt"));
+				br = new BufferedReader(new FileReader("/sdcard/RTCWQuest/commandline.txt"));
 				String s;
 				StringBuilder sb=new StringBuilder(0);
 				while ((s=br.readLine())!=null)
@@ -204,7 +192,7 @@ import static android.system.Os.setenv;
 		}
 
 		try {
-			setenv("YQUAKE2_GAMELIBDIR", getFilesDir().getParentFile().getPath() + "/lib", true);
+			setenv("RTCW_GAMELIBDIR", getFilesDir().getParentFile().getPath() + "/lib", true);
 		}
 		catch (Exception e)
 		{

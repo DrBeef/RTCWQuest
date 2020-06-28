@@ -792,7 +792,10 @@ usercmd_t CL_CreateCmd( void ) {
 	CL_JoystickMove( &cmd );
 
 #ifdef __ANDROID__
-	CL_AndroidMove ( &cmd );
+
+	//NEED TO DO OUR OWN THING HERE
+
+//	CL_AndroidMove ( &cmd );
 #endif
 
 	// check to make sure the angles haven't wrapped

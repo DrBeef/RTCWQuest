@@ -1,5 +1,5 @@
 
-package com.drbeef.quake2quest;
+package com.drbeef.rtcwquest;
 
 import android.app.Activity;
 import android.view.Surface;

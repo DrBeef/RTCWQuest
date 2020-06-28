@@ -18,9 +18,9 @@ LOCAL_C_INCLUDES = $(LOCAL_PATH) \
 
  
 ANDROID_SRC = \
+	code/android/ifaddrs.c \
 	# code/android/android-jni.cpp \
 	# code/android/in_android.c \
-	code/android/ifaddrs.c \
 	
 SPLINES_FILES = \
   src/splines/math_angles.cpp \
@@ -184,17 +184,17 @@ SERVER_FILES = \
   src/qcommon/vm_none.c \
  
  UNIX_FILES = \
-  # src/android/android_main.c \
   src/unix/unix_net.c \
   src/unix/unix_shared.c \
   src/unix/linux_common.c\
   src/unix/linux_qgl.c   \
   src/android/android_glimp.c   \
   src/android/android_snd.c \
+  src/game/q_shared.c \
+  src/game/q_math.c \
+  src/android/android_main.c 
   # src/android/android-jni.cpp \
   # src/android/in_android.c \
-  src/game/q_shared.c \
-  src/game/q_math.c 
    
 
 RTCWVR_SRC_FILES :=  ../RTCWVR/RTCWVR_SurfaceView.c \
@@ -208,12 +208,12 @@ RTCWVR_SRC_FILES :=  ../RTCWVR/RTCWVR_SurfaceView.c \
   
 LOCAL_SRC_FILES =  $(UNIX_FILES) $(RENDERER_FILES) $(SPLINES_FILES) $(BOTLIB_FILES) $(JPEGLIB_FILES) $(CLIENT_FILES) $(COMMON_FILES) $(SOUND_FILES) $(SERVER_FILES) $(VM_FILES) $(RTCWVR_SRC_FILES)
 
-LOCAL_LDLIBS := -lGLESv3 -lEGL -ldl -llog -lOpenSLES -lz -lm
+LOCAL_LDLIBS := -lGLESv3 -landroid -lEGL -ldl -llog -lOpenSLES -lz -lm
 
 LOCAL_LDLIBS += -fuse-ld=bfd
  
 LOCAL_STATIC_LIBRARIES :=  libjpeg libpng
-LOCAL_SHARED_LIBRARIES :=  vrapi qagamearm gl4es cgamearm uiarm
+LOCAL_SHARED_LIBRARIES :=  vrapi qagamearm gl4es cgamearm 
 
 include $(BUILD_SHARED_LIBRARY)
 

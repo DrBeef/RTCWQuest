@@ -442,7 +442,7 @@ void Sys_ConsoleInputInit() {
 				  characters  EOF,  EOL,  EOL2, ERASE, KILL, REPRINT,
 				  STATUS, and WERASE, and buffers by lines.
 		 ISIG: when any of the characters  INTR,  QUIT,  SUSP,  or
-				  DSUSP are received, generate the corresponding sig­
+				  DSUSP are received, generate the corresponding sigï¿½
 				  nal
 		*/
 		tc.c_lflag &= ~( ECHO | ICANON );
@@ -700,52 +700,16 @@ void *Sys_LoadDll( const char *name,
 
 #ifdef __ANDROID__
 	char path[500];
+	char *libdir = (char*)getenv("YQUAKE2_GAMELIBDIR");
 
 #ifdef WOLF_SP_DEMO
 	snprintf( path, sizeof( path ), "%s/lib%sarm_d.so", getLibPath(), name );
 #else
-	snprintf( path, sizeof( path ), "%s/lib%sarm.so", getLibPath(), name );
+	snprintf( path, sizeof( path ), "%s/lib%sarm.so", libdir, name );
 #endif
 
 	LOGI("Trying to load Android lib: %s",path);
 	libHandle = dlopen (path, RTLD_LAZY );
-
-	if (!libHandle) //Some devices put an extra 1 on the end!!!
-	{
-		LOGI("TRYING -0 LIBRARY");
-#ifdef WOLF_SP_DEMO
-		snprintf( path, sizeof( path ), "/data/data/com.beloko.rtcw/lib/lib%sarm_d.so", name );
-#else
-		snprintf( path, sizeof( path ), "/data/data/com.beloko.rtcw/lib/lib%sarm.so", name );
-#endif
-
-
-		libHandle = dlopen (path, Q_RTLD );
-	}
-
-	if (!libHandle) //Some devices put an extra 1 on the end!!!
-	{
-		LOGI("TRYING -1 LIBRARY");
-#ifdef WOLF_SP_DEMO
-		snprintf( path, sizeof( path ), "/data/data/com.beloko.rtcw-1/lib/lib%sarm_d.so", name );
-#else
-		snprintf( path, sizeof( path ), "/data/data/com.beloko.rtcw-1/lib/lib%sarm.so", name );
-#endif
-		libHandle = dlopen (path, Q_RTLD );
-
-	}
-
-	if (!libHandle) //Just in case...
-	{
-		LOGI("TRYING -2 LIBRARY");
-#ifdef WOLF_SP_DEMO
-		snprintf( path, sizeof( path ), "/data/data/com.beloko.rtcw-2/lib/lib%sarm_d.so", name );
-#else
-		snprintf( path, sizeof( path ), "/data/data/com.beloko.rtcw-2/lib/lib%sarm.so", name );
-#endif
-		libHandle = dlopen (path, Q_RTLD );
-
-	}
 
 
 #else
@@ -1147,7 +1111,7 @@ sysEvent_t Sys_GetEvent( void ) {
 	}
 */
 	// check for other input devices
-	IN_Frame();
+	//IN_Frame();
 
 	// check for network packets
 	MSG_Init( &netmsg, sys_packetReceived, sizeof( sys_packetReceived ) );

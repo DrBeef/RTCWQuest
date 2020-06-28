@@ -22,7 +22,7 @@ void handleTrackedControllerButton(ovrInputStateTrackedRemote * trackedRemoteSta
 {
     if ((trackedRemoteState->Buttons & button) != (prevTrackedRemoteState->Buttons & button))
     {
-        Key_Event(key, (trackedRemoteState->Buttons & button) != 0, global_time);
+//        Key_Event(key, (trackedRemoteState->Buttons & button) != 0, global_time);
     }
 }
 
