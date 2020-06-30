@@ -780,7 +780,8 @@ static int FloatAsInt( float f ) {
 }
 
 void *VM_ArgPtr( int intValue );
-#define VMA( x ) VM_ArgPtr( args[x] )
+//#define VMA( x ) VM_ArgPtr( args[x] )
+#define VMA( x ) ( (void *) args[x] )
 #define VMF( x )  ( (float *)args )[x]
 
 

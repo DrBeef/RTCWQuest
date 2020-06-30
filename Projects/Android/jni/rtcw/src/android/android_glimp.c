@@ -569,8 +569,9 @@ void GLimp_Init( void ) {
 	return;
 }
 
+void RTCWVR_submitFrame();
 
-int androidSwapped = 1; //If loading, then draw frame does not return, so detect this
+//int androidSwapped = 1; //If loading, then draw frame does not return, so detect this
 /*
  ** GLimp_EndFrame
  **
@@ -582,11 +583,11 @@ void GLimp_EndFrame( void ) {
 
 	// check logging
 	//QGL_EnableLogging( (qboolean)r_logFile->integer ); // bk001205 - was ->value
-	if (!androidSwapped)
-		eglSwapBuffers( eglGetCurrentDisplay(), eglGetCurrentSurface( EGL_DRAW ) );
+//	if (!androidSwapped)
+//		eglSwapBuffers( eglGetCurrentDisplay(), eglGetCurrentSurface( EGL_DRAW ) );
 
-	androidSwapped = 0;
-
+	//androidSwapped = 0;
+    RTCWVR_submitFrame();
 }
 
 #ifdef SMP

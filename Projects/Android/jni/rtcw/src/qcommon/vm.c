@@ -332,7 +332,7 @@ Dlls will call this directly
 ============
 */
 int QDECL VM_DllSyscall( int arg, ... ) {
-#if ( ( defined __linux__ ) && ( defined __powerpc__ ) )
+//#if ( ( defined __linux__ ) && ( defined __powerpc__ ) )
 	// rcg010206 - see commentary above
 	int args[16];
 	int i;
@@ -346,9 +346,9 @@ int QDECL VM_DllSyscall( int arg, ... ) {
 	va_end( ap );
 
 	return currentVM->systemCall( args );
-#else // original id code
-	return currentVM->systemCall( &arg );
-#endif
+//#else // original id code
+//	return currentVM->systemCall( &arg );
+//#endif
 }
 
 /*
@@ -707,7 +707,10 @@ int QDECL VM_Call( vm_t *vm, int callnum, ... ) {
 	// if we have a dll loaded, call it directly
 	if ( vm->entryPoint ) {
 		//rcg010207 -  see dissertation at top of VM_DllSyscall() in this file.
-#if ( ( defined __linux__ ) && ( defined __powerpc__ ) )
+//#if ( ( defined __linux__ ) && ( defined __powerpc__ ) )
+		int args[16];
+		int i;
+		va_list ap;
 		va_start( ap, callnum );
 		for ( i = 0; i < sizeof( args ) / sizeof( args[i] ); i++ )
 			args[i] = va_arg( ap, int );
@@ -717,11 +720,11 @@ int QDECL VM_Call( vm_t *vm, int callnum, ... ) {
 							args[4],  args[5],  args[6], args[7],
 							args[8],  args[9], args[10], args[11],
 							args[12], args[13], args[14], args[15] );
-#else // PPC above, original id code below
-		r = vm->entryPoint( ( &callnum )[0], ( &callnum )[1], ( &callnum )[2], ( &callnum )[3],
-							( &callnum )[4], ( &callnum )[5], ( &callnum )[6], ( &callnum )[7],
-							( &callnum )[8],  ( &callnum )[9],  ( &callnum )[10],  ( &callnum )[11],  ( &callnum )[12] );
-#endif
+//#else // PPC above, original id code below
+//		r = vm->entryPoint( ( &callnum )[0], ( &callnum )[1], ( &callnum )[2], ( &callnum )[3],
+//							( &callnum )[4], ( &callnum )[5], ( &callnum )[6], ( &callnum )[7],
+//							( &callnum )[8],  ( &callnum )[9],  ( &callnum )[10],  ( &callnum )[11],  ( &callnum )[12] );
+//#endif
 	} else if ( vm->compiled ) {
 		r = VM_CallCompiled( vm, &callnum );
 	} else {

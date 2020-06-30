@@ -98,7 +98,7 @@ extern kbutton_t	in_strafe, in_speed;
 extern kbutton_t	in_up, in_down;
 extern  kbutton_t	in_buttons[16];
  */
-
+/*
 void PortableAction(int state, int action)
 {
 	LOGI("PortableAction %d   %d",state,action);
@@ -208,7 +208,7 @@ void PortableAction(int state, int action)
 	if (key != -1)
 		(state)?KeyDownPort(key):KeyUpPort(key);
 
-}
+}*/
 
 int mdx=0,mdy=0;
 void PortableMouse(float dx,float dy)
@@ -225,10 +225,14 @@ void PortableMouse(float dx,float dy)
 }
 
 int absx=0,absy=0;
+Android_GetScreenRes(int *width, int *height);
 void PortableMouseAbs(float x,float y)
 {
-	absx = x;
-	absy = y;
+    int width;
+    int height;
+    Android_GetScreenRes(&width, &height);
+	absx = x * width;
+	absy = y * height;
 }
 
 
@@ -267,6 +271,7 @@ void PortableMove(float fwd, float strafe)
 //Look up and down
 int look_pitch_mode;
 float look_pitch_mouse,look_pitch_abs,look_pitch_joy;
+/*
 void PortableLookPitch(int mode, float pitch)
 {
 	look_pitch_mode = mode;
@@ -283,10 +288,11 @@ void PortableLookPitch(int mode, float pitch)
 		break;
 	}
 }
-
+*/
 //left right
 int look_yaw_mode;
 float look_yaw_mouse,look_yaw_joy;
+/*
 void PortableLookYaw(int mode, float yaw)
 {
 	look_yaw_mode = mode;
@@ -301,7 +307,7 @@ void PortableLookYaw(int mode, float yaw)
 	}
 }
 
-
+*/
 
 void PortableCommand(const char * cmd){
 	postCommand(cmd);
@@ -385,6 +391,7 @@ void pumpEvents(void)
 
 }
 
+/*
 void CL_AndroidMove( usercmd_t *cmd )
 {
 
@@ -420,7 +427,7 @@ void CL_AndroidMove( usercmd_t *cmd )
 	}
 
 }
-
+*/
 
 void IN_Frame( void ) {
 	pumpEvents();

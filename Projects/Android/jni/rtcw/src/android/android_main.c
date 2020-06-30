@@ -700,7 +700,7 @@ void *Sys_LoadDll( const char *name,
 
 #ifdef __ANDROID__
 	char path[500];
-	char *libdir = (char*)getenv("YQUAKE2_GAMELIBDIR");
+	char *libdir = (char*)getenv("RTCW_GAMELIBDIR");
 
 #ifdef WOLF_SP_DEMO
 	snprintf( path, sizeof( path ), "%s/lib%sarm_d.so", getLibPath(), name );
@@ -1111,7 +1111,7 @@ sysEvent_t Sys_GetEvent( void ) {
 	}
 */
 	// check for other input devices
-	//IN_Frame();
+	IN_Frame();
 
 	// check for network packets
 	MSG_Init( &netmsg, sys_packetReceived, sizeof( sys_packetReceived ) );
@@ -1328,8 +1328,9 @@ void Sys_ParseArgs( int argc, char* argv[] ) {
 
 #include "../client/client.h"
 extern clientStatic_t cls;
+void VR_Init();
 
-int main( int argc, char* argv[] ) {
+int VR_main( int argc, char* argv[] ) {
 	// int  oldtime, newtime; // bk001204 - unused
 	int len, i;
 	char  *cmdline;
@@ -1363,9 +1364,11 @@ int main( int argc, char* argv[] ) {
 
 	Com_Init( cmdline );
 	NET_Init();
+	VR_Init();
 
 	Sys_ConsoleInputInit();
 
+	
 //	fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) | FNDELAY );
 
 	while ( 1 )

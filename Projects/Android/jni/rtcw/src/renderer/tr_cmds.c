@@ -499,6 +499,18 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 		return;
 	}
 	cmd->commandId = RC_DRAW_BUFFER;
+
+	{
+		if ( stereoFrame == STEREO_LEFT ) {
+			cmd->buffer = (int)0;
+		} else if ( stereoFrame == STEREO_RIGHT ) {
+			cmd->buffer = (int)1;
+		} else {
+			ri.Error( ERR_FATAL, "RE_BeginFrame: Stereo is enabled, but stereoFrame was %i", stereoFrame );
+		}
+	}
+
+/*
 #ifndef HAVE_GLES
 	if ( glConfig.stereoEnabled ) {
 		if ( stereoFrame == STEREO_LEFT ) {
@@ -521,6 +533,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 		}
 	}
 #endif
+*/
 }
 
 

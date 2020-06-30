@@ -15,13 +15,15 @@ Authors		:	Simon Brown
 
 #include "VrInput.h"
 
-//keys.h
-void Key_Event (int key, qboolean down, unsigned time);
+#include <src/qcommon/qcommon.h>
 
+//keys.h
+void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr );
 void handleTrackedControllerButton(ovrInputStateTrackedRemote * trackedRemoteState, ovrInputStateTrackedRemote * prevTrackedRemoteState, uint32_t button, int key)
 {
     if ((trackedRemoteState->Buttons & button) != (prevTrackedRemoteState->Buttons & button))
     {
+        Sys_QueEvent( 0, SE_KEY, key, (trackedRemoteState->Buttons & button) != 0, 0, NULL );
 //        Key_Event(key, (trackedRemoteState->Buttons & button) != 0, global_time);
     }
 }
@@ -86,7 +88,7 @@ void sendButtonActionSimple(const char* action)
 {
     char command[256];
     snprintf( command, sizeof( command ), "%s\n", action );
-//    Cbuf_AddText( command );
+    Cbuf_AddText( command );
 }
 
 qboolean between(float min, float val, float max)
@@ -102,7 +104,7 @@ void sendButtonAction(const char* action, long buttonDown)
     {
         command[0] = '-';
     }
-//    Cbuf_AddText( command );
+    Cbuf_AddText( command );
 }
 
 void acquireTrackedRemotesData(const ovrMobile *Ovr, double displayTime) {//The amount of yaw changed by controller
@@ -138,5 +140,34 @@ void acquireTrackedRemotesData(const ovrMobile *Ovr, double displayTime) {//The 
                 }
             }
         }
+    }
+}
+
+float initialTouchX, initialTouchY;
+void PortableMouseAbs(float x,float y);
+
+void interactWithTouchScreen(ovrTracking *tracking, ovrInputStateTrackedRemote *newState, ovrInputStateTrackedRemote *oldState) {
+    float remoteAngles[3];
+    vec3_t rotation = {0};
+    QuatToYawPitchRoll(tracking->HeadPose.Pose.Orientation, rotation, remoteAngles);
+    float yaw = remoteAngles[YAW] - playerYaw;
+
+    //Adjust for maximum yaw values
+    if (yaw >= 180.0f) yaw -= 180.0f;
+    if (yaw <= -180.0f) yaw += 180.0f;
+
+    if (yaw > -40.0f && yaw < 40.0f &&
+        remoteAngles[PITCH] > -22.5f && remoteAngles[PITCH] < 22.5f) {
+
+        int newRemoteTrigState = (newState->Buttons & ovrButton_Trigger) != 0;
+        int prevRemoteTrigState = (oldState->Buttons & ovrButton_Trigger) != 0;
+
+        float touchX = (-yaw + 40.0f) / 80.0f;
+        float touchY = (remoteAngles[PITCH] + 22.5f) / 45.0f;
+        if (newRemoteTrigState != prevRemoteTrigState)
+        {
+        }
+
+        PortableMouseAbs(touchX, touchY);
     }
 }

@@ -192,9 +192,9 @@ SERVER_FILES = \
   src/android/android_snd.c \
   src/game/q_shared.c \
   src/game/q_math.c \
-  src/android/android_main.c 
+  src/android/android_main.c \
+  src/android/in_android.c
   # src/android/android-jni.cpp \
-  # src/android/in_android.c \
    
 
 RTCWVR_SRC_FILES :=  ../RTCWVR/RTCWVR_SurfaceView.c \
@@ -212,8 +212,8 @@ LOCAL_LDLIBS := -lGLESv3 -landroid -lEGL -ldl -llog -lOpenSLES -lz -lm
 
 LOCAL_LDLIBS += -fuse-ld=bfd
  
-LOCAL_STATIC_LIBRARIES :=  libjpeg libpng
-LOCAL_SHARED_LIBRARIES :=  vrapi qagamearm gl4es cgamearm 
+# LOCAL_STATIC_LIBRARIES :=  libjpeg libpng
+LOCAL_SHARED_LIBRARIES :=  vrapi gl4es
 
 include $(BUILD_SHARED_LIBRARY)
 

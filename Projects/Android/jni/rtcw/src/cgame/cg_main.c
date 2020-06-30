@@ -301,7 +301,7 @@ cvarTable_t cvarTable[] = {
 	{ &cg_zoomStepSniper, "cg_zoomStepSniper", "2", CVAR_ARCHIVE },
 	{ &cg_zoomStepSnooper, "cg_zoomStepSnooper", "5", CVAR_ARCHIVE },
 	{ &cg_zoomStepFG, "cg_zoomStepFG", "10", CVAR_ARCHIVE },          //----(SA)	added
-	{ &cg_fov, "cg_fov", "90", CVAR_ARCHIVE | CVAR_CHEAT }, // JPW NERVE added cheat protect	NOTE: there is already a dmflag (DF_FIXED_FOV) to allow server control of this cheat
+	{ &cg_fov, "cg_fov", "104", CVAR_ARCHIVE | CVAR_CHEAT }, // JPW NERVE added cheat protect	NOTE: there is already a dmflag (DF_FIXED_FOV) to allow server control of this cheat
 	{ &cg_viewsize, "cg_viewsize", "100", CVAR_ARCHIVE },
 	{ &cg_letterbox, "cg_letterbox", "0", CVAR_TEMP },    //----(SA)	added
 	{ &cg_stereoSeparation, "cg_stereoSeparation", "0.4", CVAR_ARCHIVE  },
@@ -312,13 +312,13 @@ cvarTable_t cvarTable[] = {
 	{ &cg_drawFrags, "cg_drawFrags", "1", CVAR_ARCHIVE },
 	{ &cg_drawStatus, "cg_drawStatus", "1", CVAR_ARCHIVE  },
 	{ &cg_drawTimer, "cg_drawTimer", "0", CVAR_ARCHIVE  },
-	{ &cg_drawFPS, "cg_drawFPS", "0", CVAR_ARCHIVE  },
+	{ &cg_drawFPS, "cg_drawFPS", "1", CVAR_ARCHIVE  },
 	{ &cg_drawSnapshot, "cg_drawSnapshot", "0", CVAR_ARCHIVE  },
 	{ &cg_draw3dIcons, "cg_draw3dIcons", "1", CVAR_ARCHIVE  },
 	{ &cg_drawIcons, "cg_drawIcons", "1", CVAR_ARCHIVE  },
 	{ &cg_drawAmmoWarning, "cg_drawAmmoWarning", "1", CVAR_ARCHIVE  },
 	{ &cg_drawAttacker, "cg_drawAttacker", "1", CVAR_ARCHIVE  },
-	{ &cg_drawCrosshair, "cg_drawCrosshair", "4", CVAR_ARCHIVE },
+	{ &cg_drawCrosshair, "cg_drawCrosshair", "0", CVAR_ARCHIVE },
 	{ &cg_drawCrosshairNames, "cg_drawCrosshairNames", "1", CVAR_ARCHIVE },
 	{ &cg_drawCrosshairPickups, "cg_drawCrosshairPickups", "1", CVAR_ARCHIVE },
 	{ &cg_drawRewards, "cg_drawRewards", "1", CVAR_ARCHIVE },
@@ -343,11 +343,11 @@ cvarTable_t cvarTable[] = {
 	{ &cg_gun_y, "cg_gunY", "0", CVAR_CHEAT },
 	{ &cg_gun_z, "cg_gunZ", "0", CVAR_CHEAT },
 	{ &cg_centertime, "cg_centertime", "3", CVAR_CHEAT },
-	{ &cg_runpitch, "cg_runpitch", "0.002", CVAR_ARCHIVE},
-	{ &cg_runroll, "cg_runroll", "0.005", CVAR_ARCHIVE },
-	{ &cg_bobup, "cg_bobup", "0.005", CVAR_ARCHIVE },
-	{ &cg_bobpitch, "cg_bobpitch", "0.002", CVAR_ARCHIVE },
-	{ &cg_bobroll, "cg_bobroll", "0.002", CVAR_ARCHIVE },
+	{ &cg_runpitch, "cg_runpitch", "0.0", CVAR_ARCHIVE},
+	{ &cg_runroll, "cg_runroll", "0.0", CVAR_ARCHIVE },
+	{ &cg_bobup, "cg_bobup", "0.0", CVAR_ARCHIVE },
+	{ &cg_bobpitch, "cg_bobpitch", "0.0", CVAR_ARCHIVE },
+	{ &cg_bobroll, "cg_bobroll", "0.0", CVAR_ARCHIVE },
 
 	// JOSEPH 10-27-99
 	{ &cg_autoactivate, "cg_autoactivate", "1", CVAR_ARCHIVE },

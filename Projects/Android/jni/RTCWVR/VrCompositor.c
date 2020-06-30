@@ -456,64 +456,6 @@ ovrRenderer
 ================================================================================
 */
 
-ovrLayerProjection2 ovrRenderer_RenderGroundPlaneToEyeBuffer( ovrRenderer * renderer, const ovrJava * java,
-	const ovrScene * scene, const ovrTracking2 * tracking )
-{
-	ovrLayerProjection2 layer = vrapi_DefaultLayerProjection2();
-	layer.HeadPose = tracking->HeadPose;
-	for ( int eye = 0; eye < VRAPI_FRAME_LAYER_EYE_MAX; eye++ )
-	{
-		ovrFramebuffer * frameBuffer = &renderer->FrameBuffer[eye];
-		layer.Textures[eye].ColorSwapChain = frameBuffer->ColorTextureSwapChain;
-		layer.Textures[eye].SwapChainIndex = frameBuffer->TextureSwapChainIndex;
-		layer.Textures[eye].TexCoordsFromTanAngles = ovrMatrix4f_TanAngleMatrixFromProjection( &tracking->Eye[eye].ProjectionMatrix );
-	}
-	layer.Header.Flags |= VRAPI_FRAME_LAYER_FLAG_CHROMATIC_ABERRATION_CORRECTION;
-
-	for ( int eye = 0; eye < VRAPI_FRAME_LAYER_EYE_MAX; eye++ )
-	{
-		ovrFramebuffer * frameBuffer = &renderer->FrameBuffer[eye];
-		ovrFramebuffer_SetCurrent( frameBuffer );
-
-		renderState state;
-		getCurrentRenderState(&state);
-
-        GL( glUseProgram( scene->Program.Program ) );
-
-		ovrMatrix4f viewProjMatrix = ovrMatrix4f_Multiply( &tracking->Eye[eye].ProjectionMatrix, &tracking->Eye[eye].ViewMatrix );
-		glUniformMatrix4fv(	scene->Program.UniformLocation[UNIFORM_VIEW_PROJ_MATRIX], 1, GL_TRUE, &viewProjMatrix.M[0][0] );
-
-		GL( glEnable( GL_SCISSOR_TEST ) );
-		GL( glDepthMask( GL_TRUE ) );
-		GL( glEnable( GL_DEPTH_TEST ) );
-		GL( glDepthFunc( GL_LEQUAL ) );
-		GL( glEnable( GL_CULL_FACE ) );
-		GL( glCullFace( GL_BACK ) );
-		GL( glViewport( 0, 0, frameBuffer->Width, frameBuffer->Height ) );
-		GL( glScissor( 0, 0, frameBuffer->Width, frameBuffer->Height ) );
-		GL( glClearColor( 0.0f, 0.0f, 0.0f, 1.0f ) );
-		GL( glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
-
-		//bind buffers
-		GL( glBindBuffer( GL_ARRAY_BUFFER, scene->GroundPlane.VertexBuffer ) );
-		GL( glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, scene->GroundPlane.IndexBuffer ) );
-		GL( glBindVertexArray( scene->GroundPlane.VertexArrayObject ) );
-
-		GL( glDrawElements( GL_TRIANGLES, scene->GroundPlane.IndexCount, GL_UNSIGNED_SHORT, NULL ) );
-
-		restoreRenderState(&state);
-
-		// Explicitly clear the border texels to black when GL_CLAMP_TO_BORDER is not available.
-		ovrFramebuffer_ClearEdgeTexels( frameBuffer );
-
-		ovrFramebuffer_Resolve( frameBuffer );
-		ovrFramebuffer_Advance( frameBuffer );
-	}
-
-	ovrFramebuffer_SetNone();
-
-	return layer;
-}
 
 // Assumes landscape cylinder shape.
 static ovrMatrix4f CylinderModelMatrix( const int texWidth, const int texHeight,
@@ -572,7 +514,7 @@ ovrLayerCylinder2 BuildCylinderLayer( ovrRenderer * cylinderRenderer,
 		ovrMatrix4f modelViewMatrix = ovrMatrix4f_Multiply( &tracking->Eye[eye].ViewMatrix, &cylinderTransform );
 		layer.Textures[eye].TexCoordsFromTanAngles = ovrMatrix4f_Inverse( &modelViewMatrix );
 		layer.Textures[eye].ColorSwapChain = cylinderFrameBuffer->ColorTextureSwapChain;
-		layer.Textures[eye].SwapChainIndex = cylinderFrameBuffer->TextureSwapChainIndex;
+		layer.Textures[eye].SwapChainIndex = cylinderFrameBuffer->ReadyTextureSwapChainIndex;
 
 		// Texcoord scale and bias is just a representation of the aspect ratio. The positioning
 		// of the cylinder is handled entirely by the TexCoordsFromTanAngles matrix.

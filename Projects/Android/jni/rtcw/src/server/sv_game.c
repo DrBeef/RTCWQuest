@@ -311,11 +311,11 @@ The module is making a system call
 ====================
 */
 //rcg010207 - see my comments in VM_DllSyscall(), in qcommon/vm.c ...
-#if ( ( defined __linux__ ) && ( defined __powerpc__ ) )
+//#if ( ( defined __linux__ ) && ( defined __powerpc__ ) )
 #define VMA( x ) ( (void *) args[x] )
-#else
-#define VMA( x ) VM_ArgPtr( args[x] )
-#endif
+//#else
+//#define VMA( x ) VM_ArgPtr( args[x] )
+//#endif
 
 #define VMF( x )  ( (float *)args )[x]
 

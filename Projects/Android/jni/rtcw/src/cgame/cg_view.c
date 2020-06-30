@@ -803,7 +803,7 @@ Fixed fov at intermissions, otherwise account for fov variable and zooms.
 #define WAVE_FREQUENCY  0.4
 
 static int CG_CalcFov( void ) {
-	static float lastfov = 90;      // for transitions back from zoomed in modes
+	static float lastfov = 104;      // for transitions back from zoomed in modes
 	float x;
 	float phase;
 	float v;

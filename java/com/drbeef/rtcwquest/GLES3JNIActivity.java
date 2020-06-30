@@ -71,6 +71,10 @@ import static android.system.Os.setenv;
 		mAudioRecord = null;
 	}
 
+	public void shutdown() {
+		System.exit(0);
+	}
+
 	@Override protected void onCreate( Bundle icicle )
 	{
 		Log.v( TAG, "----------------------------------------------------------------" );
@@ -249,7 +253,7 @@ import static android.system.Os.setenv;
 		Log.v( TAG, "GLES3JNIActivity::onStart()" );
 		super.onStart();
 
-		GLES3JNILib.onStart( mNativeHandle );
+		GLES3JNILib.onStart( mNativeHandle, this );
 	}
 
 	@Override protected void onResume()

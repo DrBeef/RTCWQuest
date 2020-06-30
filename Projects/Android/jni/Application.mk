@@ -16,7 +16,7 @@ GL4ES_PATH		:= $(SUPPORT_LIBS)/gl4es
 
 APP_ALLOW_MISSING_DEPS=true
 
-APP_MODULES := gl4es qagamearm rtcw_client uiarm cgamearm
+APP_MODULES := gl4es qagamearm uiarm cgamearm rtcw_client
 APP_STL := c++_shared
 
 

@@ -18,9 +18,9 @@ Authors		:	Simon Brown
 
 #include "../rtcw/src/client/client.h"
 
-extern cvar_t	*cl_forwardspeed;
 cvar_t	*sv_cheats;
 extern cvar_t	*vr_weapon_stabilised;
+
 
 
 void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew, ovrInputStateTrackedRemote *pDominantTrackedRemoteOld, ovrTracking* pDominantTracking,
@@ -38,46 +38,18 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 	static float dominantGripPushTime = 0.0f;
     static qboolean inventoryManagementMode = false;
 
-    //Show screen view (if in multiplayer toggle scoreboard)
-    if (((pOffTrackedRemoteNew->Buttons & offButton2) !=
-         (pOffTrackedRemoteOld->Buttons & offButton2)) &&
-			(pOffTrackedRemoteNew->Buttons & offButton2)) {
-
-		showingScreenLayer = !showingScreenLayer;
-
-        //Check we are in multiplayer
-        if (isMultiplayer()) {
-            sendButtonActionSimple("score");
-        }
-    }
-
 	//Menu button
 	handleTrackedControllerButton(&leftTrackedRemoteState_new, &leftTrackedRemoteState_old, ovrButton_Enter, K_ESCAPE);
 
-/*    if (cls.key_dest == key_menu)
+    if ( Key_GetCatcher( ) & KEYCATCH_UI )
     {
-        int leftJoyState = (pOffTrackedRemoteNew->Joystick.x > 0.7f ? 1 : 0);
-        if (leftJoyState != (pOffTrackedRemoteOld->Joystick.x > 0.7f ? 1 : 0)) {
-            Key_Event(K_RIGHTARROW, leftJoyState, global_time);
-        }
-        leftJoyState = (pOffTrackedRemoteNew->Joystick.x < -0.7f ? 1 : 0);
-        if (leftJoyState != (pOffTrackedRemoteOld->Joystick.x < -0.7f ? 1 : 0)) {
-            Key_Event(K_LEFTARROW, leftJoyState, global_time);
-        }
-        leftJoyState = (pOffTrackedRemoteNew->Joystick.y < -0.7f ? 1 : 0);
-        if (leftJoyState != (pOffTrackedRemoteOld->Joystick.y < -0.7f ? 1 : 0)) {
-            Key_Event(K_DOWNARROW, leftJoyState, global_time);
-        }
-        leftJoyState = (pOffTrackedRemoteNew->Joystick.y > 0.7f ? 1 : 0);
-        if (leftJoyState != (pOffTrackedRemoteOld->Joystick.y > 0.7f ? 1 : 0)) {
-            Key_Event(K_UPARROW, leftJoyState, global_time);
-        }
+        interactWithTouchScreen(pDominantTracking, pDominantTrackedRemoteNew, pDominantTrackedRemoteOld);
 
-        handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton1, K_ENTER);
-        handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, ovrButton_Trigger, K_ENTER);
+        handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton1, K_MOUSE1);
+        handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, ovrButton_Trigger, K_MOUSE1);
         handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton2, K_ESCAPE);
     }
-    else */
+    else
     {
         float distance = sqrtf(powf(pOffTracking->HeadPose.Pose.Position.x - pDominantTracking->HeadPose.Pose.Position.x, 2) +
                                powf(pOffTracking->HeadPose.Pose.Position.y - pDominantTracking->HeadPose.Pose.Position.y, 2) +
@@ -91,12 +63,12 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             {
                 if (distance < 0.50f)
                 {
-//                    Cvar_ForceSet("vr_weapon_stabilised", "1.0");
+                    Cvar_Set("vr_weapon_stabilised", "1.0");
                 }
             }
             else
             {
-//                Cvar_ForceSet("vr_weapon_stabilised", "0.0");
+                Cvar_Set("vr_weapon_stabilised", "0.0");
             }
         }
 
@@ -116,7 +88,9 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             //Set gun angles - We need to calculate all those we might need (including adjustments) for the client to then take its pick
             const ovrQuatf quatRemote = pDominantTracking->HeadPose.Pose.Orientation;
-            QuatToYawPitchRoll(quatRemote, vr_weapon_pitchadjust->value, weaponangles);
+            vec3_t rotation = {0};
+            rotation[PITCH] = vr_weapon_pitchadjust->value;
+            QuatToYawPitchRoll(quatRemote, rotation, weaponangles);
             weaponangles[YAW] += (cl.viewangles[YAW] - hmdorientation[YAW]);
             weaponangles[ROLL] *= -1.0f;
 
@@ -153,7 +127,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 			flashlightoffset[0] = v[0];
 			flashlightoffset[2] = v[1];
 
-            QuatToYawPitchRoll(pOffTracking->HeadPose.Pose.Orientation, 15.0f, flashlightangles);
+            vec3_t rotation = {0};
+            QuatToYawPitchRoll(pOffTracking->HeadPose.Pose.Orientation, rotation, flashlightangles);
 
             flashlightangles[YAW] += (cl.viewangles[YAW] - hmdorientation[YAW]);
 
@@ -175,8 +150,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             //This section corrects for the fact that the controller actually controls direction of movement, but we want to move relative to the direction the
             //player is facing for positional tracking
-            float multiplier = (vr_positional_factor->value) / (cl_forwardspeed->value *
-					((pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) ? 1.5f : 1.0f));
+            float multiplier = 1.0;//(vr_positional_factor->value) /
+					//((pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) ? 1.5f : 1.0f);
 
             vec2_t v;
             rotateAboutOrigin(-positionDeltaThisFrame[0] * multiplier,
@@ -197,8 +172,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             static bool firingPrimary = false;
 
 			{
-				//Fire Primary
-				if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
+			    if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
 					(pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
 
 					firingPrimary = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
@@ -210,7 +184,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                     }
                     else
                     {
-                        sendButtonAction("+attack", firingPrimary);
+                        sendButtonAction("+attack", firingPrimary ? 1 : 0);
                     }
 				}
 			}

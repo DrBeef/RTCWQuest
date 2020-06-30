@@ -532,6 +532,15 @@ This is called every frame, and can also be called explicitly to flush
 text to the screen.
 ==================
 */
+
+void RTCWVR_FrameSetup();
+void RTCWVR_finishEyeBuffer(int eye );
+void RTCWVR_setUseScreenLayer(qboolean use);
+void RTCWVR_processHaptics();
+void RTCWVR_getHMDOrientation();
+qboolean RTCWVR_processMessageQueue();
+void RTCWVR_getTrackedRemotesOrientation();
+
 void SCR_UpdateScreen( void ) {
 	static int recursive;
 
@@ -543,6 +552,32 @@ void SCR_UpdateScreen( void ) {
 		Com_Error( ERR_FATAL, "SCR_UpdateScreen: recursively called" );
 	}
 	recursive = 1;
+
+	RTCWVR_FrameSetup();
+
+	RTCWVR_processMessageQueue();
+
+/*	if (gamestate == GS_LEVEL && !getMenuState()) {
+		RTCWVR_setUseScreenLayer(false);
+	}
+	else {
+		//Ensure we are drawing on virtual screen
+		RTCWVR_setUseScreenLayer(true);
+	}*/
+
+	//Get controller state here
+	RTCWVR_getHMDOrientation();
+	RTCWVR_getTrackedRemotesOrientation();
+
+	RTCWVR_processHaptics();
+
+	//Draw twice for Quest
+	SCR_DrawScreenField( STEREO_LEFT );
+	RTCWVR_finishEyeBuffer(0);
+	SCR_DrawScreenField( STEREO_RIGHT );
+	RTCWVR_finishEyeBuffer(1);
+
+/*
 #ifndef HAVE_GLES
 	// if running in stereo, we need to draw the frame twice
 	if ( cls.glconfig.stereoEnabled ) {
@@ -552,7 +587,7 @@ void SCR_UpdateScreen( void ) {
 #endif
 	{
 		SCR_DrawScreenField( STEREO_CENTER );
-	}
+	}*/
 
 	if ( com_speeds->integer ) {
 		re.EndFrame( &time_frontend, &time_backend );

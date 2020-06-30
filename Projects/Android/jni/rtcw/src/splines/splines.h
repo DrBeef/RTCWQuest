@@ -728,7 +728,7 @@ public:
 idCameraFOV() {
 	time = 0;
 	length = 0;
-	fov = 90;
+	fov = 104;
 }
 
 idCameraFOV( int v ) {
@@ -882,7 +882,7 @@ void clear() {
 	baseTime = 30;
 	activeTarget = 0;
 	name = "camera01";
-	fov.setFOV( 90 );
+	fov.setFOV( 104 );
 	int i;
 	for ( i = 0; i < targetPositions.Num(); i++ ) {
 		delete targetPositions[i];
