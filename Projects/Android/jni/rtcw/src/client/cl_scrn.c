@@ -540,6 +540,7 @@ void RTCWVR_processHaptics();
 void RTCWVR_getHMDOrientation();
 qboolean RTCWVR_processMessageQueue();
 void RTCWVR_getTrackedRemotesOrientation();
+void GPUWaitSync();
 
 void SCR_UpdateScreen( void ) {
 	static int recursive;
@@ -570,6 +571,8 @@ void SCR_UpdateScreen( void ) {
 	RTCWVR_getTrackedRemotesOrientation();
 
 	RTCWVR_processHaptics();
+
+	GPUWaitSync();
 
 	//Draw twice for Quest
 	SCR_DrawScreenField( STEREO_LEFT );

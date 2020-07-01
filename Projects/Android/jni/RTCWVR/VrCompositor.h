@@ -178,9 +178,6 @@ ovrScene
 typedef struct
 {
 	bool				CreatedScene;
-	bool				CreatedVAOs;
-	ovrProgram			Program;
-	ovrGeometry			GroundPlane;
 
 	//Proper renderer for stereo rendering to the cylinder layer
 	ovrRenderer 		CylinderRenderer;
@@ -189,11 +186,8 @@ typedef struct
 	int					CylinderHeight;
 } ovrScene;
 
-bool ovrScene_IsCreated( ovrScene * scene );
 void ovrScene_Clear( ovrScene * scene );
 void ovrScene_Create( int width, int height, ovrScene * scene, const ovrJava * java );
-void ovrScene_CreateVAOs( ovrScene * scene );
-void ovrScene_DestroyVAOs( ovrScene * scene );
 void ovrScene_Destroy( ovrScene * scene );
 
 /*

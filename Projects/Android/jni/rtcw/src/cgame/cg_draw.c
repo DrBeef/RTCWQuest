@@ -3535,7 +3535,7 @@ CG_DrawActive
 Perform all drawing needed to completely fill the screen
 =====================
 */
-void CG_DrawActive( stereoFrame_t stereoView ) {
+void CG_DrawActive( int stereoView ) {
 	float separation;
 	vec3_t baseOrg;
 
@@ -3561,21 +3561,12 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		return;
 	}
 
-	switch ( stereoView ) {
-	case STEREO_CENTER:
-		separation = 0;
-		break;
-	case STEREO_LEFT:
-		separation = -cg_stereoSeparation.value / 2;
-		break;
-	case STEREO_RIGHT:
-		separation = cg_stereoSeparation.value / 2;
-		break;
-	default:
-		separation = 0;
-		CG_Error( "CG_DrawActive: Undefined stereoView" );
-	}
+	separation = stereoView == 1 ?
+                 cg_worldScale.value * (-cg_stereoSeparation.value / 2) : //left
+                 cg_worldScale.value * (cg_stereoSeparation.value / 2); // right
 
+
+    cg.refdef.worldscale = cg_worldScale.value;
 
 	// clear around the rendered view if sized down
 //	CG_TileClear();	// (SA) moved down
@@ -3585,6 +3576,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	if ( separation != 0 ) {
 		VectorMA( cg.refdef.vieworg, -separation, cg.refdef.viewaxis[1], cg.refdef.vieworg );
 	}
+
+
+	cg.refdef.vieworg[2] -= cg.predictedPlayerState.viewheight;
+
 
 	cg.refdef.glfog.registered = 0; // make sure it doesn't use fog from another scene
 /*

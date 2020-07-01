@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 
+#include <src/client/client.h>
 #include "tr_local.h"
 
 int r_firstSceneDrawSurf;
@@ -405,6 +406,8 @@ Rendering a scene may require multiple views to be rendered
 to handle mirrors,
 @@@@@@@@@@@@@@@@@@@@@
 */
+extern vec3_t hmdPosition;
+extern cvar_t *vr_worldscale;
 void RE_RenderScene( const refdef_t *fd ) {
 	viewParms_t parms;
 	int startTime;
@@ -524,6 +527,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	parms.fovY = tr.refdef.fov_y;
 
 	VectorCopy( fd->vieworg, parms.or.origin );
+	//AnglesToAxis( cl.viewangles, parms.or.axis ); // Just use our known client view angles
 	VectorCopy( fd->viewaxis[0], parms.or.axis[0] );
 	VectorCopy( fd->viewaxis[1], parms.or.axis[1] );
 	VectorCopy( fd->viewaxis[2], parms.or.axis[2] );

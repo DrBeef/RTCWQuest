@@ -68,7 +68,7 @@ void interactWithTouchScreen(ovrTracking *tracking, ovrInputStateTrackedRemote *
 
 //Called from engine code
 qboolean RTCWVR_useScreenLayer();
-void RTCWVR_GetScreenRes(uint32_t *width, uint32_t *height);
+void RTCWVR_GetScreenRes(int *width, int *height);
 void RTCWVR_Vibrate(float duration, int channel, float intensity );
 qboolean RTCWVR_processMessageQueue();
 void RTCWVR_FrameSetup();
@@ -82,5 +82,8 @@ void RTCWVR_incrementFrameIndex();
 void RTCWVR_prepareEyeBuffer(int eye );
 void RTCWVR_finishEyeBuffer(int eye );
 void RTCWVR_submitFrame();
+
+void GPUDropSync();
+void GPUWaitSync();
 
 #endif //vrcommon_h

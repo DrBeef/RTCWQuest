@@ -156,18 +156,14 @@ void interactWithTouchScreen(ovrTracking *tracking, ovrInputStateTrackedRemote *
     if (yaw >= 180.0f) yaw -= 180.0f;
     if (yaw <= -180.0f) yaw += 180.0f;
 
-    if (yaw > -40.0f && yaw < 40.0f &&
-        remoteAngles[PITCH] > -22.5f && remoteAngles[PITCH] < 22.5f) {
+    if (yaw > -45.0f && yaw < 45.0f &&
+        remoteAngles[PITCH] > -15.0f && remoteAngles[PITCH] < 75.0f) {
 
         int newRemoteTrigState = (newState->Buttons & ovrButton_Trigger) != 0;
         int prevRemoteTrigState = (oldState->Buttons & ovrButton_Trigger) != 0;
 
-        float touchX = (-yaw + 40.0f) / 80.0f;
-        float touchY = (remoteAngles[PITCH] + 22.5f) / 45.0f;
-        if (newRemoteTrigState != prevRemoteTrigState)
-        {
-        }
-
+        float touchX = (-yaw + 45.0f) / 90.0f;
+        float touchY = (remoteAngles[PITCH] + 15.0f) / 90.0f;
         PortableMouseAbs(touchX, touchY);
     }
 }

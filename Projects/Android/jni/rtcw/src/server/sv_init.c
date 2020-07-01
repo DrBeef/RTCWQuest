@@ -919,7 +919,7 @@ void SV_Init( void ) {
 	// systeminfo
 #ifdef PANDORA
 // allow easy cheating by aving sv_cheats R/W
-	Cvar_Get( "sv_cheats", "0", CVAR_SYSTEMINFO );
+	Cvar_Get( "sv_cheats", "1", CVAR_SYSTEMINFO );
 #else
 	Cvar_Get( "sv_cheats", "0", CVAR_SYSTEMINFO | CVAR_ROM );
 #endif

@@ -185,6 +185,7 @@ vmCvar_t cg_thirdPerson;
 vmCvar_t cg_thirdPersonRange;
 vmCvar_t cg_thirdPersonAngle;
 vmCvar_t cg_stereoSeparation;
+vmCvar_t cg_worldScale;
 vmCvar_t cg_lagometer;
 vmCvar_t cg_drawAttacker;
 vmCvar_t cg_synchronousClients;
@@ -301,10 +302,11 @@ cvarTable_t cvarTable[] = {
 	{ &cg_zoomStepSniper, "cg_zoomStepSniper", "2", CVAR_ARCHIVE },
 	{ &cg_zoomStepSnooper, "cg_zoomStepSnooper", "5", CVAR_ARCHIVE },
 	{ &cg_zoomStepFG, "cg_zoomStepFG", "10", CVAR_ARCHIVE },          //----(SA)	added
-	{ &cg_fov, "cg_fov", "104", CVAR_ARCHIVE | CVAR_CHEAT }, // JPW NERVE added cheat protect	NOTE: there is already a dmflag (DF_FIXED_FOV) to allow server control of this cheat
+	{ &cg_fov, "cg_fov", "104", CVAR_ARCHIVE }, // JPW NERVE added cheat protect	NOTE: there is already a dmflag (DF_FIXED_FOV) to allow server control of this cheat
 	{ &cg_viewsize, "cg_viewsize", "100", CVAR_ARCHIVE },
 	{ &cg_letterbox, "cg_letterbox", "0", CVAR_TEMP },    //----(SA)	added
-	{ &cg_stereoSeparation, "cg_stereoSeparation", "0.4", CVAR_ARCHIVE  },
+	{ &cg_stereoSeparation, "cg_stereoSeparation", "0.065", CVAR_ARCHIVE  },
+	{ &cg_worldScale, "cg_worldScale", "35.0", CVAR_ARCHIVE  },
 	{ &cg_shadows, "cg_shadows", "1", CVAR_ARCHIVE  },
 	{ &cg_gibs, "cg_gibs", "1", CVAR_ARCHIVE  },
 	{ &cg_draw2D, "cg_draw2D", "1", CVAR_ARCHIVE  },
@@ -334,7 +336,7 @@ cvarTable_t cvarTable[] = {
 	{ &cg_crosshairY, "cg_crosshairY", "0", CVAR_ARCHIVE },
 	{ &cg_brassTime, "cg_brassTime", "1250", CVAR_ARCHIVE },
 	{ &cg_simpleItems, "cg_simpleItems", "0", CVAR_ARCHIVE },
-	{ &cg_reticles, "cg_reticles", "1", CVAR_CHEAT },
+	{ &cg_reticles, "cg_reticles", "0", CVAR_CHEAT },
 	{ &cg_reticleBrightness, "cg_reticleBrightness", "0.7", CVAR_ARCHIVE },
 	{ &cg_markTime, "cg_marktime", "20000", CVAR_ARCHIVE },
 	{ &cg_lagometer, "cg_lagometer", "1", CVAR_ARCHIVE },

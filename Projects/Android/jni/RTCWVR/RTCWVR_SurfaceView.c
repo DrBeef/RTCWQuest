@@ -80,8 +80,6 @@ int GPU_LEVEL			= 4;
 int NUM_MULTI_SAMPLES	= 1;
 float SS_MULTIPLIER    = 1.25f;
 
-vec2_t cylinderSize = {1280, 720};
-
 jclass clazz;
 
 float radians(float deg) {
@@ -133,12 +131,15 @@ LAMBDA1VR Stuff
 ================================================================================
 */
 
-void Qcommon_Init (int argc, char **argv);
-
 qboolean RTCWVR_useScreenLayer()
 {
 	//TODO
-	return qtrue;//(showingScreenLayer || (cls.state != ca_connected && cls.state != ca_active) || cls.key_dest != key_game) || cl.cinematictime != 0;
+	return (qboolean)(showingScreenLayer ||
+            (cls.state == CA_CINEMATIC) ||
+            (cls.state == CA_LOADING) ||
+            (clc.demoplaying) ||
+            ( Key_GetCatcher( ) & KEYCATCH_UI ) ||
+            ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ));
 }
 
 int runStatus = -1;
@@ -582,6 +583,32 @@ void ovrFramebuffer_SetNone()
 	GL( gles_glBindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 ) );
 }
 
+GLsync syncBuff = NULL;
+
+void GPUDropSync()
+{
+	if (syncBuff != NULL)
+	{
+		glDeleteSync(syncBuff);
+	}
+
+	syncBuff = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+}
+
+void GPUWaitSync()
+{
+	if( syncBuff )
+	{
+		GLenum status = glClientWaitSync(syncBuff, GL_SYNC_FLUSH_COMMANDS_BIT, 1000 * 1000 * 50); // Wait for a max of 50ms...
+		if (status != GL_ALREADY_SIGNALED && status != GL_CONDITION_SATISFIED)
+		{
+			LOGE("Error on glClientWaitSync: %d\n", status);
+		}
+		glDeleteSync(syncBuff);
+		syncBuff = NULL;
+	}
+}
+
 void ovrFramebuffer_Resolve( ovrFramebuffer * frameBuffer )
 {
 	// Discard the depth buffer, so the tiler won't need to write it back out to memory.
@@ -590,6 +617,8 @@ void ovrFramebuffer_Resolve( ovrFramebuffer * frameBuffer )
 
     // Flush this frame worth of commands.
     glFlush();
+
+	GPUDropSync();
 }
 
 void ovrFramebuffer_Advance( ovrFramebuffer * frameBuffer )
@@ -854,7 +883,7 @@ qboolean isMultiplayer()
 
 /*
 ========================
-Android_Vibrate
+RTCWVR_Vibrate
 ========================
 */
 
@@ -862,7 +891,7 @@ Android_Vibrate
 float vibration_channel_duration[2] = {0.0f, 0.0f};
 float vibration_channel_intensity[2] = {0.0f, 0.0f};
 
-void Android_Vibrate( float duration, int channel, float intensity )
+void RTCWVR_Vibrate( float duration, int channel, float intensity )
 {
 	if (vibration_channel_duration[channel] > 0.0f)
 		return;
@@ -1254,16 +1283,10 @@ int m_height;
 
 qboolean R_SetMode( void );
 
-void Android_GetScreenRes(int *width, int *height)
+void RTCWVR_GetScreenRes(int *width, int *height)
 {
-    if (RTCWVR_useScreenLayer())
-    {
-        *width = cylinderSize[0];
-        *height = cylinderSize[1];
-    } else {
-        *width = m_width;
-        *height = m_height;
-    }
+    *width = m_width;
+    *height = m_height;
 }
 
 void Android_MessageBox(const char *title, const char *text)
@@ -1277,7 +1300,7 @@ void VR_Init()
 {
 	//Initialise all our variables
 	playerYaw = 0.0f;
-	showingScreenLayer = qtrue;
+	showingScreenLayer = qfalse;
 	remote_movementSideways = 0.0f;
 	remote_movementForward = 0.0f;
 	remote_movementUp = 0.0f;
@@ -1291,7 +1314,8 @@ void VR_Init()
 
 	//Create Cvars
 	vr_snapturn_angle = Cvar_Get( "vr_snapturn_angle", "45", CVAR_ARCHIVE);
-	vr_positional_factor = Cvar_Get( "vr_positional_factor", "2000", CVAR_ARCHIVE);
+	vr_reloadtimeoutms = Cvar_Get( "vr_reloadtimeoutms", "200", CVAR_ARCHIVE);
+	vr_positional_factor = Cvar_Get( "vr_positional_factor", "10", CVAR_ARCHIVE);
     vr_walkdirection = Cvar_Get( "vr_walkdirection", "0", CVAR_ARCHIVE);
 	vr_weapon_pitchadjust = Cvar_Get( "vr_weapon_pitchadjust", "-20.0", CVAR_ARCHIVE);
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
@@ -1300,13 +1324,6 @@ void VR_Init()
     vr_weapon_stabilised = Cvar_Get( "vr_weapon_stabilised", "0.0", CVAR_LATCH);
 	vr_lasersight = Cvar_Get( "vr_lasersight", "0", CVAR_LATCH);
     vr_comfort_mask = Cvar_Get( "vr_comfort_mask", "0.0", CVAR_ARCHIVE);
-
-    //The Engine (which is a derivative of Quake) uses a very specific unit size:
-    //Wolfenstein 3D, DOOM and QUAKE use the same coordinate/unit system:
-    //8 foot (96 inch) height wall == 64 units, 1.5 inches per pixel unit
-    //1.0 pixel unit / 1.5 inch == 0.666666 pixel units per inch
-    //This make a world scale of: 26.2467
-	vr_worldscale = Cvar_Get( "vr_worldscale", "26.2467", CVAR_ARCHIVE);
 }
 
 

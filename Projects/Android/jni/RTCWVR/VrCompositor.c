@@ -62,321 +62,6 @@ void restoreRenderState( renderState * state )
 /*
 ================================================================================
 
-ovrGeometry
-
-================================================================================
-*/
-
-enum VertexAttributeLocation
-{
-	VERTEX_ATTRIBUTE_LOCATION_POSITION,
-	VERTEX_ATTRIBUTE_LOCATION_COLOR,
-	VERTEX_ATTRIBUTE_LOCATION_UV,
-};
-
-typedef struct
-{
-	enum VertexAttributeLocation location;
-	const char *			name;
-} ovrVertexAttribute;
-
-static ovrVertexAttribute ProgramVertexAttributes[] =
-{
-	{ VERTEX_ATTRIBUTE_LOCATION_POSITION,	"vertexPosition" },
-	{ VERTEX_ATTRIBUTE_LOCATION_COLOR,		"vertexColor" },
-	{ VERTEX_ATTRIBUTE_LOCATION_UV,			"vertexUv" },
-};
-
-static void ovrGeometry_Clear( ovrGeometry * geometry )
-{
-	geometry->VertexBuffer = 0;
-	geometry->IndexBuffer = 0;
-	geometry->VertexArrayObject = 0;
-	geometry->VertexCount = 0;
-	geometry->IndexCount = 0;
-	for ( int i = 0; i < MAX_VERTEX_ATTRIB_POINTERS; i++ )
-	{
-		memset( &geometry->VertexAttribs[i], 0, sizeof( geometry->VertexAttribs[i] ) );
-		geometry->VertexAttribs[i].Index = -1;
-	}
-}
-
-static void ovrGeometry_CreateGroundPlane( ovrGeometry * geometry )
-{
-	typedef struct
-	{
-		float positions[4][4];
-		unsigned char colors[4][4];
-	} ovrCubeVertices;
-
-	static const ovrCubeVertices cubeVertices =
-	{
-		// positions
-		{
-			{  4.5f, -1.2f,  4.5f, 1.0f },
-			{  4.5f, -1.2f, -4.5f, 1.0f },
-			{ -4.5f, -1.2f, -4.5f, 1.0f },
-			{ -4.5f, -1.2f,  4.5f, 1.0f }
-		},
-		// colors
-		{
-			{ 255,   0,   0, 255 },
-			{   0, 255,   0, 255 },
-			{   0,   0, 255, 255 },
-			{ 255, 255,   0, 255 },
-		},
-	};
-
-	static const unsigned short cubeIndices[6] =
-	{
-		0, 1, 2,
-		0, 2, 3,
-	};
-
-	geometry->VertexCount = 4;
-	geometry->IndexCount = 6;
-
-	geometry->VertexAttribs[0].Index = VERTEX_ATTRIBUTE_LOCATION_POSITION;
-	geometry->VertexAttribs[0].Size = 4;
-	geometry->VertexAttribs[0].Type = GL_FLOAT;
-	geometry->VertexAttribs[0].Normalized = false;
-	geometry->VertexAttribs[0].Stride = sizeof( cubeVertices.positions[0] );
- 	geometry->VertexAttribs[0].Pointer = (const GLvoid *)offsetof( ovrCubeVertices, positions );
-
-	geometry->VertexAttribs[1].Index = VERTEX_ATTRIBUTE_LOCATION_COLOR;
-	geometry->VertexAttribs[1].Size = 4;
-	geometry->VertexAttribs[1].Type = GL_UNSIGNED_BYTE;
-	geometry->VertexAttribs[1].Normalized = true;
-	geometry->VertexAttribs[1].Stride = sizeof( cubeVertices.colors[0] );
- 	geometry->VertexAttribs[1].Pointer = (const GLvoid *)offsetof( ovrCubeVertices, colors );
-
-	renderState state;
-	getCurrentRenderState(&state);
-
-	GL( glGenBuffers( 1, &geometry->VertexBuffer ) );
-	GL( glBindBuffer( GL_ARRAY_BUFFER, geometry->VertexBuffer ) );
-	GL( glBufferData( GL_ARRAY_BUFFER, sizeof( cubeVertices ), &cubeVertices, GL_STATIC_DRAW ) );
-
-	GL( glGenBuffers( 1, &geometry->IndexBuffer ) );
-	GL( glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, geometry->IndexBuffer ) );
-	GL( glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( cubeIndices ), cubeIndices, GL_STATIC_DRAW ) );
-
-	restoreRenderState(&state);
-}
-
-static void ovrGeometry_Destroy( ovrGeometry * geometry )
-{
-	GL( glDeleteBuffers( 1, &geometry->IndexBuffer ) );
-	GL( glDeleteBuffers( 1, &geometry->VertexBuffer ) );
-
-	ovrGeometry_Clear( geometry );
-}
-
-static void ovrGeometry_CreateVAO( ovrGeometry * geometry )
-{
-	renderState state;
-	getCurrentRenderState(&state);
-
-	GL( glGenVertexArrays( 1, &geometry->VertexArrayObject ) );
-	GL( glBindVertexArray( geometry->VertexArrayObject ) );
-
-	GL( glBindBuffer( GL_ARRAY_BUFFER, geometry->VertexBuffer ) );
-
-	for ( int i = 0; i < MAX_VERTEX_ATTRIB_POINTERS; i++ )
-	{
-		if ( geometry->VertexAttribs[i].Index != -1 )
-		{
-			GL( glEnableVertexAttribArray( geometry->VertexAttribs[i].Index ) );
-			GL( glVertexAttribPointer( geometry->VertexAttribs[i].Index, geometry->VertexAttribs[i].Size,
-				geometry->VertexAttribs[i].Type, geometry->VertexAttribs[i].Normalized,
-				geometry->VertexAttribs[i].Stride, geometry->VertexAttribs[i].Pointer ) );
-		}
-	}
-
-    GL( glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, geometry->IndexBuffer ) );
-
-	restoreRenderState(&state);
-}
-
-static void ovrGeometry_DestroyVAO( ovrGeometry * geometry )
-{
-	GL( glDeleteVertexArrays( 1, &geometry->VertexArrayObject ) );
-}
-
-/*
-================================================================================
-
-ovrProgram
-
-================================================================================
-*/
-
-
-typedef struct
-{
-	enum
-	{
-		UNIFORM_VIEW_PROJ_MATRIX,
-	}				index;
-	enum
-	{
-		UNIFORM_TYPE_VECTOR4,
-		UNIFORM_TYPE_MATRIX4X4,
-		UNIFORM_TYPE_INT,
-		UNIFORM_TYPE_BUFFER,
-	}				type;
-	const char *	name;
-} ovrUniform;
-
-static ovrUniform ProgramUniforms[] =
-{
-	{ UNIFORM_VIEW_PROJ_MATRIX,			UNIFORM_TYPE_MATRIX4X4,	"viewProjectionMatrix"	},
-};
-
-static void ovrProgram_Clear( ovrProgram * program )
-{
-	program->Program = 0;
-	program->VertexShader = 0;
-	program->FragmentShader = 0;
-	memset( program->UniformLocation, 0, sizeof( program->UniformLocation ) );
-	memset( program->UniformBinding, 0, sizeof( program->UniformBinding ) );
-	memset( program->Textures, 0, sizeof( program->Textures ) );
-}
-
-static bool ovrProgram_Create( ovrProgram * program, const char * vertexSource, const char * fragmentSource )
-{
-	GLint r;
-
-	GL( program->VertexShader = glCreateShader( GL_VERTEX_SHADER ) );
-
-	GL( glShaderSource( program->VertexShader, 1, &vertexSource, 0 ) );
-	GL( glCompileShader( program->VertexShader ) );
-	GL( glGetShaderiv( program->VertexShader, GL_COMPILE_STATUS, &r ) );
-	if ( r == GL_FALSE )
-	{
-		GLchar msg[4096];
-		GL( glGetShaderInfoLog( program->VertexShader, sizeof( msg ), 0, msg ) );
-		ALOGE( "%s\n%s\n", vertexSource, msg );
-		return false;
-	}
-
-	GL( program->FragmentShader = glCreateShader( GL_FRAGMENT_SHADER ) );
-	GL( glShaderSource( program->FragmentShader, 1, &fragmentSource, 0 ) );
-	GL( glCompileShader( program->FragmentShader ) );
-	GL( glGetShaderiv( program->FragmentShader, GL_COMPILE_STATUS, &r ) );
-	if ( r == GL_FALSE )
-	{
-		GLchar msg[4096];
-		GL( glGetShaderInfoLog( program->FragmentShader, sizeof( msg ), 0, msg ) );
-		ALOGE( "%s\n%s\n", fragmentSource, msg );
-		return false;
-	}
-
-	GL( program->Program = glCreateProgram() );
-	GL( glAttachShader( program->Program, program->VertexShader ) );
-	GL( glAttachShader( program->Program, program->FragmentShader ) );
-
-	// Bind the vertex attribute locations.
-	for ( int i = 0; i < sizeof( ProgramVertexAttributes ) / sizeof( ProgramVertexAttributes[0] ); i++ )
-	{
-		GL( glBindAttribLocation( program->Program, ProgramVertexAttributes[i].location, ProgramVertexAttributes[i].name ) );
-	}
-
-	GL( glLinkProgram( program->Program ) );
-	GL( glGetProgramiv( program->Program, GL_LINK_STATUS, &r ) );
-	if ( r == GL_FALSE )
-	{
-		GLchar msg[4096];
-		GL( glGetProgramInfoLog( program->Program, sizeof( msg ), 0, msg ) );
-		ALOGE( "Linking program failed: %s\n", msg );
-		return false;
-	}
-
-	int numBufferBindings = 0;
-
-	// Get the uniform locations.
-	memset( program->UniformLocation, -1, sizeof( program->UniformLocation ) );
-	for ( int i = 0; i < sizeof( ProgramUniforms ) / sizeof( ProgramUniforms[0] ); i++ )
-	{
-		const int uniformIndex = ProgramUniforms[i].index;
-		if ( ProgramUniforms[i].type == UNIFORM_TYPE_BUFFER )
-		{
-			GL( program->UniformLocation[uniformIndex] = glGetUniformBlockIndex( program->Program, ProgramUniforms[i].name ) );
-			program->UniformBinding[uniformIndex] = numBufferBindings++;
-			GL( glUniformBlockBinding( program->Program, program->UniformLocation[uniformIndex], program->UniformBinding[uniformIndex] ) );
-		}
-		else
-		{
-			GL( program->UniformLocation[uniformIndex] = glGetUniformLocation( program->Program, ProgramUniforms[i].name ) );
-			program->UniformBinding[uniformIndex] = program->UniformLocation[uniformIndex];
-		}
-	}
-
-	renderState state;
-	getCurrentRenderState(&state);
-
-	GL( glUseProgram( program->Program ) );
-
-	// Get the texture locations.
-	for ( int i = 0; i < MAX_PROGRAM_TEXTURES; i++ )
-	{
-		char name[32];
-		sprintf( name, "Texture%i", i );
-		program->Textures[i] = glGetUniformLocation( program->Program, name );
-		if ( program->Textures[i] != -1 )
-		{
-			GL( glUniform1i( program->Textures[i], i ) );
-		}
-	}
-
-	restoreRenderState(&state);
-
-	return true;
-}
-
-static void ovrProgram_Destroy( ovrProgram * program )
-{
-	if ( program->Program != 0 )
-	{
-		GL( glDeleteProgram( program->Program ) );
-		program->Program = 0;
-	}
-	if ( program->VertexShader != 0 )
-	{
-		GL( glDeleteShader( program->VertexShader ) );
-		program->VertexShader = 0;
-	}
-	if ( program->FragmentShader != 0 )
-	{
-		GL( glDeleteShader( program->FragmentShader ) );
-		program->FragmentShader = 0;
-	}
-}
-
-static const char VERTEX_SHADER[] =
-	"#version 300 es\n"
-	"in vec3 vertexPosition;\n"
-	"in vec4 vertexColor;\n"
-	"uniform mat4 viewProjectionMatrix;\n"
-	"out vec4 fragmentColor;\n"
-	"void main()\n"
-	"{\n"
-	"	gl_Position = viewProjectionMatrix * vec4( vertexPosition, 1.0 );\n"
-	"	fragmentColor = vertexColor;\n"
-	"}\n";
-
-static const char FRAGMENT_SHADER[] =
-	"#version 300 es\n"
-	"in lowp vec4 fragmentColor;\n"
-	"out lowp vec4 outColor;\n"
-	"void main()\n"
-	"{\n"
-	"	outColor = fragmentColor;\n"
-	"}\n";
-
-/*
-================================================================================
-
 ovrScene
 
 ================================================================================
@@ -385,9 +70,6 @@ ovrScene
 void ovrScene_Clear( ovrScene * scene )
 {
 	scene->CreatedScene = false;
-	scene->CreatedVAOs = false;
-	ovrProgram_Clear( &scene->Program );
-	ovrGeometry_Clear( &scene->GroundPlane );	
 	ovrRenderer_Clear( &scene->CylinderRenderer );
 
 	scene->CylinderWidth = 0;
@@ -399,33 +81,8 @@ bool ovrScene_IsCreated( ovrScene * scene )
 	return scene->CreatedScene;
 }
 
-void ovrScene_CreateVAOs( ovrScene * scene )
-{
-	if ( !scene->CreatedVAOs )
-	{
-		ovrGeometry_CreateVAO( &scene->GroundPlane );
-		scene->CreatedVAOs = true;
-	}
-}
-
-void ovrScene_DestroyVAOs( ovrScene * scene )
-{
-	if ( scene->CreatedVAOs )
-	{
-		ovrGeometry_DestroyVAO( &scene->GroundPlane );
-		scene->CreatedVAOs = false;
-	}
-}
-
 void ovrScene_Create( int width, int height, ovrScene * scene, const ovrJava * java )
 {
-	// Simple ground plane geometry.
-	{
-		ovrProgram_Create( &scene->Program, VERTEX_SHADER, FRAGMENT_SHADER );
-		ovrGeometry_CreateGroundPlane( &scene->GroundPlane );
-		ovrScene_CreateVAOs( scene );
-	}
-
 	// Create Cylinder renderer
 	{
 		scene->CylinderWidth = width;
@@ -440,9 +97,6 @@ void ovrScene_Create( int width, int height, ovrScene * scene, const ovrJava * j
 
 void ovrScene_Destroy( ovrScene * scene )
 {
-	ovrScene_DestroyVAOs( scene );
-	ovrProgram_Destroy( &scene->Program );
-	ovrGeometry_Destroy( &scene->GroundPlane );
 	ovrRenderer_Destroy( &scene->CylinderRenderer );
 
 	scene->CreatedScene = false;
@@ -497,8 +151,8 @@ ovrLayerCylinder2 BuildCylinderLayer( ovrRenderer * cylinderRenderer,
 
 	const float density = 4500.0f;
 	const float rotateYaw = 0.0f;
-	const float radius = 2.0f;
-	const ovrVector3f translation = { 0.0f, playerHeight, -0.5f };
+	const float radius = 3.0f;
+	const ovrVector3f translation = { 0.0f, playerHeight/2, -5.0f };
 
 	ovrMatrix4f cylinderTransform = 
 		CylinderModelMatrix( textureWidth, textureHeight, translation,

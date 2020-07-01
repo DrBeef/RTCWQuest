@@ -225,12 +225,12 @@ void PortableMouse(float dx,float dy)
 }
 
 int absx=0,absy=0;
-Android_GetScreenRes(int *width, int *height);
+RTCWVR_GetScreenRes(int *width, int *height);
 void PortableMouseAbs(float x,float y)
 {
     int width;
     int height;
-    Android_GetScreenRes(&width, &height);
+    RTCWVR_GetScreenRes(&width, &height);
 	absx = x * width;
 	absy = y * height;
 }

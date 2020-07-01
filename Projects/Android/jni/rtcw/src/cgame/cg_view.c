@@ -565,8 +565,8 @@ static void CG_OffsetFirstPersonView( void ) {
 
 	// if dead, fix the angle and don't add any kick
 	if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 ) {
-		angles[ROLL] = 40;
-		angles[PITCH] = -15;
+		//angles[ROLL] = 40;
+		//angles[PITCH] = -15;
 		angles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
 		origin[2] += cg.predictedPlayerState.viewheight;
 		return;
@@ -1070,7 +1070,7 @@ static int CG_CalcViewValues( void ) {
 
 	if ( cg.cameraMode ) {
 		vec3_t origin, angles;
-		float fov = 90;
+		float fov = 104;
 		float x;
 
 		if ( trap_getCameraInfo( CAM_PRIMARY, cg.time, &origin, &angles, &fov ) ) {

@@ -1703,6 +1703,7 @@ extern vmCvar_t cg_thirdPersonRange;
 extern vmCvar_t cg_thirdPersonAngle;
 extern vmCvar_t cg_thirdPerson;
 extern vmCvar_t cg_stereoSeparation;
+extern vmCvar_t cg_worldScale;
 extern vmCvar_t cg_lagometer;
 extern vmCvar_t cg_drawAttacker;
 extern vmCvar_t cg_synchronousClients;
@@ -1893,7 +1894,7 @@ void CG_AddLagometerSnapshotInfo( snapshot_t *snap );
 void CG_CenterPrint( const char *str, int y, int charWidth );
 void CG_ObjectivePrint( const char *str, int charWidth, int team );     // NERVE - SMF
 void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t headAngles );
-void CG_DrawActive( stereoFrame_t stereoView );
+void CG_DrawActive( int stereoView );
 void CG_DrawFlagModel( float x, float y, float w, float h, int team );
 
 void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team );

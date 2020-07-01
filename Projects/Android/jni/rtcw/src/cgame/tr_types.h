@@ -215,6 +215,7 @@ typedef struct {
 	float fov_x, fov_y;
 	vec3_t vieworg;
 	vec3_t viewaxis[3];             // transformation matrix
+	float worldscale;
 
 	int time;           // time in milliseconds for shader effects and other time dependent rendering issues
 	int rdflags;                    // RDF_NOWORLDMODEL, etc

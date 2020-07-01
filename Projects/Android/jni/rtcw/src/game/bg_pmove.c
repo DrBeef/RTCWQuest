@@ -80,7 +80,7 @@ float pm_waterWadeScale   = 0.70;
 float pm_slagSwimScale    = 0.30;
 float pm_slagWadeScale    = 0.70;
 
-float pm_accelerate       = 10;
+float pm_accelerate       = 10000; // Boosted for VR
 float pm_airaccelerate    = 1;
 float pm_wateraccelerate  = 4;
 float pm_slagaccelerate   = 2;
@@ -3732,7 +3732,7 @@ void PM_UpdateViewAngles( playerState_t *ps, usercmd_t *cmd, void( trace ) ( tra
 
 	// circularly clamp the angles with deltas
 	for ( i = 0 ; i < 3 ; i++ ) {
-		temp = cmd->angles[i] + ps->delta_angles[i];
+		temp = cmd->angles[i] + (i == YAW ? ps->delta_angles[i] : 0);
 		if ( i == PITCH ) {
 			// don't let the player look up or down more than 90 degrees
 			if ( temp > 16000 ) {
