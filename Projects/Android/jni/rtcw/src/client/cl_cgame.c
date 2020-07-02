@@ -31,6 +31,9 @@ If you have questions concerning this license or the applicable additional terms
 #include "client.h"
 
 #include "../game/botlib.h"
+#include "../../../RTCWVR/VrOrientation.h"
+
+extern vr_orientation_t vr;
 
 extern botlib_export_t *botlib_export;
 
@@ -1049,6 +1052,15 @@ CL_CGameRendering
 void CL_CGameRendering( stereoFrame_t stereo ) {
 	VM_Call( cgvm, CG_DRAW_ACTIVE_FRAME, cl.serverTime, stereo, clc.demoplaying );
 	VM_Debug( 0 );
+}
+
+/*
+=====================
+CL_CGameRendering
+=====================
+*/
+void CL_CGameSetVROrientation( ) {
+	VM_Call( cgvm, CG_SET_VR_ORIENTATION, &vr );
 }
 
 

@@ -271,6 +271,8 @@ typedef enum {
 	CG_GET_TAG,
 //	qboolean CG_GetTag( int clientNum, char *tagname, orientation_t *or );
 
+	CG_SET_VR_ORIENTATION,
+
 	MAX_CGAME_EXPORT
 
 } cgameExport_t;

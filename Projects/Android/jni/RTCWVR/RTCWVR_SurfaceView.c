@@ -138,6 +138,7 @@ qboolean RTCWVR_useScreenLayer()
             (cls.state == CA_CINEMATIC) ||
             (cls.state == CA_LOADING) ||
             (clc.demoplaying) ||
+			(cl.cameraMode) ||
             ( Key_GetCatcher( ) & KEYCATCH_UI ) ||
             ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ));
 }
@@ -846,20 +847,20 @@ void QuatToYawPitchRoll(ovrQuatf q, vec3_t rotation, vec3_t out) {
 
 void setWorldPosition( float x, float y, float z )
 {
-    positionDeltaThisFrame[0] = (worldPosition[0] - x);
-    positionDeltaThisFrame[1] = (worldPosition[1] - y);
-    positionDeltaThisFrame[2] = (worldPosition[2] - z);
+    vr.positionDeltaThisFrame[0] = (vr.worldPosition[0] - x);
+    vr.positionDeltaThisFrame[1] = (vr.worldPosition[1] - y);
+    vr.positionDeltaThisFrame[2] = (vr.worldPosition[2] - z);
 
-    worldPosition[0] = x;
-    worldPosition[1] = y;
-    worldPosition[2] = z;
+    vr.worldPosition[0] = x;
+    vr.worldPosition[1] = y;
+    vr.worldPosition[2] = z;
 }
 
 void setHMDPosition( float x, float y, float z, float yaw )
 {
 	static qboolean s_useScreen = qfalse;
 
-	VectorSet(hmdPosition, x, y, z);
+	VectorSet(vr.hmdPosition, x, y, z);
 
     if (s_useScreen != RTCWVR_useScreenLayer())
     {
@@ -903,13 +904,6 @@ void RTCWVR_Vibrate( float duration, int channel, float intensity )
 	vibration_channel_intensity[channel] = intensity;
 }
 
-void getVROrigins(vec3_t _weaponoffset, vec3_t _weaponangles, vec3_t _hmdPosition)
-{
-	VectorCopy(weaponoffset, _weaponoffset);
-	VectorCopy(weaponangles, _weaponangles);
-	VectorCopy(hmdPosition, _hmdPosition);
-}
-
 void VR_GetMove( float *forward, float *side, float *pos_forward, float *pos_side, float *up, float *yaw, float *pitch, float *roll )
 {
     *forward = remote_movementForward;
@@ -917,11 +911,10 @@ void VR_GetMove( float *forward, float *side, float *pos_forward, float *pos_sid
     *up = remote_movementUp;
     *side = remote_movementSideways;
     *pos_side = positional_movementSideways;
-	*yaw = hmdorientation[YAW] + snapTurn;
-	*pitch = hmdorientation[PITCH];
-	*roll = hmdorientation[ROLL];
+	*yaw = vr.hmdorientation[YAW] + snapTurn;
+	*pitch = vr.hmdorientation[PITCH];
+	*roll = vr.hmdorientation[ROLL];
 }
-
 
 /*
 ================================================================================
@@ -1589,8 +1582,8 @@ void RTCWVR_getHMDOrientation() {//Get orientation
 	const ovrQuatf quatHmd = tracking.HeadPose.Pose.Orientation;
 	const ovrVector3f positionHmd = tracking.HeadPose.Pose.Position;
 	vec3_t rotation = {0};
-	QuatToYawPitchRoll(quatHmd, rotation, hmdorientation);
-	setHMDPosition(positionHmd.x, positionHmd.y, positionHmd.z, hmdorientation[YAW]);
+	QuatToYawPitchRoll(quatHmd, rotation, vr.hmdorientation);
+	setHMDPosition(positionHmd.x, positionHmd.y, positionHmd.z, vr.hmdorientation[YAW]);
 
 	//TODO: fix - set to use HMD position for world position
 	setWorldPosition(positionHmd.x, positionHmd.y, positionHmd.z);

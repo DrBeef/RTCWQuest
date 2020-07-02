@@ -84,23 +84,23 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         //dominant hand stuff first
         {
 			///Weapon location relative to view
-            weaponoffset[0] = pDominantTracking->HeadPose.Pose.Position.x - hmdPosition[0];
-            weaponoffset[1] = pDominantTracking->HeadPose.Pose.Position.y - hmdPosition[1];
-            weaponoffset[2] = pDominantTracking->HeadPose.Pose.Position.z - hmdPosition[2];
+            vr.weaponoffset[0] = pDominantTracking->HeadPose.Pose.Position.x - vr.hmdPosition[0];
+            vr.weaponoffset[1] = pDominantTracking->HeadPose.Pose.Position.y - vr.hmdPosition[1];
+            vr.weaponoffset[2] = pDominantTracking->HeadPose.Pose.Position.z - vr.hmdPosition[2];
 
 			{
 				vec2_t v;
-				rotateAboutOrigin(-weaponoffset[0], weaponoffset[2], (cl.viewangles[YAW] - hmdorientation[YAW]), v);
-				weaponoffset[0] = v[0];
-				weaponoffset[2] = v[1];
+				rotateAboutOrigin(-vr.weaponoffset[0], vr.weaponoffset[2], (cl.viewangles[YAW] - vr.hmdorientation[YAW]), v);
+				vr.weaponoffset[0] = v[0];
+				vr.weaponoffset[2] = v[1];
 			}
 
             //Set gun angles - We need to calculate all those we might need (including adjustments) for the client to then take its pick
             vec3_t rotation = {0};
             rotation[PITCH] = vr_weapon_pitchadjust->value;
-            QuatToYawPitchRoll(pDominantTracking->HeadPose.Pose.Orientation, rotation, weaponangles);
-            weaponangles[YAW] += (cl.viewangles[YAW] - hmdorientation[YAW]);
-            weaponangles[ROLL] *= -1.0f;
+            QuatToYawPitchRoll(pDominantTracking->HeadPose.Pose.Orientation, rotation, vr.weaponangles);
+            vr.weaponangles[YAW] += (cl.viewangles[YAW] - vr.hmdorientation[YAW]);
+            vr.weaponangles[ROLL] *= -1.0f;
 
 
             if (vr_weapon_stabilised->value == 1.0f)
@@ -111,7 +111,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 float zxDist = length(x, z);
 
                 if (zxDist != 0.0f && z != 0.0f) {
-                    VectorSet(weaponangles, -degrees(atanf(y / zxDist)), (cl.viewangles[YAW] - hmdorientation[YAW]) - degrees(atan2f(x, -z)), weaponangles[ROLL]);
+                    VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)), (cl.viewangles[YAW] - vr.hmdorientation[YAW]) - degrees(atan2f(x, -z)), vr.weaponangles[ROLL]);
                 }
             }
 
@@ -172,22 +172,22 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         float controllerYawHeading = 0.0f;
         //off-hand stuff
         {
-            flashlightoffset[0] = pOffTracking->HeadPose.Pose.Position.x - hmdPosition[0];
-            flashlightoffset[1] = pOffTracking->HeadPose.Pose.Position.y - hmdPosition[1];
-            flashlightoffset[2] = pOffTracking->HeadPose.Pose.Position.z - hmdPosition[2];
+            vr.flashlightoffset[0] = pOffTracking->HeadPose.Pose.Position.x - vr.hmdPosition[0];
+            vr.flashlightoffset[1] = pOffTracking->HeadPose.Pose.Position.y - vr.hmdPosition[1];
+            vr.flashlightoffset[2] = pOffTracking->HeadPose.Pose.Position.z - vr.hmdPosition[2];
 
 			vec2_t v;
-			rotateAboutOrigin(-flashlightoffset[0], flashlightoffset[2], (cl.viewangles[YAW] - hmdorientation[YAW]), v);
-			flashlightoffset[0] = v[0];
-			flashlightoffset[2] = v[1];
+			rotateAboutOrigin(-vr.flashlightoffset[0], vr.flashlightoffset[2], (cl.viewangles[YAW] - vr.hmdorientation[YAW]), v);
+			vr.flashlightoffset[0] = v[0];
+			vr.flashlightoffset[2] = v[1];
 
             vec3_t rotation = {0};
-            QuatToYawPitchRoll(pOffTracking->HeadPose.Pose.Orientation, rotation, flashlightangles);
+            QuatToYawPitchRoll(pOffTracking->HeadPose.Pose.Orientation, rotation, vr.flashlightangles);
 
-            flashlightangles[YAW] += (cl.viewangles[YAW] - hmdorientation[YAW]);
+            vr.flashlightangles[YAW] += (cl.viewangles[YAW] - vr.hmdorientation[YAW]);
 
 			if (vr_walkdirection->value == 0) {
-				controllerYawHeading = -cl.viewangles[YAW] + flashlightangles[YAW];
+				controllerYawHeading = -cl.viewangles[YAW] + vr.flashlightangles[YAW];
 			}
 			else
 			{
@@ -205,8 +205,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             //This section corrects for the fact that the controller actually controls direction of movement, but we want to move relative to the direction the
             //player is facing for positional tracking
             vec2_t v;
-            rotateAboutOrigin(-positionDeltaThisFrame[0] * vr_positional_factor->value,
-                              positionDeltaThisFrame[2] * vr_positional_factor->value, - hmdorientation[YAW], v);
+            rotateAboutOrigin(-vr.positionDeltaThisFrame[0] * vr_positional_factor->value,
+                              vr.positionDeltaThisFrame[2] * vr_positional_factor->value, - vr.hmdorientation[YAW], v);
             positional_movementSideways = v[0];
             positional_movementForward = v[1];
 

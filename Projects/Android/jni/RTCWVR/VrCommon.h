@@ -6,6 +6,7 @@
 #include <android/log.h>
 
 #include "mathlib.h"
+#include "VrOrientation.h"
 
 #define LOG_TAG "RTCWVR"
 
@@ -33,24 +34,14 @@ float vrFOV;
 
 ovrTracking2 tracking;
 
-vec3_t worldPosition;
-
-vec3_t hmdPosition;
-vec3_t hmdorientation;
-vec3_t positionDeltaThisFrame;
-
-vec3_t weaponangles;
-vec3_t weaponoffset;
-
-vec3_t flashlightangles;
-vec3_t flashlightoffset;
-
 #define DUCK_NOTDUCKED 0
 #define DUCK_BUTTON 1
 #define DUCK_CROUCHED 2
 int ducked;
 
 qboolean player_moving;
+
+vr_orientation_t vr;
 
 
 float radians(float deg);

@@ -494,6 +494,7 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 //			}
 		case CA_LOADING:
 		case CA_PRIMED:
+			CL_CGameSetVROrientation();
 			// draw the game information screen and loading progress
 			CL_CGameRendering( stereoFrame );
 
@@ -504,6 +505,7 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 			VM_Call( uivm, UI_DRAW_CONNECT_SCREEN, qtrue );
 			break;
 		case CA_ACTIVE:
+			CL_CGameSetVROrientation();
 			CL_CGameRendering( stereoFrame );
 			SCR_DrawDemoRecording();
 			break;

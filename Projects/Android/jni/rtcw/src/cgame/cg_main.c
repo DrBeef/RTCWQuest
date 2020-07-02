@@ -36,8 +36,10 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "cg_local.h"
 #include "../ui/ui_shared.h"
+#include "../../../RTCWVR/VrOrientation.h"
 
 displayContextDef_t cgDC;
+vr_orientation_t cgVR;
 
 int forceModelModificationCount = -1;
 
@@ -88,6 +90,9 @@ int vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int a
 		cgDC.cursorx = cgs.cursorX;
 		cgDC.cursory = cgs.cursorY;
 		CG_MouseEvent( arg0, arg1 );
+		return 0;
+	case CG_SET_VR_ORIENTATION:
+		memcpy(&cgVR, (vr_orientation_t*)arg0, sizeof(vr_orientation_t));
 		return 0;
 	default:
 		CG_Error( "vmMain: unknown command %i", command );
