@@ -1,9 +1,10 @@
-#if !defined(vrorientation_h)
-#define vrorientation_h
-
-#include "mathlib.h"
+#if !defined(vr_client_info_h)
+#define vr_client_info_h
 
 typedef struct {
+    float  fov;
+    qboolean weapon_stabilised;
+
     vec3_t worldPosition;
 
     vec3_t hmdPosition;
@@ -15,6 +16,6 @@ typedef struct {
 
     vec3_t flashlightangles;
     vec3_t flashlightoffset;
-} vr_orientation_t;
+} vr_client_info_t;
 
-#endif //vrorientation_h
+#endif //vr_client_info_h

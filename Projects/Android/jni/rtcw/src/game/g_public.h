@@ -248,6 +248,8 @@ typedef enum {
 
 	G_GETTAG,
 
+	G_SET_VR_CLIENT_INFO,
+
 	BOTLIB_SETUP = 200,             // ( void );
 	BOTLIB_SHUTDOWN,                // ( void );
 	BOTLIB_LIBVAR_SET,
@@ -470,7 +472,9 @@ typedef enum {
 	// done.
 
 	GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT,
-	GAME_GETMODELINFO
+	GAME_GETMODELINFO,
+
+	GAME_SET_VR_CLIENT_INFO
 
 } gameExport_t;
 

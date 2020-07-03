@@ -7,5 +7,4 @@ cvar_t	*vr_lasersight;
 cvar_t	*vr_control_scheme;
 cvar_t	*vr_height_adjust;
 cvar_t	*vr_weaponscale;
-cvar_t	*vr_weapon_stabilised;
 cvar_t	*vr_comfort_mask;

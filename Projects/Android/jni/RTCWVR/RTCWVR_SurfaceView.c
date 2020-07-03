@@ -133,7 +133,6 @@ LAMBDA1VR Stuff
 
 qboolean RTCWVR_useScreenLayer()
 {
-	//TODO
 	return (qboolean)(showingScreenLayer ||
             (cls.state == CA_CINEMATIC) ||
             (cls.state == CA_LOADING) ||
@@ -707,7 +706,7 @@ void ovrRenderer_Create( int width, int height, ovrRenderer * renderer, const ov
 	renderer->NumBuffers = VRAPI_FRAME_LAYER_EYE_MAX;
 
 	//Now using a symmetrical render target, based on the horizontal FOV
-    vrFOV = vrapi_GetSystemPropertyInt( java, VRAPI_SYS_PROP_SUGGESTED_EYE_FOV_DEGREES_X);
+    vr.fov = vrapi_GetSystemPropertyInt( java, VRAPI_SYS_PROP_SUGGESTED_EYE_FOV_DEGREES_X);
 
 	// Create the render Textures.
 	for ( int eye = 0; eye < VRAPI_FRAME_LAYER_EYE_MAX; eye++ )
@@ -721,7 +720,7 @@ void ovrRenderer_Create( int width, int height, ovrRenderer * renderer, const ov
 
 	// Setup the projection matrix.
 	renderer->ProjectionMatrix = ovrMatrix4f_CreateProjectionFov(
-			vrFOV, vrFOV, 0.0f, 0.0f, 1.0f, 0.0f );
+			vr.fov, vr.fov, 0.0f, 0.0f, 1.0f, 0.0f );
 
 }
 
@@ -1289,7 +1288,15 @@ void Android_MessageBox(const char *title, const char *text)
 
 void initialize_gl4es();
 
-void VR_Init()
+void RTCWVR_ResyncClientYawWithGameYaw()
+{
+	//Allow 3 frames for the yaw to sync, first is this frame which is the old yaw
+	//second is the next frame which _should_ be the new yaw, but just in case it isn't
+	//we resync on the 3rd frame as well
+	resyncClientYawWithGameYaw = 3;
+}
+
+void RTCWVR_Init()
 {
 	//Initialise all our variables
 	playerYaw = 0.0f;
@@ -1301,6 +1308,7 @@ void VR_Init()
 	positional_movementForward = 0.0f;
 	snapTurn = 0.0f;
 	ducked = DUCK_NOTDUCKED;
+	RTCWVR_ResyncClientYawWithGameYaw();
 
 	//init randomiser
 	srand(time(NULL));
@@ -1314,7 +1322,6 @@ void VR_Init()
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
     vr_height_adjust = Cvar_Get( "vr_height_adjust", "0.0", CVAR_ARCHIVE);
 	vr_weaponscale = Cvar_Get( "vr_weaponscale", "0.56", CVAR_ARCHIVE);
-    vr_weapon_stabilised = Cvar_Get( "vr_weapon_stabilised", "0.0", CVAR_LATCH);
 	vr_lasersight = Cvar_Get( "vr_lasersight", "0", CVAR_LATCH);
     vr_comfort_mask = Cvar_Get( "vr_comfort_mask", "0.0", CVAR_ARCHIVE);
 }
@@ -1641,7 +1648,7 @@ void RTCWVR_submitFrame()
 			layer.Textures[eye].SwapChainIndex = frameBuffer->ReadyTextureSwapChainIndex;
 
 			ovrMatrix4f projectionMatrix;
-			projectionMatrix = ovrMatrix4f_CreateProjectionFov(vrFOV, vrFOV,
+			projectionMatrix = ovrMatrix4f_CreateProjectionFov(vr.fov, vr.fov,
 															   0.0f, 0.0f, 0.1f, 0.0f);
 
 			layer.Textures[eye].TexCoordsFromTanAngles = ovrMatrix4f_TanAngleMatrixFromProjection(&projectionMatrix);

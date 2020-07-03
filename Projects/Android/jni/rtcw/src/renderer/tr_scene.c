@@ -29,6 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #include <src/client/client.h>
 #include "tr_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 int r_firstSceneDrawSurf;
 
@@ -48,6 +49,8 @@ int r_numpolyverts;
 
 int skyboxportal;
 int drawskyboxportal;
+
+extern vr_client_info_t vr;
 
 /*
 ====================
@@ -406,8 +409,8 @@ Rendering a scene may require multiple views to be rendered
 to handle mirrors,
 @@@@@@@@@@@@@@@@@@@@@
 */
-extern vec3_t hmdPosition;
-extern cvar_t *vr_worldscale;
+qboolean RTCWVR_useScreenLayer();
+extern int resyncClientYawWithGameYaw;
 void RE_RenderScene( const refdef_t *fd ) {
 	viewParms_t parms;
 	int startTime;
@@ -527,10 +530,45 @@ void RE_RenderScene( const refdef_t *fd ) {
 	parms.fovY = tr.refdef.fov_y;
 
 	VectorCopy( fd->vieworg, parms.or.origin );
-	//AnglesToAxis( cl.viewangles, parms.or.axis ); // Just use our known client view angles
-	VectorCopy( fd->viewaxis[0], parms.or.axis[0] );
-	VectorCopy( fd->viewaxis[1], parms.or.axis[1] );
-	VectorCopy( fd->viewaxis[2], parms.or.axis[2] );
+
+	//This is just madness, but it makes for smooth head tracking
+	static float yaw = 0;
+	static float last_hmd_yaw = 0;
+	if (fd->viewangles[YAW] == -1000) // MAGIC NUMBER!
+	{
+		//This is default behaviour for when this code
+		//is called for rendering the weapon or the sky box
+		VectorCopy( fd->viewaxis[0], parms.or.axis[0] );
+		VectorCopy( fd->viewaxis[1], parms.or.axis[1] );
+		VectorCopy( fd->viewaxis[2], parms.or.axis[2] );
+	}
+	else if ((RTCWVR_useScreenLayer() || resyncClientYawWithGameYaw > 0))
+	{
+		//Resyncing with known game yaw
+        yaw = fd->viewangles[YAW];
+		VectorCopy( fd->viewaxis[0], parms.or.axis[0] );
+		VectorCopy( fd->viewaxis[1], parms.or.axis[1] );
+		VectorCopy( fd->viewaxis[2], parms.or.axis[2] );
+        if (fd->stereoView == 1 && resyncClientYawWithGameYaw > 0) resyncClientYawWithGameYaw--;
+	}
+	else
+	{
+		//Normal "in-game" behaviour, use pitch and roll from HMD but use
+		//a yaw that we believe is the same as the game server's yaw, adjusted by our last HMD movement
+		vec3_t viewAngles;
+        VectorCopy(vr.hmdorientation, viewAngles);
+
+        //Only update this for once per stereo pair
+        if (fd->stereoView == 1)
+        {
+			float yawDelta = (vr.hmdorientation[YAW] - last_hmd_yaw);
+			yaw += yawDelta;
+		}
+
+        viewAngles[YAW] = yaw;
+		AnglesToAxis(viewAngles, parms.or.axis);
+	}
+    last_hmd_yaw = vr.hmdorientation[YAW];
 
 	VectorCopy( fd->vieworg, parms.pvsOrigin );
 

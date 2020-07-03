@@ -30,6 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 
 
 #include "g_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 level_locals_t level;
 
@@ -47,6 +48,7 @@ gentity_t g_entities[MAX_GENTITIES];
 gclient_t g_clients[MAX_CLIENTS];
 
 gentity_t       *g_camEnt = NULL;   //----(SA)	script camera
+vr_client_info_t* gVR;
 
 gentity_t *g_autoAimEntity; //Added by Emile Belanger, trying to do proper autoaim
 unsigned int g_autoAimLastHitTime;
@@ -328,6 +330,10 @@ int vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int a
 		return 0;
 	case GAME_GETMODELINFO:
 		return G_GetModelInfo( arg0, (char *)arg1, (animModelInfo_t **)arg2 );
+
+	case GAME_SET_VR_CLIENT_INFO:
+		gVR = (vr_client_info_t*)arg0;
+		return 0;
 	}
 
 	return -1;

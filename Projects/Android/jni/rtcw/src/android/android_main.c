@@ -290,11 +290,10 @@ void Sys_Exit( int ex ) {
 #endif
 }
 
-
+extern qboolean shutdown;
 void Sys_Quit( void ) {
 	CL_Shutdown();
-
-	Sys_Exit( 0 );
+	shutdown = qtrue;
 }
 
 void Sys_Init( void ) {
@@ -1328,8 +1327,8 @@ void Sys_ParseArgs( int argc, char* argv[] ) {
 
 #include "../client/client.h"
 extern clientStatic_t cls;
-void VR_Init();
-
+void RTCWVR_Init();
+qboolean shutdown;
 int VR_main( int argc, char* argv[] ) {
 	// int  oldtime, newtime; // bk001204 - unused
 	int len, i;
@@ -1364,14 +1363,15 @@ int VR_main( int argc, char* argv[] ) {
 
 	Com_Init( cmdline );
 	NET_Init();
-	VR_Init();
+	RTCWVR_Init();
 
 	Sys_ConsoleInputInit();
 
 	
 //	fcntl( 0, F_SETFL, fcntl( 0, F_GETFL, 0 ) | FNDELAY );
 
-	while ( 1 )
+	shutdown = qfalse;
+	while ( !shutdown )
 	{
 #ifdef __linux__
 		Sys_ConfigureFPU();

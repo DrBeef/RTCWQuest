@@ -6,7 +6,7 @@
 #include <android/log.h>
 
 #include "mathlib.h"
-#include "VrOrientation.h"
+#include "VrClientInfo.h"
 
 #define LOG_TAG "RTCWVR"
 
@@ -30,7 +30,6 @@ float playerHeight;
 float playerYaw;
 
 qboolean showingScreenLayer;
-float vrFOV;
 
 ovrTracking2 tracking;
 
@@ -40,8 +39,9 @@ ovrTracking2 tracking;
 int ducked;
 
 qboolean player_moving;
+int resyncClientYawWithGameYaw;
 
-vr_orientation_t vr;
+vr_client_info_t vr;
 
 
 float radians(float deg);
@@ -67,7 +67,7 @@ void RTCWVR_setUseScreenLayer(qboolean use);
 void RTCWVR_processHaptics();
 void RTCWVR_getHMDOrientation();
 void RTCWVR_getTrackedRemotesOrientation();
-
+void RTCWVR_ResyncClientYawWithGameYaw();
 void RTCWVR_incrementFrameIndex();
 
 void RTCWVR_prepareEyeBuffer(int eye );

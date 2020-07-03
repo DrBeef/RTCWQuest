@@ -36,10 +36,10 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "cg_local.h"
 #include "../ui/ui_shared.h"
-#include "../../../RTCWVR/VrOrientation.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 displayContextDef_t cgDC;
-vr_orientation_t cgVR;
+vr_client_info_t *cgVR;
 
 int forceModelModificationCount = -1;
 
@@ -91,8 +91,8 @@ int vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int a
 		cgDC.cursory = cgs.cursorY;
 		CG_MouseEvent( arg0, arg1 );
 		return 0;
-	case CG_SET_VR_ORIENTATION:
-		memcpy(&cgVR, (vr_orientation_t*)arg0, sizeof(vr_orientation_t));
+	case CG_SET_VR_CLIENT_INFO:
+		cgVR = (vr_client_info_t*)arg0;
 		return 0;
 	default:
 		CG_Error( "vmMain: unknown command %i", command );
@@ -311,7 +311,7 @@ cvarTable_t cvarTable[] = {
 	{ &cg_viewsize, "cg_viewsize", "100", CVAR_ARCHIVE },
 	{ &cg_letterbox, "cg_letterbox", "0", CVAR_TEMP },    //----(SA)	added
 	{ &cg_stereoSeparation, "cg_stereoSeparation", "0.065", CVAR_ARCHIVE  },
-	{ &cg_worldScale, "cg_worldScale", "35.0", CVAR_ARCHIVE  },
+	{ &cg_worldScale, "cg_worldScale", "37.5", CVAR_ARCHIVE  },
 	{ &cg_shadows, "cg_shadows", "1", CVAR_ARCHIVE  },
 	{ &cg_gibs, "cg_gibs", "1", CVAR_ARCHIVE  },
 	{ &cg_draw2D, "cg_draw2D", "1", CVAR_ARCHIVE  },

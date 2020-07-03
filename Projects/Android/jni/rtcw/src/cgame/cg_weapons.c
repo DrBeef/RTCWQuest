@@ -34,12 +34,15 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 #include "cg_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 int wolfkickModel;
 int hWeaponSnd;
 int hflakWeaponSnd;
 int notebookModel;
 int propellerModel;
+
+extern vr_client_info_t *cgVR;
 
 vec3_t ejectBrassCasingOrigin;
 
@@ -1753,12 +1756,33 @@ static void CG_WeaponAnimation( playerState_t *ps, weaponInfo_t *weapon, int *we
 // (SA) it wasn't used anyway
 
 
+void convertFromVR(vec3_t in, vec3_t offset, vec3_t out)
+{
+	vec3_t vrSpace;
+	VectorSet(vrSpace, -in[2], in[0], in[1]);
+	vec3_t temp;
+	VectorScale(vrSpace, cg_worldScale.value, temp);
+
+	if (offset) {
+		VectorAdd(temp, offset, out);
+	} else {
+		VectorCopy(temp, out);
+	}
+}
+
 /*
 ==============
 CG_CalculateWeaponPosition
 ==============
 */
+
+
 static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
+
+	convertFromVR(cgVR->weaponoffset, cg.refdef.vieworg, origin);
+	VectorCopy(cgVR->weaponangles, angles);
+	return;
+
 	float scale;
 	int delta;
 	float fracsin, leanscale;
@@ -1855,7 +1879,6 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 
 	// RF, subtract the kickAngles
 	VectorMA( angles, -1.0, cg.kickAngles, angles );
-
 }
 
 

@@ -19,7 +19,6 @@ Authors		:	Simon Brown
 #include "../rtcw/src/client/client.h"
 
 cvar_t	*sv_cheats;
-extern cvar_t	*vr_weapon_stabilised;
 
 
 
@@ -60,6 +59,34 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
     }
     else
     {
+
+        static bool canUseQuickSave = false;
+        if (pOffTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)) {
+            canUseQuickSave = false;
+        }
+        else if (!canUseQuickSave) {
+            int channel = (vr_control_scheme->integer >= 10) ? 1 : 0;
+            RTCWVR_Vibrate(40, channel, 0.5); // vibrate to let user know they can switch
+            canUseQuickSave = true;
+        }
+
+        if (canUseQuickSave)
+        {
+            if (((pOffTrackedRemoteNew->Buttons & offButton1) !=
+                 (pOffTrackedRemoteOld->Buttons & offButton1)) &&
+                (pOffTrackedRemoteNew->Buttons & offButton1)) {
+                sendButtonActionSimple("savegame quicksave");
+            }
+
+            if (((pOffTrackedRemoteNew->Buttons & offButton2) !=
+                 (pOffTrackedRemoteOld->Buttons & offButton2)) &&
+                (pOffTrackedRemoteNew->Buttons & offButton2)) {
+                sendButtonActionSimple("loadgame quicksave");
+            }
+        }
+
+
+
         float distance = sqrtf(powf(pOffTracking->HeadPose.Pose.Position.x - pDominantTracking->HeadPose.Pose.Position.x, 2) +
                                powf(pOffTracking->HeadPose.Pose.Position.y - pDominantTracking->HeadPose.Pose.Position.y, 2) +
                                powf(pOffTracking->HeadPose.Pose.Position.z - pDominantTracking->HeadPose.Pose.Position.z, 2));
@@ -72,12 +99,12 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             {
                 if (distance < 0.50f)
                 {
-                    Cvar_Set("vr_weapon_stabilised", "1.0");
+                    vr.weapon_stabilised = qtrue;
                 }
             }
             else
             {
-                Cvar_Set("vr_weapon_stabilised", "0.0");
+                vr.weapon_stabilised = qfalse;
             }
         }
 
@@ -103,7 +130,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             vr.weaponangles[ROLL] *= -1.0f;
 
 
-            if (vr_weapon_stabilised->value == 1.0f)
+            if (vr.weapon_stabilised)
             {
                 float z = pOffTracking->HeadPose.Pose.Position.z - pDominantTracking->HeadPose.Pose.Position.z;
                 float x = pOffTracking->HeadPose.Pose.Position.x - pDominantTracking->HeadPose.Pose.Position.x;
@@ -328,15 +355,19 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                   remote_movementForward);
 
             //Kick!
-            if ((pOffTrackedRemoteNew->Buttons & offButton1) !=
-                 (pOffTrackedRemoteOld->Buttons & offButton1)) {
-                sendButtonAction("+kick", (pOffTrackedRemoteNew->Buttons & offButton1));
+            if (!canUseQuickSave) {
+                if ((pOffTrackedRemoteNew->Buttons & offButton1) !=
+                    (pOffTrackedRemoteOld->Buttons & offButton1)) {
+                    sendButtonAction("+kick", (pOffTrackedRemoteNew->Buttons & offButton1));
+                }
             }
 
             //notebook
-            if ((pOffTrackedRemoteNew->Buttons & offButton2) !=
-                (pOffTrackedRemoteOld->Buttons & offButton2)) {
-                sendButtonActionSimple("notebook");
+            if (!canUseQuickSave) {
+                if ((pOffTrackedRemoteNew->Buttons & offButton2) !=
+                    (pOffTrackedRemoteOld->Buttons & offButton2)) {
+                    sendButtonActionSimple("notebook");
+                }
             }
 
 
@@ -373,6 +404,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                     {
                         snapTurn += 360.f;
                     }
+
+                    RTCWVR_ResyncClientYawWithGameYaw();
                 }
 			} else if (pDominantTrackedRemoteNew->Joystick.x < 0.4f) {
 				increaseSnap = true;
@@ -394,6 +427,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                     {
                         snapTurn -= 360.f;
                     }
+
+                    RTCWVR_ResyncClientYawWithGameYaw();
 				}
 			} else if (pDominantTrackedRemoteNew->Joystick.x > -0.4f)
 			{

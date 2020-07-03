@@ -28,10 +28,12 @@ If you have questions concerning this license or the applicable additional terms
 
 
 #include "server.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 serverStatic_t svs;                 // persistant server info
 server_t sv;                        // local server
 vm_t            *gvm = NULL;                // game virtual machine // bk001212 init
+extern vr_client_info_t vr;
 
 cvar_t  *sv_fps;                // time rate for running non-clients
 cvar_t  *sv_timeout;            // seconds without any message
@@ -822,6 +824,9 @@ void SV_Frame( int msec ) {
 		SV_SetConfigstring( CS_SYSTEMINFO, Cvar_InfoString_Big( CVAR_SYSTEMINFO ) );
 		cvar_modifiedFlags &= ~CVAR_SYSTEMINFO;
 	}
+
+	//Ensure the game library has our VR client info
+	VM_Call( gvm, GAME_SET_VR_CLIENT_INFO, &vr );
 
 	if ( com_speeds->integer ) {
 		startTime = Sys_Milliseconds();

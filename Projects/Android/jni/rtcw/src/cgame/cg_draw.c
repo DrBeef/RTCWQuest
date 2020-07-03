@@ -31,14 +31,14 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "cg_local.h"
 #include "../ui/ui_shared.h"
-#include "../../../RTCWVR/VrOrientation.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 //----(SA) added to make it easier to raise/lower our statsubar by only changing one thing
 #define STATUSBARHEIGHT 452
 //----(SA) end
 
 extern displayContextDef_t cgDC;
-extern vr_orientation_t cgVR;
+extern vr_client_info_t* cgVR;
 menuDef_t *menuScoreboard = NULL;
 
 int sortedTeamPlayers[TEAM_MAXOVERLAY];
@@ -347,6 +347,9 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 	if ( !cg_skybox.integer ) {
 		refdef.rdflags &= ~RDF_DRAWSKYBOX;
 	}
+
+	//Indicate to renderer it should be trying any view angle adjustments
+    refdef.viewangles[YAW] = -1000;
 
 	trap_R_ClearScene();
 	trap_R_AddRefEntityToScene( &ent );
@@ -3563,12 +3566,14 @@ void CG_DrawActive( int stereoView ) {
 		return;
 	}
 
+	cg.refdef.stereoView = stereoView;
 	separation = stereoView == 1 ?
                  cg_worldScale.value * (-cg_stereoSeparation.value / 2) : //left
                  cg_worldScale.value * (cg_stereoSeparation.value / 2); // right
 
 
     cg.refdef.worldscale = cg_worldScale.value;
+    VectorCopy(cg.refdefViewAngles, cg.refdef.viewangles);
 
 	// clear around the rendered view if sized down
 //	CG_TileClear();	// (SA) moved down
@@ -3579,9 +3584,11 @@ void CG_DrawActive( int stereoView ) {
 		VectorMA( cg.refdef.vieworg, -separation, cg.refdef.viewaxis[1], cg.refdef.vieworg );
 	}
 
-	cg.refdef.vieworg[2] -= DEFAULT_VIEWHEIGHT;
-	cg.refdef.vieworg[2] += (cgVR.hmdPosition[1] /*+ vr_height_adjust->value*/) * cg_worldScale.value;
-
+	//Vertical Positional Movement
+	if (!cg.cameraMode) {
+        cg.refdef.vieworg[2] -= DEFAULT_VIEWHEIGHT;
+        cg.refdef.vieworg[2] += (cgVR->hmdPosition[1] /*+ vr_height_adjust->value*/) * cg_worldScale.value;
+    }
 
 	cg.refdef.glfog.registered = 0; // make sure it doesn't use fog from another scene
 /*
