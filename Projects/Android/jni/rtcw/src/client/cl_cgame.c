@@ -966,6 +966,7 @@ CL_InitCGame
 Should only by called by CL_StartHunkUsers
 ====================
 */
+void RTCWVR_ResyncClientYawWithGameYaw();
 void CL_InitCGame( void ) {
 	const char          *info;
 	const char          *mapname;
@@ -1024,6 +1025,8 @@ void CL_InitCGame( void ) {
 
 	// Ridah, update the memory usage file
 	CL_UpdateLevelHunkUsage();
+
+	RTCWVR_ResyncClientYawWithGameYaw();
 }
 
 

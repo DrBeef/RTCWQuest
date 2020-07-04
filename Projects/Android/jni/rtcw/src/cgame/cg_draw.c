@@ -349,7 +349,7 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 	}
 
 	//Indicate to renderer it should be trying any view angle adjustments
-    refdef.viewangles[YAW] = -1000;
+    refdef.viewangles[YAW] = -1001;
 
 	trap_R_ClearScene();
 	trap_R_AddRefEntityToScene( &ent );
@@ -3391,7 +3391,7 @@ static void CG_Draw2D( void ) {
 		// don't draw any status if dead
 		if ( cg.snap->ps.stats[STAT_HEALTH] > 0 ) {
 
-			CG_DrawCrosshair();
+//			CG_DrawCrosshair();
 
 			if ( cg_drawStatus.integer ) {
 				Menu_PaintAll();
@@ -3573,7 +3573,7 @@ void CG_DrawActive( int stereoView ) {
 
 
     cg.refdef.worldscale = cg_worldScale.value;
-    VectorCopy(cg.refdefViewAngles, cg.refdef.viewangles);
+    cg.refdef.viewangles[YAW] = -1001;
 
 	// clear around the rendered view if sized down
 //	CG_TileClear();	// (SA) moved down

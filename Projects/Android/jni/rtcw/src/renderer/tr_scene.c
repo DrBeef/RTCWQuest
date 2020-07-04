@@ -534,15 +534,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	//This is just madness, but it makes for smooth head tracking
 	static float yaw = 0;
 	static float last_hmd_yaw = 0;
-	if (fd->viewangles[YAW] == -1000) // MAGIC NUMBER!
-	{
-		//This is default behaviour for when this code
-		//is called for rendering the weapon or the sky box
-		VectorCopy( fd->viewaxis[0], parms.or.axis[0] );
-		VectorCopy( fd->viewaxis[1], parms.or.axis[1] );
-		VectorCopy( fd->viewaxis[2], parms.or.axis[2] );
-	}
-	else if ((RTCWVR_useScreenLayer() || resyncClientYawWithGameYaw > 0))
+	if ((RTCWVR_useScreenLayer() || resyncClientYawWithGameYaw > 0))
 	{
 		//Resyncing with known game yaw
         yaw = fd->viewangles[YAW];
@@ -550,6 +542,15 @@ void RE_RenderScene( const refdef_t *fd ) {
 		VectorCopy( fd->viewaxis[1], parms.or.axis[1] );
 		VectorCopy( fd->viewaxis[2], parms.or.axis[2] );
         if (fd->stereoView == 1 && resyncClientYawWithGameYaw > 0) resyncClientYawWithGameYaw--;
+	}
+	else if (fd->viewangles[YAW] == -1001) // MAGIC NUMBER!
+	{
+		//Normal "in-game" behaviour, use pitch and roll from HMD but use
+		//a yaw that we believe is the same as the game server's yaw, adjusted by our last HMD movement
+		vec3_t viewAngles;
+		VectorCopy(vr.hmdorientation, viewAngles);
+		viewAngles[YAW] = yaw;
+		AnglesToAxis(viewAngles, parms.or.axis);
 	}
 	else
 	{

@@ -1441,6 +1441,7 @@ refexport_t *GetRefAPI( int apiVersion, refimport_t *rimp ) {
 
 	re.BeginFrame       = RE_BeginFrame;
 	re.EndFrame         = RE_EndFrame;
+	re.SubmitStereoFrame= RE_SubmitStereoFrame;
 
 	re.MarkFragments    = R_MarkFragments;
 	re.LerpTag          = R_LerpTag;

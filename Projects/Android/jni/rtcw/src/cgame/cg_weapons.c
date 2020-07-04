@@ -1758,8 +1758,10 @@ static void CG_WeaponAnimation( playerState_t *ps, weaponInfo_t *weapon, int *we
 
 void convertFromVR(vec3_t in, vec3_t offset, vec3_t out)
 {
-	vec3_t temp;
-	VectorScale(in, cg_worldScale.value, temp);
+    vec3_t vrSpace;
+    VectorSet(vrSpace, in[0], in[1], in[2]);
+    vec3_t temp;
+	VectorScale(vrSpace, cg_worldScale.value, temp);
 
 	if (offset) {
 		VectorAdd(temp, offset, out);
@@ -1780,7 +1782,7 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 	convertFromVR(cgVR->weaponoffset, cg.refdef.vieworg, origin);
 	VectorCopy(cgVR->weaponangles, angles);
 
-	angles[YAW] = cg.refdefViewAngles[YAW] - (cgVR->weaponangles[YAW] - cgVR->hmdorientation[YAW]);
+	angles[YAW] = cg.refdefViewAngles[YAW] + (cgVR->hmdorientation[YAW] - cgVR->weaponangles[YAW]);
 	return;
 
 	float scale;
@@ -3058,12 +3060,12 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	}
 
 
-	// drop gun lower at higher fov
+/*	// drop gun lower at higher fov
 	if ( cg_fov.integer > 90 ) {
 		fovOffset = -0.2 * ( cg_fov.integer - 90 );
 	} else {
 		fovOffset = 0;
-	}
+	}*/
 
 	if ( ps->weapon > WP_NONE ) {
 		// DHM - Nerve :: handle WP_CLASS_SPECIAL for different classes
@@ -3105,7 +3107,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 		VectorMA( hand.origin, gunoff[0], cg.refdef.viewaxis[0], hand.origin );
 		VectorMA( hand.origin, gunoff[1], cg.refdef.viewaxis[1], hand.origin );
-		VectorMA( hand.origin, ( gunoff[2] + fovOffset ), cg.refdef.viewaxis[2], hand.origin );
+		VectorMA( hand.origin, gunoff[2], cg.refdef.viewaxis[2], hand.origin );
 
 		AnglesToAxis( angles, hand.axis );
 

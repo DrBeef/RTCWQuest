@@ -571,6 +571,17 @@ void ovrFramebuffer_Destroy( ovrFramebuffer * frameBuffer )
 	ovrFramebuffer_Clear( frameBuffer );
 }
 
+void GPUWaitSync()
+{
+	GLsync syncBuff = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	GLenum status = glClientWaitSync(syncBuff, GL_SYNC_FLUSH_COMMANDS_BIT, 1000 * 1000 * 50); // Wait for a max of 50ms...
+	if (status != GL_CONDITION_SATISFIED)
+	{
+		LOGE("Error on glClientWaitSync: %d\n", status);
+	}
+	glDeleteSync(syncBuff);
+}
+
 void ovrFramebuffer_SetCurrent( ovrFramebuffer * frameBuffer )
 {
     LOAD_GLES2(glBindFramebuffer);
@@ -583,32 +594,6 @@ void ovrFramebuffer_SetNone()
 	GL( gles_glBindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 ) );
 }
 
-GLsync syncBuff = NULL;
-
-void GPUDropSync()
-{
-	if (syncBuff != NULL)
-	{
-		glDeleteSync(syncBuff);
-	}
-
-	syncBuff = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-}
-
-void GPUWaitSync()
-{
-	if( syncBuff )
-	{
-		GLenum status = glClientWaitSync(syncBuff, GL_SYNC_FLUSH_COMMANDS_BIT, 1000 * 1000 * 50); // Wait for a max of 50ms...
-		if (status != GL_ALREADY_SIGNALED && status != GL_CONDITION_SATISFIED)
-		{
-			LOGE("Error on glClientWaitSync: %d\n", status);
-		}
-		glDeleteSync(syncBuff);
-		syncBuff = NULL;
-	}
-}
-
 void ovrFramebuffer_Resolve( ovrFramebuffer * frameBuffer )
 {
 	// Discard the depth buffer, so the tiler won't need to write it back out to memory.
@@ -617,8 +602,6 @@ void ovrFramebuffer_Resolve( ovrFramebuffer * frameBuffer )
 
     // Flush this frame worth of commands.
     glFlush();
-
-	//GPUDropSync();
 }
 
 void ovrFramebuffer_Advance( ovrFramebuffer * frameBuffer )
@@ -1293,7 +1276,7 @@ void RTCWVR_ResyncClientYawWithGameYaw()
 	//Allow 3 frames for the yaw to sync, first is this frame which is the old yaw
 	//second is the next frame which _should_ be the new yaw, but just in case it isn't
 	//we resync on the 3rd frame as well
-	resyncClientYawWithGameYaw = 3;
+	resyncClientYawWithGameYaw = 5;
 }
 
 void RTCWVR_Init()
@@ -1706,6 +1689,7 @@ void RTCWVR_submitFrame()
 		// Hand over the eye images to the time warp.
 		vrapi_SubmitFrame2(gAppState.Ovr, &frameDesc);
 	}
+
 
 	RTCWVR_incrementFrameIndex();
 }

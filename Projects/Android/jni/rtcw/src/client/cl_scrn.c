@@ -542,7 +542,7 @@ void RTCWVR_processHaptics();
 void RTCWVR_getHMDOrientation();
 qboolean RTCWVR_processMessageQueue();
 void RTCWVR_getTrackedRemotesOrientation();
-void GPUWaitSync();
+void GPUDropSync();
 
 void SCR_UpdateScreen( void ) {
 	static int recursive;
@@ -565,14 +565,10 @@ void SCR_UpdateScreen( void ) {
 
 	RTCWVR_processHaptics();
 
-	//GPUWaitSync();
-
 	//Draw twice for Quest
 	SCR_DrawScreenField( STEREO_LEFT );
-	RTCWVR_finishEyeBuffer(0);
 
-	//Only need to do this when viewing screen mode
-	//if (RTCWVR_useScreenLayer())
+	//This won't perform the submit eye buffers
 	{
 		if (com_speeds->integer) {
 			re.EndFrame(STEREO_LEFT, &time_frontend, &time_backend);
@@ -581,14 +577,21 @@ void SCR_UpdateScreen( void ) {
 		}
 	}
 
-	SCR_DrawScreenField( STEREO_RIGHT );
-	RTCWVR_finishEyeBuffer(1);
+    RTCWVR_finishEyeBuffer(0);
 
+    SCR_DrawScreenField( STEREO_RIGHT );
+
+    //This will perform the submit eye buffers
 	if ( com_speeds->integer ) {
 		re.EndFrame( STEREO_RIGHT, &time_frontend, &time_backend );
 	} else {
 		re.EndFrame( STEREO_RIGHT, NULL, NULL );
 	}
+
+    RTCWVR_finishEyeBuffer(1);
+
+	//And we're done
+	re.SubmitStereoFrame();
 
 	recursive = 0;
 }

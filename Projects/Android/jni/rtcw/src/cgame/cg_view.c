@@ -1419,8 +1419,7 @@ void CG_DrawSkyBoxPortal( void ) {
 
 	cg.refdef.time = cg.time;
 
-	//Indicate to renderer it should be trying any view angle adjustments
-	cg.refdef.viewangles[YAW] = -1000;
+    VectorCopy(cg.refdefViewAngles, cg.refdef.viewangles);
 
 	// draw the skybox
 	trap_R_RenderScene( &cg.refdef );
