@@ -8,7 +8,7 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := rtcw_client
 
 
-LOCAL_CFLAGS = $(RTCW_BASE_CFLAGS)  -DBOTLIB
+LOCAL_CFLAGS = $(RTCW_BASE_CFLAGS)  -DBOTLIB  -Wno-switch -Wno-inconsistent-missing-override -Werror=format-security  -fexceptions -fpermissive 
 
 LOCAL_LDFLAGS = $(RTCW_BASE_LDFLAGS)
 

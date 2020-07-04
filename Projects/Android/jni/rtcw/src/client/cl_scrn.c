@@ -537,7 +537,7 @@ text to the screen.
 
 void RTCWVR_FrameSetup();
 void RTCWVR_finishEyeBuffer(int eye );
-void RTCWVR_setUseScreenLayer(qboolean use);
+qboolean RTCWVR_useScreenLayer();
 void RTCWVR_processHaptics();
 void RTCWVR_getHMDOrientation();
 qboolean RTCWVR_processMessageQueue();
@@ -557,16 +557,7 @@ void SCR_UpdateScreen( void ) {
 	recursive = 1;
 
 	RTCWVR_FrameSetup();
-
 	RTCWVR_processMessageQueue();
-
-/*	if (gamestate == GS_LEVEL && !getMenuState()) {
-		RTCWVR_setUseScreenLayer(false);
-	}
-	else {
-		//Ensure we are drawing on virtual screen
-		RTCWVR_setUseScreenLayer(true);
-	}*/
 
 	//Get controller state here
 	RTCWVR_getHMDOrientation();
@@ -574,30 +565,29 @@ void SCR_UpdateScreen( void ) {
 
 	RTCWVR_processHaptics();
 
-	GPUWaitSync();
+	//GPUWaitSync();
 
 	//Draw twice for Quest
 	SCR_DrawScreenField( STEREO_LEFT );
 	RTCWVR_finishEyeBuffer(0);
+
+	//Only need to do this when viewing screen mode
+	//if (RTCWVR_useScreenLayer())
+	{
+		if (com_speeds->integer) {
+			re.EndFrame(STEREO_LEFT, &time_frontend, &time_backend);
+		} else {
+			re.EndFrame(STEREO_LEFT, NULL, NULL);
+		}
+	}
+
 	SCR_DrawScreenField( STEREO_RIGHT );
 	RTCWVR_finishEyeBuffer(1);
 
-/*
-#ifndef HAVE_GLES
-	// if running in stereo, we need to draw the frame twice
-	if ( cls.glconfig.stereoEnabled ) {
-		SCR_DrawScreenField( STEREO_LEFT );
-		SCR_DrawScreenField( STEREO_RIGHT );
-	} else 
-#endif
-	{
-		SCR_DrawScreenField( STEREO_CENTER );
-	}*/
-
 	if ( com_speeds->integer ) {
-		re.EndFrame( &time_frontend, &time_backend );
+		re.EndFrame( STEREO_RIGHT, &time_frontend, &time_backend );
 	} else {
-		re.EndFrame( NULL, NULL );
+		re.EndFrame( STEREO_RIGHT, NULL, NULL );
 	}
 
 	recursive = 0;

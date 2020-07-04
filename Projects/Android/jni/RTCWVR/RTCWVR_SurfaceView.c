@@ -618,7 +618,7 @@ void ovrFramebuffer_Resolve( ovrFramebuffer * frameBuffer )
     // Flush this frame worth of commands.
     glFlush();
 
-	GPUDropSync();
+	//GPUDropSync();
 }
 
 void ovrFramebuffer_Advance( ovrFramebuffer * frameBuffer )
@@ -961,8 +961,8 @@ static void ovrApp_Clear( ovrApp * app )
 	app->FrameIndex = 1;
 	app->DisplayTime = 0;
 	app->SwapInterval = 1;
-	app->CpuLevel = 2;
-	app->GpuLevel = 2;
+	app->CpuLevel = 3;
+	app->GpuLevel = 3;
 	app->MainThreadTid = 0;
 	app->RenderThreadTid = 0;
 
@@ -1316,7 +1316,7 @@ void RTCWVR_Init()
 	//Create Cvars
 	vr_snapturn_angle = Cvar_Get( "vr_snapturn_angle", "45", CVAR_ARCHIVE);
 	vr_reloadtimeoutms = Cvar_Get( "vr_reloadtimeoutms", "200", CVAR_ARCHIVE);
-	vr_positional_factor = Cvar_Get( "vr_positional_factor", "10", CVAR_ARCHIVE);
+	vr_positional_factor = Cvar_Get( "vr_positional_factor", "12", CVAR_ARCHIVE);
     vr_walkdirection = Cvar_Get( "vr_walkdirection", "0", CVAR_ARCHIVE);
 	vr_weapon_pitchadjust = Cvar_Get( "vr_weapon_pitchadjust", "-20.0", CVAR_ARCHIVE);
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);

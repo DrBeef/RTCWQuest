@@ -563,12 +563,12 @@ void RE_RenderScene( const refdef_t *fd ) {
         {
 			float yawDelta = (vr.hmdorientation[YAW] - last_hmd_yaw);
 			yaw += yawDelta;
+            last_hmd_yaw = vr.hmdorientation[YAW];
 		}
 
         viewAngles[YAW] = yaw;
 		AnglesToAxis(viewAngles, parms.or.axis);
 	}
-    last_hmd_yaw = vr.hmdorientation[YAW];
 
 	VectorCopy( fd->vieworg, parms.pvsOrigin );
 

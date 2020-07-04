@@ -1591,6 +1591,34 @@ void RB_ShowImages( void ) {
 }
 
 
+
+/*
+=============
+RB_Flush
+
+=============
+*/
+const void  *RB_Flush( const void *data ) {
+	const swapBuffersCommand_t *cmd;
+
+	// finish any 2D drawing if needed
+	if ( tess.numIndexes ) {
+		RB_EndSurface();
+	}
+
+	// texture swapping test
+	if ( r_showImages->integer ) {
+		RB_ShowImages();
+	}
+
+	cmd = (const swapBuffersCommand_t *)data;
+
+	backEnd.projection2D = qfalse;
+
+	return (const void *)( cmd + 1 );
+}
+
+
 /*
 =============
 RB_SwapBuffers
@@ -1685,6 +1713,9 @@ void RB_ExecuteRenderCommands( const void *data ) {
 			break;
 		case RC_SWAP_BUFFERS:
 			data = RB_SwapBuffers( data );
+			break;
+		case RC_FLUSH:
+			data = RB_Flush( data );
 			break;
 
 		case RC_END_OF_LIST:

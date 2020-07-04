@@ -1758,10 +1758,8 @@ static void CG_WeaponAnimation( playerState_t *ps, weaponInfo_t *weapon, int *we
 
 void convertFromVR(vec3_t in, vec3_t offset, vec3_t out)
 {
-	vec3_t vrSpace;
-	VectorSet(vrSpace, -in[2], in[0], in[1]);
 	vec3_t temp;
-	VectorScale(vrSpace, cg_worldScale.value, temp);
+	VectorScale(in, cg_worldScale.value, temp);
 
 	if (offset) {
 		VectorAdd(temp, offset, out);
@@ -1781,6 +1779,8 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 
 	convertFromVR(cgVR->weaponoffset, cg.refdef.vieworg, origin);
 	VectorCopy(cgVR->weaponangles, angles);
+
+	angles[YAW] = cg.refdefViewAngles[YAW] - (cgVR->weaponangles[YAW] - cgVR->hmdorientation[YAW]);
 	return;
 
 	float scale;

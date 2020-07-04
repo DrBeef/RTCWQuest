@@ -544,31 +544,44 @@ RE_EndFrame
 Returns the number of msec spent in the back end
 =============
 */
-void RE_EndFrame( int *frontEndMsec, int *backEndMsec ) {
+void RE_EndFrame( int stereoFrame, int *frontEndMsec, int *backEndMsec ) {
 	swapBuffersCommand_t    *cmd;
 
-	if ( !tr.registered ) {
-		return;
-	}
-	cmd = R_GetCommandBuffer( sizeof( *cmd ) );
-	if ( !cmd ) {
-		return;
-	}
-	cmd->commandId = RC_SWAP_BUFFERS;
+        if ( !tr.registered ) {
+            return;
+        }
 
-	R_IssueRenderCommands( qtrue );
+        cmd = R_GetCommandBuffer(sizeof(*cmd));
+        if (!cmd) {
+            return;
+        }
 
-	// use the other buffers next frame, because another CPU
-	// may still be rendering into the current ones
-	R_ToggleSmpFrame();
+    if (stereoFrame == 2) {
+        cmd->commandId = RC_SWAP_BUFFERS;
+    } else {
+        cmd->commandId = RC_FLUSH;
+    }
 
-	if ( frontEndMsec ) {
-		*frontEndMsec = tr.frontEndMsec;
+    if (stereoFrame == 2)
+    {
+        R_IssueRenderCommands( qtrue );
 	}
-	tr.frontEndMsec = 0;
-	if ( backEndMsec ) {
-		*backEndMsec = backEnd.pc.msec;
-	}
-	backEnd.pc.msec = 0;
+    else
+    {
+        R_IssueRenderCommands( qfalse );
+    }
+
+    // use the other buffers next frame, because another CPU
+    // may still be rendering into the current ones
+    R_ToggleSmpFrame();
+
+    if (frontEndMsec) {
+    *frontEndMsec = tr.frontEndMsec;
+    }
+    tr.frontEndMsec = 0;
+    if (backEndMsec) {
+    *backEndMsec = backEnd.pc.msec;
+    }
+    backEnd.pc.msec = 0;
 }
 
