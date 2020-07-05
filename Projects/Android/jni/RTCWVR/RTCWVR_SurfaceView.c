@@ -827,22 +827,26 @@ void QuatToYawPitchRoll(ovrQuatf q, vec3_t rotation, vec3_t out) {
     return;
 }
 
-void setWorldPosition( float x, float y, float z )
+void updateHMDOrientation()
 {
-    vr.positionDeltaThisFrame[0] = (vr.worldPosition[0] - x);
-    vr.positionDeltaThisFrame[1] = (vr.worldPosition[1] - y);
-    vr.positionDeltaThisFrame[2] = (vr.worldPosition[2] - z);
+	//Position
+    VectorSubtract(vr.hmdposition_last, vr.hmdposition, vr.hmdposition_delta);
 
-    vr.worldPosition[0] = x;
-    vr.worldPosition[1] = y;
-    vr.worldPosition[2] = z;
+    //Keep this for our records
+    VectorCopy(vr.hmdposition, vr.hmdposition_last);
+
+	//Orientation
+	VectorSubtract(vr.hmdorientation_last, vr.hmdorientation, vr.hmdorientation_delta);
+
+	//Keep this for our records
+	VectorCopy(vr.hmdorientation, vr.hmdorientation_last);
 }
 
-void setHMDPosition( float x, float y, float z, float yaw )
+void setHMDPosition( float x, float y, float z )
 {
 	static qboolean s_useScreen = qfalse;
 
-	VectorSet(vr.hmdPosition, x, y, z);
+	VectorSet(vr.hmdposition, x, y, z);
 
     if (s_useScreen != RTCWVR_useScreenLayer())
     {
@@ -854,7 +858,7 @@ void setHMDPosition( float x, float y, float z, float yaw )
 
 	if (!RTCWVR_useScreenLayer())
     {
-    	playerYaw = yaw;
+    	playerYaw = vr.hmdorientation[YAW];
 	}
 }
 
@@ -1573,10 +1577,9 @@ void RTCWVR_getHMDOrientation() {//Get orientation
 	const ovrVector3f positionHmd = tracking.HeadPose.Pose.Position;
 	vec3_t rotation = {0};
 	QuatToYawPitchRoll(quatHmd, rotation, vr.hmdorientation);
-	setHMDPosition(positionHmd.x, positionHmd.y, positionHmd.z, vr.hmdorientation[YAW]);
+	setHMDPosition(positionHmd.x, positionHmd.y, positionHmd.z);
 
-	//TODO: fix - set to use HMD position for world position
-	setWorldPosition(positionHmd.x, positionHmd.y, positionHmd.z);
+	updateHMDOrientation();
 
 	ALOGV("        HMD-Position: %f, %f, %f", positionHmd.x, positionHmd.y, positionHmd.z);
 }
@@ -1586,6 +1589,11 @@ void shutdownVR() {
 	ovrEgl_DestroyContext( &gAppState.Egl );
 	(*java.Vm)->DetachCurrentThread( java.Vm );
 	vrapi_Shutdown();
+}
+
+long long RTCWVR_getFrameIndex()
+{
+	return gAppState.FrameIndex;
 }
 
 void RTCWVR_incrementFrameIndex()

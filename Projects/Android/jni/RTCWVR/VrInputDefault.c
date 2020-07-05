@@ -45,13 +45,29 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         showingScreenLayer = !showingScreenLayer;
     }
 
+    //Need this for the touch screen
+    {
+        //Set gun angles - We need to calculate all those we might need (including adjustments) for the client to then take its pick
+        vec3_t rotation = {0};
+        rotation[PITCH] = vr_weapon_pitchadjust->value;
+        QuatToYawPitchRoll(pDominantTracking->HeadPose.Pose.Orientation, rotation, vr.weaponangles);
+        vr.weaponangles[ROLL] *= -1.0f;
+
+        VectorSubtract(vr.weaponangles_last, vr.weaponangles, vr.weaponangles_delta);
+        VectorCopy(vr.weaponangles, vr.weaponangles_last);
+
+        ALOGV("        weaponangles_last: %f, %f, %f",
+              vr.weaponangles_last[0], vr.weaponangles_last[1], vr.weaponangles_last[2]);
+
+    }
+
 
     //Menu button
 	handleTrackedControllerButton(&leftTrackedRemoteState_new, &leftTrackedRemoteState_old, ovrButton_Enter, K_ESCAPE);
 
     if ( RTCWVR_useScreenLayer() )
     {
-        interactWithTouchScreen(pDominantTracking, pDominantTrackedRemoteNew, pDominantTrackedRemoteOld);
+        interactWithTouchScreen(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld);
 
         handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton1, K_MOUSE1);
         handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, ovrButton_Trigger, K_MOUSE1);
@@ -111,9 +127,9 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         //dominant hand stuff first
         {
 			///Weapon location relative to view
-            vr.weaponoffset[0] = pDominantTracking->HeadPose.Pose.Position.x - vr.hmdPosition[0];
-            vr.weaponoffset[1] = pDominantTracking->HeadPose.Pose.Position.y - vr.hmdPosition[1];
-            vr.weaponoffset[2] = pDominantTracking->HeadPose.Pose.Position.z - vr.hmdPosition[2];
+            vr.weaponoffset[0] = pDominantTracking->HeadPose.Pose.Position.x - vr.hmdposition[0];
+            vr.weaponoffset[1] = pDominantTracking->HeadPose.Pose.Position.y - vr.hmdposition[1];
+            vr.weaponoffset[2] = pDominantTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
 
 			{
 				vec2_t v;
@@ -121,14 +137,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 				vr.weaponoffset[0] = v[0];
 				vr.weaponoffset[2] = v[1];
 			}
-
-            //Set gun angles - We need to calculate all those we might need (including adjustments) for the client to then take its pick
-            vec3_t rotation = {0};
-            rotation[PITCH] = vr_weapon_pitchadjust->value;
-            QuatToYawPitchRoll(pDominantTracking->HeadPose.Pose.Orientation, rotation, vr.weaponangles);
-            vr.weaponangles[YAW] += (cl.viewangles[YAW] - vr.hmdorientation[YAW]);
-            vr.weaponangles[ROLL] *= -1.0f;
-
 
             if (vr.weapon_stabilised)
             {
@@ -199,9 +207,9 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         float controllerYawHeading = 0.0f;
         //off-hand stuff
         {
-            vr.flashlightoffset[0] = pOffTracking->HeadPose.Pose.Position.x - vr.hmdPosition[0];
-            vr.flashlightoffset[1] = pOffTracking->HeadPose.Pose.Position.y - vr.hmdPosition[1];
-            vr.flashlightoffset[2] = pOffTracking->HeadPose.Pose.Position.z - vr.hmdPosition[2];
+            vr.flashlightoffset[0] = pOffTracking->HeadPose.Pose.Position.x - vr.hmdposition[0];
+            vr.flashlightoffset[1] = pOffTracking->HeadPose.Pose.Position.y - vr.hmdposition[1];
+            vr.flashlightoffset[2] = pOffTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
 
 			vec2_t v;
 			rotateAboutOrigin(-vr.flashlightoffset[0], vr.flashlightoffset[2], (cl.viewangles[YAW] - vr.hmdorientation[YAW]), v);
@@ -232,8 +240,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             //This section corrects for the fact that the controller actually controls direction of movement, but we want to move relative to the direction the
             //player is facing for positional tracking
             vec2_t v;
-            rotateAboutOrigin(-vr.positionDeltaThisFrame[0] * vr_positional_factor->value,
-                              vr.positionDeltaThisFrame[2] * vr_positional_factor->value, - vr.hmdorientation[YAW], v);
+            rotateAboutOrigin(-vr.hmdposition_delta[0] * vr_positional_factor->value,
+                              vr.hmdposition_delta[2] * vr_positional_factor->value, - vr.hmdorientation[YAW], v);
             positional_movementSideways = v[0];
             positional_movementForward = v[1];
 

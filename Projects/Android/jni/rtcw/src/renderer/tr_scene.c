@@ -411,6 +411,7 @@ to handle mirrors,
 */
 qboolean RTCWVR_useScreenLayer();
 extern int resyncClientYawWithGameYaw;
+long long RTCWVR_getFrameIndex();
 void RE_RenderScene( const refdef_t *fd ) {
 	viewParms_t parms;
 	int startTime;
@@ -533,7 +534,8 @@ void RE_RenderScene( const refdef_t *fd ) {
 
 	//This is just madness, but it makes for smooth head tracking
 	static float yaw = 0;
-	static float last_hmd_yaw = 0;
+	static long long lastFrameIndex = 0;
+	long long frameIndex = RTCWVR_getFrameIndex();
 	if ((RTCWVR_useScreenLayer() || resyncClientYawWithGameYaw > 0))
 	{
 		//Resyncing with known game yaw
@@ -543,15 +545,6 @@ void RE_RenderScene( const refdef_t *fd ) {
 		VectorCopy( fd->viewaxis[2], parms.or.axis[2] );
         if (fd->stereoView == 1 && resyncClientYawWithGameYaw > 0) resyncClientYawWithGameYaw--;
 	}
-	else if (fd->viewangles[YAW] == -1001) // MAGIC NUMBER!
-	{
-		//Normal "in-game" behaviour, use pitch and roll from HMD but use
-		//a yaw that we believe is the same as the game server's yaw, adjusted by our last HMD movement
-		vec3_t viewAngles;
-		VectorCopy(vr.hmdorientation, viewAngles);
-		viewAngles[YAW] = yaw;
-		AnglesToAxis(viewAngles, parms.or.axis);
-	}
 	else
 	{
 		//Normal "in-game" behaviour, use pitch and roll from HMD but use
@@ -560,15 +553,14 @@ void RE_RenderScene( const refdef_t *fd ) {
         VectorCopy(vr.hmdorientation, viewAngles);
 
         //Only update this for once per stereo pair
-        if (fd->stereoView == 1)
+        if (frameIndex != lastFrameIndex)
         {
-			float yawDelta = (vr.hmdorientation[YAW] - last_hmd_yaw);
-			yaw += yawDelta;
-            last_hmd_yaw = vr.hmdorientation[YAW];
+			yaw -= vr.hmdorientation_delta[YAW];
 		}
 
         viewAngles[YAW] = yaw;
 		AnglesToAxis(viewAngles, parms.or.axis);
+        lastFrameIndex = frameIndex;
 	}
 
 	VectorCopy( fd->vieworg, parms.pvsOrigin );

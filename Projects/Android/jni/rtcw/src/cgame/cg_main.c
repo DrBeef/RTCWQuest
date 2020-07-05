@@ -311,7 +311,7 @@ cvarTable_t cvarTable[] = {
 	{ &cg_viewsize, "cg_viewsize", "100", CVAR_ARCHIVE },
 	{ &cg_letterbox, "cg_letterbox", "0", CVAR_TEMP },    //----(SA)	added
 	{ &cg_stereoSeparation, "cg_stereoSeparation", "0.065", CVAR_ARCHIVE  },
-	{ &cg_worldScale, "cg_worldScale", "40.0", CVAR_ARCHIVE  },
+	{ &cg_worldScale, "cg_worldScale", "35.0", CVAR_ARCHIVE  },
 	{ &cg_shadows, "cg_shadows", "1", CVAR_ARCHIVE  },
 	{ &cg_gibs, "cg_gibs", "1", CVAR_ARCHIVE  },
 	{ &cg_draw2D, "cg_draw2D", "1", CVAR_ARCHIVE  },

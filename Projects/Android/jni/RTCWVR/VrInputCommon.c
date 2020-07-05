@@ -145,25 +145,19 @@ void acquireTrackedRemotesData(const ovrMobile *Ovr, double displayTime) {//The 
 
 float initialTouchX, initialTouchY;
 void PortableMouseAbs(float x,float y);
+inline float clamp(float _min, float _val, float _max)
+{
+    return max(min(_val, _max), _min);
+}
 
-void interactWithTouchScreen(ovrTracking *tracking, ovrInputStateTrackedRemote *newState, ovrInputStateTrackedRemote *oldState) {
-    float remoteAngles[3];
-    vec3_t rotation = {0};
-    QuatToYawPitchRoll(tracking->HeadPose.Pose.Orientation, rotation, remoteAngles);
-    float yaw = remoteAngles[YAW] - playerYaw;
+void interactWithTouchScreen(ovrInputStateTrackedRemote *newState, ovrInputStateTrackedRemote *oldState) {
+    static float cursorX = 0.25f;
+    static float cursorY = 0.125f;
 
-    //Adjust for maximum yaw values
-    if (yaw >= 180.0f) yaw -= 180.0f;
-    if (yaw <= -180.0f) yaw += 180.0f;
+    cursorX += (float)(vr.weaponangles_delta[YAW] / 220.0);
+    cursorX = clamp(0.0, cursorX, 0.5);
+    cursorY += (float)(-vr.weaponangles_delta[PITCH] / 220.0);
+    cursorY = clamp(0.0, cursorY, 0.5);
 
-    if (yaw > -45.0f && yaw < 45.0f &&
-        remoteAngles[PITCH] > -15.0f && remoteAngles[PITCH] < 75.0f) {
-
-        int newRemoteTrigState = (newState->Buttons & ovrButton_Trigger) != 0;
-        int prevRemoteTrigState = (oldState->Buttons & ovrButton_Trigger) != 0;
-
-        float touchX = (-yaw + 45.0f) / 90.0f;
-        float touchY = (remoteAngles[PITCH] + 15.0f) / 90.0f;
-        PortableMouseAbs(touchX, touchY);
-    }
+    PortableMouseAbs(cursorX, cursorY);
 }

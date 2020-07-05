@@ -348,8 +348,7 @@ void CG_Draw3DModel( float x, float y, float w, float h, qhandle_t model, qhandl
 		refdef.rdflags &= ~RDF_DRAWSKYBOX;
 	}
 
-	//Indicate to renderer it should be trying any view angle adjustments
-    refdef.viewangles[YAW] = -1001;
+    VectorCopy(cg.refdefViewAngles, cg.refdef.viewangles);
 
 	trap_R_ClearScene();
 	trap_R_AddRefEntityToScene( &ent );
@@ -3573,7 +3572,7 @@ void CG_DrawActive( int stereoView ) {
 
 
     cg.refdef.worldscale = cg_worldScale.value;
-    cg.refdef.viewangles[YAW] = -1001;
+    VectorCopy(cg.refdefViewAngles, cg.refdef.viewangles);
 
 	// clear around the rendered view if sized down
 //	CG_TileClear();	// (SA) moved down
@@ -3586,8 +3585,8 @@ void CG_DrawActive( int stereoView ) {
 
 	//Vertical Positional Movement
 	if (!cg.cameraMode) {
-        cg.refdef.vieworg[2] -= DEFAULT_VIEWHEIGHT;
-        cg.refdef.vieworg[2] += (cgVR->hmdPosition[1] /*+ vr_height_adjust->value*/) * cg_worldScale.value;
+        cg.refdef.vieworg[2] -= 64;
+        cg.refdef.vieworg[2] += (cgVR->hmdposition[1] /*+ vr_height_adjust->value*/) * cg_worldScale.value;
     }
 
 	cg.refdef.glfog.registered = 0; // make sure it doesn't use fog from another scene
