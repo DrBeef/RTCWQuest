@@ -143,21 +143,26 @@ void acquireTrackedRemotesData(const ovrMobile *Ovr, double displayTime) {//The 
     }
 }
 
-float initialTouchX, initialTouchY;
 void PortableMouseAbs(float x,float y);
 inline float clamp(float _min, float _val, float _max)
 {
     return max(min(_val, _max), _min);
 }
 
-void interactWithTouchScreen(ovrInputStateTrackedRemote *newState, ovrInputStateTrackedRemote *oldState) {
+void interactWithTouchScreen(qboolean reset, ovrInputStateTrackedRemote *newState, ovrInputStateTrackedRemote *oldState) {
     static float cursorX = 0.25f;
     static float cursorY = 0.125f;
 
-    cursorX += (float)(vr.weaponangles_delta[YAW] / 220.0);
+    if (reset)
+    {
+        cursorX = 0.25f;
+        cursorY = 0.125f;
+    }
+
+    cursorX += (float)(vr.weaponangles_delta[YAW] / 180.0);
     cursorX = clamp(0.0, cursorX, 0.5);
     cursorY += (float)(-vr.weaponangles_delta[PITCH] / 220.0);
-    cursorY = clamp(0.0, cursorY, 0.5);
+    cursorY = clamp(0.0, cursorY, 0.4);
 
     PortableMouseAbs(cursorX, cursorY);
 }

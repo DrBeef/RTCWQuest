@@ -35,12 +35,14 @@ If you have questions concerning this license or the applicable additional terms
 
 
 #include "g_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 static float s_quadFactor;
 static vec3_t forward, right, up;
 static vec3_t muzzleEffect;
 static vec3_t muzzleTrace;
 
+extern vr_client_info_t* gVR;
 
 // forward dec
 void weapon_zombiespit( gentity_t *ent );
@@ -51,6 +53,24 @@ void Bullet_Fire_Extended( gentity_t *source, gentity_t *attacker, vec3_t start,
 int G_GetWeaponDamage( int weapon ); // JPW
 
 #define NUM_NAILSHOTS 10
+
+
+void convertFromVR(float worldscale, vec3_t in, vec3_t offset, vec3_t out)
+{
+    vec3_t vrSpace;
+    VectorSet(vrSpace, in[2], in[0], in[1]);
+    vec3_t temp;
+
+    VectorScale(vrSpace, worldscale, temp);
+
+    if (offset) {
+        VectorAdd(temp, offset, out);
+    } else {
+        VectorCopy(temp, out);
+    }
+}
+
+
 
 /*
 ======================================================================
@@ -77,8 +97,14 @@ void Weapon_Knife( gentity_t *ent ) {
 
 	mod = MOD_KNIFE;
 
-	AngleVectors( ent->client->ps.viewangles, forward, right, up );
+
+    vec3_t angles;
+    VectorCopy(gVR->weaponangles_unadjusted, angles);
+    angles[YAW] = ent->client->ps.viewangles[YAW] + (gVR->weaponangles[YAW] - gVR->hmdorientation[YAW]);
+
+    AngleVectors( angles, forward, right, up );
 	CalcMuzzlePoint( ent, ent->s.weapon, forward, right, up, muzzleTrace );
+
 	VectorMA( muzzleTrace, KNIFE_DIST, forward, end );
 	trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT );
 
@@ -1634,8 +1660,20 @@ set muzzle location relative to pivoting eye
 ===============
 */
 void CalcMuzzlePoint( gentity_t *ent, int weapon, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint ) {
-	VectorCopy( ent->r.currentOrigin, muzzlePoint );
-	muzzlePoint[2] += ent->client->ps.viewheight;
+
+	if ( ( ent->r.svFlags & SVF_CASTAI ) )
+	{
+		VectorCopy(ent->r.currentOrigin, muzzlePoint);
+		muzzlePoint[2] += ent->client->ps.viewheight;
+	}
+	else
+	{
+		float worldscale = trap_Cvar_VariableIntegerValue("cg_worldScale");
+		convertFromVR(worldscale, gVR->weaponoffset, ent->r.currentOrigin, muzzlePoint);
+        muzzlePoint[2] += ent->client->ps.viewheight;
+		return;
+	}
+
 	// Ridah, this puts the start point outside the bounding box, isn't necessary
 //	VectorMA( muzzlePoint, 14, forward, muzzlePoint );
 	// done.
@@ -1671,35 +1709,41 @@ void CalcMuzzlePoint( gentity_t *ent, int weapon, vec3_t forward, vec3_t right, 
 	// (SA) actually, this is sort of moot right now since
 	// you're not allowed to fire when leaning.  Leave in
 	// in case we decide to enable some lean-firing.
-	AddLean( ent, muzzlePoint );
+	//AddLean( ent, muzzlePoint );
 
 	// snap to integer coordinates for more efficient network bandwidth usage
-	SnapVector( muzzlePoint );
+	//SnapVector( muzzlePoint );
 }
 
 // Rafael - for activate
 void CalcMuzzlePointForActivate( gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint ) {
 
-	VectorCopy( ent->s.pos.trBase, muzzlePoint );
-	muzzlePoint[2] += ent->client->ps.viewheight;
-
-	AddLean( ent, muzzlePoint );
-
-	// snap to integer coordinates for more efficient network bandwidth usage
-//	SnapVector( muzzlePoint );
-	// (SA) /\ only used server-side, so leaving the accuracy in is fine (and means things that show a cursorhint will be hit when activated)
-	//			(there were differing views of activatable stuff between cursorhint and activatable)
+    if ( ( ent->r.svFlags & SVF_CASTAI ) )
+    {
+        VectorCopy(ent->r.currentOrigin, muzzlePoint);
+        muzzlePoint[2] += ent->client->ps.viewheight;
+        AddLean( ent, muzzlePoint );
+    }
+    else
+    {
+        float worldscale = trap_Cvar_VariableIntegerValue("cg_worldScale");
+        convertFromVR(worldscale, gVR->weaponoffset, ent->r.currentOrigin, muzzlePoint);
+        muzzlePoint[2] += ent->client->ps.viewheight;
+        return;
+    }
 }
 // done.
+
 
 // Ridah
 void CalcMuzzlePoints( gentity_t *ent, int weapon ) {
 	vec3_t viewang;
 
-	VectorCopy( ent->client->ps.viewangles, viewang );
+	if ( !( ent->r.svFlags & SVF_CASTAI ) ) {
 
-	if ( !( ent->r.svFlags & SVF_CASTAI ) ) {   // non ai's take into account scoped weapon 'sway' (just another way aimspread is visualized/utilized)
-		float spreadfrac, phase;
+/*
+		// non ai's take into account scoped weapon 'sway' (just another way aimspread is visualized/utilized)
+ 		float spreadfrac, phase;
 
 		if ( weapon == WP_SNIPERRIFLE || weapon == WP_SNOOPERSCOPE || weapon == WP_FG42SCOPE ) {
 			spreadfrac = ent->client->currentAimSpreadScale;
@@ -1710,9 +1754,14 @@ void CalcMuzzlePoints( gentity_t *ent, int weapon ) {
 
 			phase = level.time / 1000.0 * ZOOM_YAW_FREQUENCY * M_PI * 2;
 			viewang[YAW] += ZOOM_YAW_AMPLITUDE * sin( phase ) * ( spreadfrac + ZOOM_YAW_MIN_AMPLITUDE );
-		}
-	}
+			*/
 
+		VectorCopy(gVR->weaponangles, viewang);
+		viewang[YAW] = ent->client->ps.viewangles[YAW] + (gVR->weaponangles[YAW] - gVR->hmdorientation[YAW]);
+
+	} else {
+		VectorCopy( ent->client->ps.viewangles, viewang );
+	}
 
 	// set aiming directions
 	AngleVectors( viewang, forward, right, up );

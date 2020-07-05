@@ -49,9 +49,9 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
     {
         //Set gun angles - We need to calculate all those we might need (including adjustments) for the client to then take its pick
         vec3_t rotation = {0};
+        QuatToYawPitchRoll(pDominantTracking->HeadPose.Pose.Orientation, rotation, vr.weaponangles_unadjusted);
         rotation[PITCH] = vr_weapon_pitchadjust->value;
         QuatToYawPitchRoll(pDominantTracking->HeadPose.Pose.Orientation, rotation, vr.weaponangles);
-        vr.weaponangles[ROLL] *= -1.0f;
 
         VectorSubtract(vr.weaponangles_last, vr.weaponangles, vr.weaponangles_delta);
         VectorCopy(vr.weaponangles, vr.weaponangles_last);
@@ -65,9 +65,11 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
     //Menu button
 	handleTrackedControllerButton(&leftTrackedRemoteState_new, &leftTrackedRemoteState_old, ovrButton_Enter, K_ESCAPE);
 
+    static qboolean resetCursor = qtrue;
     if ( RTCWVR_useScreenLayer() )
     {
-        interactWithTouchScreen(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld);
+        interactWithTouchScreen(resetCursor, pDominantTrackedRemoteNew, pDominantTrackedRemoteOld);
+        resetCursor = qfalse;
 
         handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton1, K_MOUSE1);
         handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, ovrButton_Trigger, K_MOUSE1);
@@ -75,6 +77,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
     }
     else
     {
+        resetCursor = qtrue;
 
         static bool canUseQuickSave = false;
         if (pOffTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)) {
@@ -133,7 +136,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
 			{
 				vec2_t v;
-				rotateAboutOrigin(-vr.weaponoffset[0], vr.weaponoffset[2], (cl.viewangles[YAW] - vr.hmdorientation[YAW]), v);
+				rotateAboutOrigin(vr.weaponoffset[0], vr.weaponoffset[2], -snapTurn, v);
 				vr.weaponoffset[0] = v[0];
 				vr.weaponoffset[2] = v[1];
 			}
@@ -146,7 +149,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 float zxDist = length(x, z);
 
                 if (zxDist != 0.0f && z != 0.0f) {
-                    VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)), (cl.viewangles[YAW] - vr.hmdorientation[YAW]) - degrees(atan2f(x, -z)), vr.weaponangles[ROLL]);
+                    VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)), -snapTurn - degrees(atan2f(x, -z)), vr.weaponangles[ROLL]);
                 }
             }
 

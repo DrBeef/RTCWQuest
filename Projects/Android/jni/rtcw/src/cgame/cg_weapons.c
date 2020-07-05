@@ -1759,7 +1759,7 @@ static void CG_WeaponAnimation( playerState_t *ps, weaponInfo_t *weapon, int *we
 void convertFromVR(vec3_t in, vec3_t offset, vec3_t out)
 {
     vec3_t vrSpace;
-    VectorSet(vrSpace, in[0], in[1], in[2]);
+    VectorSet(vrSpace, in[2], in[0], in[1] );
     vec3_t temp;
 	VectorScale(vrSpace, cg_worldScale.value, temp);
 
@@ -1780,9 +1780,18 @@ CG_CalculateWeaponPosition
 static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 
 	convertFromVR(cgVR->weaponoffset, cg.refdef.vieworg, origin);
-	VectorCopy(cgVR->weaponangles, angles);
+	origin[2] -= 64;
+	origin[2] += (cgVR->hmdposition[1] /*+ vr_height_adjust->value*/) * cg_worldScale.value;
 
-	angles[YAW] = cg.refdefViewAngles[YAW] + (cgVR->hmdorientation[YAW] - cgVR->weaponangles[YAW]);
+    VectorCopy(cgVR->weaponangles, angles);
+	angles[YAW] = cg.refdefViewAngles[YAW] + (cgVR->weaponangles[YAW] - cgVR->hmdorientation[YAW]);
+
+	//Now move weapon closer to proper origin
+    vec3_t forward, right, up;
+    AngleVectors( angles, forward, right, up );
+    VectorMA( origin, -16, forward, origin );
+    VectorMA( origin, 9, up, origin );
+    VectorMA( origin, -4.5, right, origin );
 	return;
 
 	float scale;
@@ -2661,7 +2670,6 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 									 // this will affect any parts attached to the gun as well (barrel/bolt/flash/brass/etc.)
 			VectorScale( gun.axis[i], 1.0 / ( cgs.clientinfo[ cent->currentState.clientNum ].playermodelScale[i] ), gun.axis[i] );
 		}
-
 	}
 
 	// characters that draw their own special weapon model will not draw the standard ones
@@ -6066,9 +6074,13 @@ static qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 	int anim;
 
 	if ( entityNum == cg.snap->ps.clientNum ) {
-		VectorCopy( cg.snap->ps.origin, muzzle );
+        convertFromVR(cgVR->weaponoffset, cg.snap->ps.origin, muzzle);
 		muzzle[2] += cg.snap->ps.viewheight;
-		AngleVectors( cg.snap->ps.viewangles, forward, NULL, NULL );
+
+        vec3_t angles;
+        VectorCopy(cgVR->weaponangles, angles);
+        angles[YAW] = cg.refdefViewAngles[YAW] + (cgVR->weaponangles[YAW] - cgVR->hmdorientation[YAW]);
+		AngleVectors( angles, forward, NULL, NULL );
 		VectorMA( muzzle, 14, forward, muzzle );
 		return qtrue;
 	}
