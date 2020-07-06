@@ -1280,7 +1280,7 @@ void RTCWVR_ResyncClientYawWithGameYaw()
 	//Allow several frames for the yaw to sync, first is this frame which is the old yaw
 	//second is the next frame which _should_ be the new yaw, but just in case it isn't
 	//we resync on the 3rd frame as well
-	resyncClientYawWithGameYaw = 5;
+	resyncClientYawWithGameYaw = 2;
 }
 
 void RTCWVR_Init()
