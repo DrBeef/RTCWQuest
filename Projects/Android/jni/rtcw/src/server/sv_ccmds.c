@@ -301,6 +301,8 @@ Completely restarts a level, but doesn't send a new gamestate to the clients.
 This allows fair starts with variable load times.
 ================
 */
+void RTCWVR_ResyncClientYawWithGameYaw();
+
 static void SV_MapRestart_f( void ) {
 	int i;
 	client_t    *client;
@@ -322,6 +324,8 @@ static void SV_MapRestart_f( void ) {
 	if ( sv.restartTime ) {
 		return;
 	}
+
+	RTCWVR_ResyncClientYawWithGameYaw();
 
 	if ( Cmd_Argc() > 1 ) {
 		delay = atoi( Cmd_Argv( 1 ) );

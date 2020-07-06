@@ -1277,7 +1277,7 @@ void initialize_gl4es();
 
 void RTCWVR_ResyncClientYawWithGameYaw()
 {
-	//Allow 3 frames for the yaw to sync, first is this frame which is the old yaw
+	//Allow several frames for the yaw to sync, first is this frame which is the old yaw
 	//second is the next frame which _should_ be the new yaw, but just in case it isn't
 	//we resync on the 3rd frame as well
 	resyncClientYawWithGameYaw = 5;

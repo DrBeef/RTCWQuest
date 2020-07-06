@@ -1755,11 +1755,22 @@ static void CG_WeaponAnimation( playerState_t *ps, weaponInfo_t *weapon, int *we
 
 // (SA) it wasn't used anyway
 
+void rotateAboutOrigin(float x, float y, float rotation, vec2_t out)
+{
+    out[0] = cosf(DEG2RAD(-rotation)) * x  +  sinf(DEG2RAD(-rotation)) * y;
+    out[1] = cosf(DEG2RAD(-rotation)) * y  -  sinf(DEG2RAD(-rotation)) * x;
+}
 
 void convertFromVR(vec3_t in, vec3_t offset, vec3_t out)
 {
     vec3_t vrSpace;
     VectorSet(vrSpace, in[2], in[0], in[1] );
+
+    vec2_t r;
+    rotateAboutOrigin(vrSpace[0], vrSpace[1], cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW], r);
+    vrSpace[0] = -r[0];
+    vrSpace[1] = -r[1];
+
     vec3_t temp;
 	VectorScale(vrSpace, cg_worldScale.value, temp);
 
@@ -1780,8 +1791,8 @@ CG_CalculateWeaponPosition
 static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 
 	convertFromVR(cgVR->weaponoffset, cg.refdef.vieworg, origin);
-	origin[2] -= 64;
-	origin[2] += (cgVR->hmdposition[1] /*+ vr_height_adjust->value*/) * cg_worldScale.value;
+    origin[2] -= 64;
+    origin[2] += (cgVR->hmdposition[1] /*+ vr_height_adjust->value*/) * cg_worldScale.value;
 
     VectorCopy(cgVR->weaponangles, angles);
 	angles[YAW] = cg.refdefViewAngles[YAW] + (cgVR->weaponangles[YAW] - cgVR->hmdorientation[YAW]);
@@ -1789,9 +1800,9 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 	//Now move weapon closer to proper origin
     vec3_t forward, right, up;
     AngleVectors( angles, forward, right, up );
-    VectorMA( origin, -16, forward, origin );
-    VectorMA( origin, 9, up, origin );
-    VectorMA( origin, -4.5, right, origin );
+    VectorMA( origin, -18, forward, origin );
+    VectorMA( origin, 8, up, origin );
+    VectorMA( origin, -8, right, origin );
 	return;
 
 	float scale;
@@ -2671,6 +2682,11 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 			VectorScale( gun.axis[i], 1.0 / ( cgs.clientinfo[ cent->currentState.clientNum ].playermodelScale[i] ), gun.axis[i] );
 		}
 	}
+
+    for ( i = 0; i < 3; i++ ) {  // scale weapon back up so it doesn't pick up the adjusted scale of the character models.
+        // this will affect any parts attached to the gun as well (barrel/bolt/flash/brass/etc.)
+        VectorScale( gun.axis[i], cg_weaponScale.value, gun.axis[i] );
+    }
 
 	// characters that draw their own special weapon model will not draw the standard ones
 	if ( CG_DrawRealWeapons( cent ) ) {
@@ -6074,8 +6090,9 @@ static qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 	int anim;
 
 	if ( entityNum == cg.snap->ps.clientNum ) {
-        convertFromVR(cgVR->weaponoffset, cg.snap->ps.origin, muzzle);
-		muzzle[2] += cg.snap->ps.viewheight;
+        convertFromVR(cgVR->weaponoffset, cg.refdef.vieworg, muzzle);
+		muzzle[2] -= 64;
+        muzzle[2] += (cgVR->hmdposition[1] /*+ vr_height_adjust->value*/) * cg_worldScale.value;
 
         vec3_t angles;
         VectorCopy(cgVR->weaponangles, angles);

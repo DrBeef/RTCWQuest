@@ -20,7 +20,7 @@ Authors		:	Simon Brown
 
 cvar_t	*sv_cheats;
 
-
+void CG_CenterPrint( const char *str, int y, int charWidth );
 
 void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew, ovrInputStateTrackedRemote *pDominantTrackedRemoteOld, ovrTracking* pDominantTracking,
                           ovrInputStateTrackedRemote *pOffTrackedRemoteNew, ovrInputStateTrackedRemote *pOffTrackedRemoteOld, ovrTracking* pOffTracking,
@@ -40,10 +40,10 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
 
     //switch to screen layer override
-    if ((pOffTrackedRemoteNew->Buttons & ovrButton_Joystick) !=
-        (pOffTrackedRemoteOld->Buttons & ovrButton_Joystick)) {
-        showingScreenLayer = !showingScreenLayer;
-    }
+//    if ((pOffTrackedRemoteNew->Buttons & ovrButton_Joystick) !=
+//        (pOffTrackedRemoteOld->Buttons & ovrButton_Joystick)) {
+//        showingScreenLayer = !showingScreenLayer;
+//    }
 
     //Need this for the touch screen
     {
@@ -134,13 +134,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             vr.weaponoffset[1] = pDominantTracking->HeadPose.Pose.Position.y - vr.hmdposition[1];
             vr.weaponoffset[2] = pDominantTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
 
-			{
-				vec2_t v;
-				rotateAboutOrigin(vr.weaponoffset[0], vr.weaponoffset[2], -snapTurn, v);
-				vr.weaponoffset[0] = v[0];
-				vr.weaponoffset[2] = v[1];
-			}
-
             if (vr.weapon_stabilised)
             {
                 float z = pOffTracking->HeadPose.Pose.Position.z - pDominantTracking->HeadPose.Pose.Position.z;
@@ -149,7 +142,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 float zxDist = length(x, z);
 
                 if (zxDist != 0.0f && z != 0.0f) {
-                    VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)), -snapTurn - degrees(atan2f(x, -z)), vr.weaponangles[ROLL]);
+                    VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)), -degrees(atan2f(x, -z)), vr.weaponangles[ROLL]);
                 }
             }
 
@@ -165,8 +158,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             }
             else if (!canUseBackpack && grabMeleeWeapon == 0) {
                 int channel = (vr_control_scheme->integer >= 10) ? 0 : 1;
-                    RTCWVR_Vibrate(40, channel,
-                                    0.5); // vibrate to let user know they can switch
+                    RTCWVR_Vibrate(40, channel, 0.5); // vibrate to let user know they can switch
 
                 canUseBackpack = true;
             }
@@ -213,11 +205,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             vr.flashlightoffset[0] = pOffTracking->HeadPose.Pose.Position.x - vr.hmdposition[0];
             vr.flashlightoffset[1] = pOffTracking->HeadPose.Pose.Position.y - vr.hmdposition[1];
             vr.flashlightoffset[2] = pOffTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
-
-			vec2_t v;
-			rotateAboutOrigin(-vr.flashlightoffset[0], vr.flashlightoffset[2], (cl.viewangles[YAW] - vr.hmdorientation[YAW]), v);
-			vr.flashlightoffset[0] = v[0];
-			vr.flashlightoffset[2] = v[1];
 
             vec3_t rotation = {0};
             QuatToYawPitchRoll(pOffTracking->HeadPose.Pose.Orientation, rotation, vr.flashlightangles);
@@ -365,11 +352,17 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                   remote_movementSideways,
                   remote_movementForward);
 
-            //Kick!
+
             if (!canUseQuickSave) {
                 if ((pOffTrackedRemoteNew->Buttons & offButton1) !=
                     (pOffTrackedRemoteOld->Buttons & offButton1)) {
-                    sendButtonAction("+kick", (pOffTrackedRemoteNew->Buttons & offButton1));
+
+                    if (dominantGripPushed) {
+                        //If cheats enabled, give all weapons/pickups to player
+                        Cbuf_AddText("give all\n");
+                    } else {
+                        sendButtonAction("+zoom", (pOffTrackedRemoteNew->Buttons & offButton1));
+                    }
                 }
             }
 
@@ -382,14 +375,10 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             }
 
 
-            if (((pOffTrackedRemoteNew->Buttons & ovrButton_Joystick) !=
-                (pOffTrackedRemoteOld->Buttons & ovrButton_Joystick))
-                && (pOffTrackedRemoteNew->Buttons & ovrButton_Joystick)) {
-
-                //If cheats enabled, give all weapons/pickups to player
-                if (sv_cheats->value == 1.0f) {
-                    Cbuf_AddText("give all\n");
-                }
+            //Kick!
+            if ((pOffTrackedRemoteNew->Buttons & ovrButton_Joystick) !=
+                (pOffTrackedRemoteOld->Buttons & ovrButton_Joystick)) {
+                sendButtonAction("+kick", (pOffTrackedRemoteNew->Buttons & ovrButton_Joystick));
             }
 
             //We need to record if we have started firing primary so that releasing trigger will stop definitely firing, if user has pushed grip

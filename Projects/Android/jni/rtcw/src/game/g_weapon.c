@@ -55,12 +55,24 @@ int G_GetWeaponDamage( int weapon ); // JPW
 #define NUM_NAILSHOTS 10
 
 
-void convertFromVR(float worldscale, vec3_t in, vec3_t offset, vec3_t out)
+
+void rotateAboutOrigin(float x, float y, float rotation, vec2_t out)
+{
+    out[0] = cosf(DEG2RAD(-rotation)) * x  +  sinf(DEG2RAD(-rotation)) * y;
+    out[1] = cosf(DEG2RAD(-rotation)) * y  -  sinf(DEG2RAD(-rotation)) * x;
+}
+
+void convertFromVR(float worldscale, gentity_t *ent, vec3_t in, vec3_t offset, vec3_t out)
 {
     vec3_t vrSpace;
-    VectorSet(vrSpace, in[2], in[0], in[1]);
-    vec3_t temp;
+    VectorSet(vrSpace, in[2], in[0], in[1] );
 
+    vec2_t r;
+    rotateAboutOrigin(vrSpace[0], vrSpace[1], ent->client->ps.viewangles[YAW] - gVR->hmdorientation[YAW], r);
+    vrSpace[0] = -r[0];
+    vrSpace[1] = -r[1];
+
+    vec3_t temp;
     VectorScale(vrSpace, worldscale, temp);
 
     if (offset) {
@@ -69,8 +81,6 @@ void convertFromVR(float worldscale, vec3_t in, vec3_t offset, vec3_t out)
         VectorCopy(temp, out);
     }
 }
-
-
 
 /*
 ======================================================================
@@ -99,8 +109,11 @@ void Weapon_Knife( gentity_t *ent ) {
 
 
     vec3_t angles;
-    VectorCopy(gVR->weaponangles_unadjusted, angles);
-    angles[YAW] = ent->client->ps.viewangles[YAW] + (gVR->weaponangles[YAW] - gVR->hmdorientation[YAW]);
+    if (gVR != NULL) {
+        VectorCopy(gVR->weaponangles_unadjusted, angles);
+        angles[YAW] = ent->client->ps.viewangles[YAW] +
+                      (gVR->weaponangles[YAW] - gVR->hmdorientation[YAW]);
+    }
 
     AngleVectors( angles, forward, right, up );
 	CalcMuzzlePoint( ent, ent->s.weapon, forward, right, up, muzzleTrace );
@@ -1666,11 +1679,11 @@ void CalcMuzzlePoint( gentity_t *ent, int weapon, vec3_t forward, vec3_t right, 
 		VectorCopy(ent->r.currentOrigin, muzzlePoint);
 		muzzlePoint[2] += ent->client->ps.viewheight;
 	}
-	else
+	else if (gVR != NULL)
 	{
 		float worldscale = trap_Cvar_VariableIntegerValue("cg_worldScale");
-		convertFromVR(worldscale, gVR->weaponoffset, ent->r.currentOrigin, muzzlePoint);
-        muzzlePoint[2] += ent->client->ps.viewheight;
+		convertFromVR(worldscale, ent, gVR->weaponoffset, ent->r.currentOrigin, muzzlePoint);
+		muzzlePoint[2] += (gVR->hmdposition[1] /*+ vr_height_adjust->value*/) * worldscale;
 		return;
 	}
 
@@ -1724,11 +1737,11 @@ void CalcMuzzlePointForActivate( gentity_t *ent, vec3_t forward, vec3_t right, v
         muzzlePoint[2] += ent->client->ps.viewheight;
         AddLean( ent, muzzlePoint );
     }
-    else
+    else if (gVR != NULL)
     {
         float worldscale = trap_Cvar_VariableIntegerValue("cg_worldScale");
-        convertFromVR(worldscale, gVR->weaponoffset, ent->r.currentOrigin, muzzlePoint);
-        muzzlePoint[2] += ent->client->ps.viewheight;
+        convertFromVR(worldscale, ent, gVR->weaponoffset, ent->r.currentOrigin, muzzlePoint);
+		muzzlePoint[2] += (gVR->hmdposition[1] /*+ vr_height_adjust->value*/) * worldscale;
         return;
     }
 }
@@ -1739,7 +1752,8 @@ void CalcMuzzlePointForActivate( gentity_t *ent, vec3_t forward, vec3_t right, v
 void CalcMuzzlePoints( gentity_t *ent, int weapon ) {
 	vec3_t viewang;
 
-	if ( !( ent->r.svFlags & SVF_CASTAI ) ) {
+	if ( !( ent->r.svFlags & SVF_CASTAI ) &&
+            gVR != NULL) {
 
 /*
 		// non ai's take into account scoped weapon 'sway' (just another way aimspread is visualized/utilized)
