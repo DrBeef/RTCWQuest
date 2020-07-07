@@ -263,7 +263,7 @@ void Sys_DoStartProcess( char *cmdline );
 void Sys_Exit( int ex ) {
 	LOGI("Sys_Exit");
 
-	exit(1);
+	//exit(1);
 
 	Sys_ConsoleInputShutdown();
 
@@ -281,12 +281,12 @@ void Sys_Exit( int ex ) {
 	// We can't do this
 	//  as long as GL DLL's keep installing with atexit...
 	//exit(ex);
-	_exit( ex );
+	//_exit( ex );
 #else
 
 	// Give me a backtrace on error exits.
-	assert( ex == 0 );
-	exit( ex );
+	//assert( ex == 0 );
+	//exit( ex );
 #endif
 }
 
@@ -1378,4 +1378,6 @@ int VR_main( int argc, char* argv[] ) {
 #endif
 		Com_Frame();
 	}
+
+	CL_ShutdownUI();
 }

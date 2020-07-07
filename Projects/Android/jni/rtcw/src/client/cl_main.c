@@ -2645,7 +2645,7 @@ void CL_Shutdown( void ) {
 	S_Shutdown();
 	CL_ShutdownRef();
 
-	CL_ShutdownUI();
+	//CL_ShutdownUI();
 
 	Cmd_RemoveCommand( "cmd" );
 	Cmd_RemoveCommand( "configstrings" );

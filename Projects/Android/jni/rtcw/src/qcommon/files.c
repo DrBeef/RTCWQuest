@@ -2894,6 +2894,11 @@ static void FS_Startup( const char *gameName ) {
 
 	Com_Printf( "----- FS_Startup -----\n" );
 
+	for ( int i = 0; i < MAX_FILE_HANDLES; i++ ) {
+		fsh[i].fileSize = 0;
+	}
+
+
 	fs_debug = Cvar_Get( "fs_debug", "0", 0 );
 	fs_copyfiles = Cvar_Get( "fs_copyfiles", "0", CVAR_INIT );
 	fs_cdpath = Cvar_Get( "fs_cdpath", Sys_DefaultCDPath(), CVAR_INIT );

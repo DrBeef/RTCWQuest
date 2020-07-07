@@ -1754,6 +1754,7 @@ void jni_shutdown()
 int JNI_OnLoad(JavaVM* vm, void* reserved)
 {
 	JNIEnv *env;
+    jVM = vm;
 	if((*vm)->GetEnv(vm, (void**) &env, JNI_VERSION_1_4) != JNI_OK)
 	{
 		ALOGE("Failed JNI_OnLoad");
