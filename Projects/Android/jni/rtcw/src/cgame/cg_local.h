@@ -1705,6 +1705,7 @@ extern vmCvar_t cg_thirdPerson;
 extern vmCvar_t cg_stereoSeparation;
 extern vmCvar_t cg_worldScale;
 extern vmCvar_t cg_weaponScale;
+extern vmCvar_t cg_heightAdjust;
 extern vmCvar_t cg_lagometer;
 extern vmCvar_t cg_drawAttacker;
 extern vmCvar_t cg_synchronousClients;

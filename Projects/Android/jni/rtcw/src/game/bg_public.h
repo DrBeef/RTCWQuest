@@ -75,7 +75,7 @@ float Com_GetFlamethrowerRange( void );
 #define VOTE_TIME           30000   // 30 seconds before vote times out
 
 #define DEAD_SINK_DURATION  12000
-#define DEAD_SINK_DEPTH     64
+#define DEAD_SINK_DEPTH     56
 
 // Ridah, disabled these
 //#define	MINS_Z				-24

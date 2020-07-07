@@ -122,6 +122,10 @@ int trap_Cvar_VariableIntegerValue( const char *var_name ) {
 	return syscall( G_CVAR_VARIABLE_INTEGER_VALUE, var_name );
 }
 
+int trap_Cvar_VariableValue( const char *var_name, float *value ) {
+	return syscall( G_CVAR_VARIABLE_VALUE, var_name, value );
+}
+
 void trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int bufsize ) {
 	syscall( G_CVAR_VARIABLE_STRING_BUFFER, var_name, buffer, bufsize );
 }

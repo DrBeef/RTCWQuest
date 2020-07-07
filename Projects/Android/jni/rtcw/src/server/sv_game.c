@@ -343,6 +343,9 @@ int SV_GameSystemCalls( int *args ) {
 		return 0;
 	case G_CVAR_VARIABLE_INTEGER_VALUE:
 		return Cvar_VariableIntegerValue( (const char *)VMA( 1 ) );
+	case G_CVAR_VARIABLE_VALUE:
+		*((float*)(VMA( 2 ))) =  Cvar_VariableValue( (const char *)VMA( 1 ) );
+		return 0;
 	case G_CVAR_VARIABLE_STRING_BUFFER:
 		Cvar_VariableStringBuffer( VMA( 1 ), VMA( 2 ), args[3] );
 		return 0;

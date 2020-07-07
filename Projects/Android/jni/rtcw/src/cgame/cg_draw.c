@@ -3586,7 +3586,7 @@ void CG_DrawActive( int stereoView ) {
 	//Vertical Positional Movement
 	if (!cg.cameraMode) {
         cg.refdef.vieworg[2] -= 64;
-        cg.refdef.vieworg[2] += (cgVR->hmdposition[1] /*+ vr_height_adjust->value*/) * cg_worldScale.value;
+        cg.refdef.vieworg[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
     }
 
 	cg.refdef.glfog.registered = 0; // make sure it doesn't use fog from another scene
