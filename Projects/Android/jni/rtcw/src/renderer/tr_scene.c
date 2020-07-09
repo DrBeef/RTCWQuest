@@ -30,6 +30,7 @@ If you have questions concerning this license or the applicable additional terms
 #include <src/client/client.h>
 #include "tr_local.h"
 #include "../../../RTCWVR/VrClientInfo.h"
+#include "../../../RTCWVR/VrInput.h"
 
 int r_firstSceneDrawSurf;
 
@@ -536,7 +537,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	static float yaw = 0;
 	static long long lastFrameIndex = 0;
 	long long frameIndex = RTCWVR_getFrameIndex();
-	if ((RTCWVR_useScreenLayer() || resyncClientYawWithGameYaw > 0))
+	if ((RTCWVR_useScreenLayer() || resyncClientYawWithGameYaw > 0 || scopeEngaged))
 	{
 		//Resyncing with known game yaw
         yaw = fd->viewangles[YAW];

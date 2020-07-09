@@ -122,6 +122,39 @@ void acquireTrackedRemotesData(const ovrMobile *Ovr, double displayTime) {//The 
     }
 }
 
+
+//YAW:  Left increase, Right decrease
+void updateScopeAngles(float forwardYaw)
+{
+    //Bit of a hack, but use weapon orientation / position for view when scope is engaged
+    static vec3_t currentScopeAngles;
+    static vec3_t lastScopeAngles;
+    if (scopeEngaged)
+    {
+        //Set Position
+        VectorSet(vr.hmdposition, vr.hmdposition[0] + vr.weaponoffset[0], vr.hmdposition[1] + vr.weaponoffset[1], vr.hmdposition[2] + vr.weaponoffset[2]);
+        VectorSet(vr.weaponoffset, 0, 0, 0);
+
+        //Lerp the weapon angles to smooth out shaky hands a bit
+        vec3_t angles;
+        VectorSet(angles, vr.weaponangles[PITCH], vr.weaponangles[YAW] - forwardYaw, vr.hmdorientation[ROLL]);
+
+        VectorLerp(currentScopeAngles, 0.125, angles, currentScopeAngles);
+
+        //Set "view" Angles
+        VectorCopy(currentScopeAngles, vr.hmdorientation);
+
+        //Orientation
+        VectorSubtract(lastScopeAngles, currentScopeAngles, vr.hmdorientation_delta);
+
+        //Keep this for our records
+        VectorCopy(currentScopeAngles, lastScopeAngles);
+    } else {
+        VectorSet(currentScopeAngles, vr.weaponangles[PITCH], vr.weaponangles[YAW], vr.hmdorientation[ROLL]);
+        VectorCopy(currentScopeAngles, lastScopeAngles);
+    }
+}
+
 void PortableMouseAbs(float x,float y);
 inline float clamp(float _min, float _val, float _max)
 {

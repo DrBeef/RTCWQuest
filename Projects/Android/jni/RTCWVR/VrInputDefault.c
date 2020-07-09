@@ -61,6 +61,11 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
     }
 
+    static float forwardYaw = 0;
+    if (scopeEngaged)
+    {
+        //forwardYaw = (cl.viewangles[YAW] - vr.hmdorientation[YAW]);
+    }
 
     //Menu button
 	handleTrackedControllerButton(&leftTrackedRemoteState_new, &leftTrackedRemoteState_old, ovrButton_Enter, K_ESCAPE);
@@ -110,6 +115,10 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                                powf(pOffTracking->HeadPose.Pose.Position.y - pDominantTracking->HeadPose.Pose.Position.y, 2) +
                                powf(pOffTracking->HeadPose.Pose.Position.z - pDominantTracking->HeadPose.Pose.Position.z, 2));
 
+        float distanceToHMD = sqrtf(powf(vr.hmdposition[0] - pDominantTracking->HeadPose.Pose.Position.x, 2) +
+                                    powf(vr.hmdposition[1] - pDominantTracking->HeadPose.Pose.Position.y, 2) +
+                                    powf(vr.hmdposition[2] - pDominantTracking->HeadPose.Pose.Position.z, 2));
+
         //Turn on weapon stabilisation?
         if ((pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger) !=
             (pOffTrackedRemoteOld->Buttons & ovrButton_GripTrigger)) {
@@ -125,6 +134,19 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             {
                 vr.weapon_stabilised = qfalse;
             }
+        }
+
+        //Engage scope if conditions are right
+        if (vr.weapon_stabilised && !scopeEngaged && distanceToHMD < SCOPE_ENGAGE_DISTANCE)
+        {
+            scopeEngaged = qtrue;
+            sendButtonActionSimple("weapalt");
+        }
+        else if (scopeEngaged && (distanceToHMD > SCOPE_ENGAGE_DISTANCE || !vr.weapon_stabilised))
+        {
+            scopeEngaged = qfalse;
+            sendButtonActionSimple("weapalt");
+            RTCWVR_ResyncClientYawWithGameYaw();
         }
 
         //dominant hand stuff first
@@ -185,7 +207,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                     } else{
                         if (dominantGripPushed) {
                             //Initiate crowbar from backpack mode
-                            sendButtonActionSimple("weapon0");
+                            sendButtonActionSimple("weapon 0");
                             int channel = (vr_control_scheme->integer >= 10) ? 0 : 1;
                             RTCWVR_Vibrate(80, channel, 0.8); // vibrate to let user know they switched
                             grabMeleeWeapon = 1;
@@ -216,7 +238,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 			}
 			else
 			{
-				controllerYawHeading = 0.0f;//-cl.viewangles[YAW];
+				controllerYawHeading = 0.0f;
 			}
         }
 
@@ -251,10 +273,11 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             if (!firingPrimary && dominantGripPushed && (GetTimeInMilliSeconds() - dominantGripPushTime) > vr_reloadtimeoutms->integer)
             {
                 //Fire Secondary
-                if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
-                    (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
-
-                    sendButtonAction("+attack2", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger));
+                if (((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
+                    (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger))
+                    && (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger))
+                {
+                    //sendButtonActionSimple("weapalt");
                 }
             }
             else
@@ -269,9 +292,9 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 // we need to release secondary fire if dominantGripPushed has been released before releasing trigger -> should fix the gun jamming and non stop firing secondary attack bug
                 if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
                     (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger) &&
-                    (pDominantTrackedRemoteNew->Buttons& ovrButton_Trigger) == false)
+                    (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) == false)
                 {
-                    sendButtonAction("+attack2", false);
+                    //sendButtonActionSimple("weapalt");
                 }
             }
 
@@ -292,11 +315,11 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 				if (!itemSwitched) {
 					if (between(0.8f, pDominantTrackedRemoteNew->Joystick.y, 1.0f))
 					{
-                        sendButtonActionSimple("weapprev");
+                        sendButtonActionSimple("weapnext");
 					}
 					else
 					{
-                        sendButtonActionSimple("weapnext");
+                        sendButtonActionSimple("weapprev");
 					}
 					itemSwitched = true;
 				}
@@ -435,6 +458,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 				decreaseSnap = true;
 			}
         }
+
+        updateScopeAngles(forwardYaw);
     }
 
     //Save state

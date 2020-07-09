@@ -3390,7 +3390,9 @@ static void CG_Draw2D( void ) {
 		// don't draw any status if dead
 		if ( cg.snap->ps.stats[STAT_HEALTH] > 0 ) {
 
-//			CG_DrawCrosshair();
+			if (cg.zoomedScope) {
+				CG_DrawCrosshair();
+			}
 
 			if ( cg_drawStatus.integer ) {
 				Menu_PaintAll();

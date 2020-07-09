@@ -163,25 +163,22 @@ import static android.system.Os.setenv;
 		checkPermissionsAndInitialize();
 	}
 
-	public void create()
-	{
+	public void create() {
 		//Configuration files
-		copy_asset("/sdcard/RTCWQuest", "config.cfg");
-		copy_asset("/sdcard/RTCWQuest", "autoexec.cfg");
 		copy_asset("/sdcard/RTCWQuest", "commandline.txt");
 
 		//Read these from a file and pass through
 		commandLineParams = new String("rtcw");
 
 		//See if user is trying to use command line params
-		if(new File("/sdcard/RTCWQuest/commandline.txt").exists()) // should exist!
+		if (new File("/sdcard/RTCWQuest/commandline.txt").exists()) // should exist!
 		{
 			BufferedReader br;
 			try {
 				br = new BufferedReader(new FileReader("/sdcard/RTCWQuest/commandline.txt"));
 				String s;
-				StringBuilder sb=new StringBuilder(0);
-				while ((s=br.readLine())!=null)
+				StringBuilder sb = new StringBuilder(0);
+				while ((s = br.readLine()) != null)
 					sb.append(s + " ");
 				br.close();
 
@@ -196,7 +193,7 @@ import static android.system.Os.setenv;
 		}
 
 		try {
-			setenv("RTCW_GAMELIBDIR", getFilesDir().getParentFile().getPath() + "/lib", true);
+			setenv("RTCW_GAMELIBDIR", getApplicationInfo().nativeLibraryDir, true);
 		}
 		catch (Exception e)
 		{
@@ -205,7 +202,7 @@ import static android.system.Os.setenv;
 
 		mNativeHandle = GLES3JNILib.onCreate( this, commandLineParams );
 	}
-	
+
 	public void copy_asset(String path, String name) {
 		File f = new File(path + "/" + name);
 		if (!f.exists()) {
