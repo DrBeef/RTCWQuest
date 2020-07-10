@@ -4,6 +4,7 @@
 typedef struct {
     float  fov;
     qboolean weapon_stabilised;
+    qboolean right_handed;
 
     vec3_t hmdposition;
     vec3_t hmdposition_last; // Don't use this, it is just for calculating delta!
@@ -20,8 +21,12 @@ typedef struct {
 
     vec3_t weaponoffset;
 
-    vec3_t flashlightangles;
-    vec3_t flashlightoffset;
+    qboolean scopeengaged; // Scope has been engaged on a scoped weapon
+    qboolean scopeready;   // Scope can be engaged
+    qboolean scopedweapon; // Weapon supports scope
+
+    vec3_t offhandangles;
+    vec3_t offhandoffset;
 } vr_client_info_t;
 
 #endif //vr_client_info_h

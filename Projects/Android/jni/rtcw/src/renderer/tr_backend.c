@@ -417,7 +417,7 @@ void RB_BeginDrawingView( void ) {
 
 	// sync with gl if needed
 	if ( r_finish->integer == 1 && !glState.finishCalled ) {
-		qglFinish();
+		//qglFinish();
 		glState.finishCalled = qtrue;
 	}
 	if ( r_finish->integer == 0 ) {
@@ -1151,7 +1151,7 @@ void RE_StretchRaw( int x, int y, int w, int h, int cols, int rows, const byte *
 	R_SyncRenderThread();
 
 	// we definately want to sync every frame for the cinematics
-	qglFinish();
+	//qglFinish();
 
 	start = end = 0;
 	if ( r_speeds->integer ) {
@@ -1518,7 +1518,7 @@ void RB_ShowImages( void ) {
 
 	qglClear( GL_COLOR_BUFFER_BIT );
 
-	qglFinish();
+	//qglFinish();
 
 
 	start = ri.Milliseconds();
@@ -1583,7 +1583,7 @@ void RB_ShowImages( void ) {
 	if (!text)
 		qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
 #endif
-	qglFinish();
+	//qglFinish();
 
 	end = ri.Milliseconds();
 	ri.Printf( PRINT_ALL, "%i msec to draw all images\n", end - start );
@@ -1625,6 +1625,7 @@ RB_SwapBuffers
 
 =============
 */
+void GPUWaitSync();
 const void  *RB_SwapBuffers( const void *data ) {
 	const swapBuffersCommand_t  *cmd;
 
@@ -1663,7 +1664,8 @@ const void  *RB_SwapBuffers( const void *data ) {
 	if ( !glState.finishCalled ) 
 	{
 		//LOGI("GLFINISH");
-		qglFinish();
+		GPUWaitSync();
+		//qglFinish();
 	}
 
 	GLimp_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );

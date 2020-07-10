@@ -1294,7 +1294,6 @@ void RTCWVR_Init()
 	positional_movementSideways = 0.0f;
 	positional_movementForward = 0.0f;
 	snapTurn = 0.0f;
-	scopeEngaged = qfalse;
 	ducked = DUCK_NOTDUCKED;
 	RTCWVR_ResyncClientYawWithGameYaw();
 

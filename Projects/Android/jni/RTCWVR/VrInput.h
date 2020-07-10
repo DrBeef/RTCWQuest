@@ -25,7 +25,6 @@ float remote_movementUp;
 float positional_movementSideways;
 float positional_movementForward;
 float snapTurn;
-qboolean scopeEngaged;
 
 void sendButtonAction(const char* action, long buttonDown);
 void sendButtonActionSimple(const char* action);
@@ -36,6 +35,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                           ovrInputStateTrackedRemote *pOffTrackedRemoteNew, ovrInputStateTrackedRemote *pOffTrackedRemoteOld, ovrTracking* pOffTracking,
                           int domButton1, int domButton2, int offButton1, int offButton2 );
 
-void updateScopeAngles(float forwardYaw);
+void updateScopeAngles();
 
 #endif //vrinput_h

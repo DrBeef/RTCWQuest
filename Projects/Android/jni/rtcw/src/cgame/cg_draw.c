@@ -2051,8 +2051,13 @@ static void CG_DrawWeapReticle( void ) {
 	//vec4_t snoopercolor = {0.7, .8, 0.7, 0};    // greenish
 	vec4_t snoopercolor = {0.7, .8, 0.7, 1};    // greenish
 
+	float indent = 0.265;
+	float X_WIDTH=640;
+	float Y_HEIGHT=480;
+
+
 	float snooperBrightness;
-	float x = 80, y, w = 240, h = 240;
+	float x = (X_WIDTH * indent), y = (Y_HEIGHT * indent), w = (X_WIDTH * (1-(2*indent))) / 2.0f, h = (Y_HEIGHT * (1-(2*indent))) / 2;
 
 	CG_AdjustFrom640( &x, &y, &w, &h );
 
@@ -2064,19 +2069,20 @@ static void CG_DrawWeapReticle( void ) {
 	}
 
 
-	if ( weap == WP_SNIPERRIFLE ) {
+    // sides
+    CG_FillRect( 0, 0, (X_WIDTH * indent), Y_HEIGHT, color );
+    CG_FillRect( X_WIDTH * (1 - indent), 0, (X_WIDTH * indent), Y_HEIGHT, color );
+    // top/bottom
+    CG_FillRect( X_WIDTH * indent, 0, X_WIDTH * (1-indent), Y_HEIGHT * indent, color );
+    CG_FillRect( X_WIDTH * indent, Y_HEIGHT * (1-indent), X_WIDTH * (1-indent), Y_HEIGHT * indent, color );
 
-
-		// sides
-		CG_FillRect( 0, 0, 80, 480, color );
-		CG_FillRect( 560, 0, 80, 480, color );
-
+    if ( weap == WP_SNIPERRIFLE ) {
 		// center
 		if ( cgs.media.reticleShaderSimpleQ ) {
-			trap_R_DrawStretchPic( x, 0, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );    // tl
-			trap_R_DrawStretchPic( x + w, 0, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ );  // tr
-			trap_R_DrawStretchPic( x, h, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );    // bl
-			trap_R_DrawStretchPic( x + w, h, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ );  // br
+			trap_R_DrawStretchPic( x, y, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );    // tl
+			trap_R_DrawStretchPic( x + w, y, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ );  // tr
+			trap_R_DrawStretchPic( x, y + h, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );    // bl
+			trap_R_DrawStretchPic( x + w, y + h, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ );  // br
 		}
 
 		// hairs
@@ -2085,9 +2091,6 @@ static void CG_DrawWeapReticle( void ) {
 		CG_FillRect( 319, 300, 2, 178, color );  // center bot
 		CG_FillRect( 380, 239, 177, 2, color );  // right
 	} else if ( weap == WP_SNOOPERSCOPE ) {
-		// sides
-		CG_FillRect( 0, 0, 80, 480, color );
-		CG_FillRect( 560, 0, 80, 480, color );
 
 		// center
 
@@ -2101,7 +2104,7 @@ static void CG_DrawWeapReticle( void ) {
 //----(SA)	end
 
 		if ( cgs.media.snooperShaderSimple ) {
-			CG_DrawPic( 80, 0, 480, 480, cgs.media.snooperShaderSimple );
+			CG_DrawPic((X_WIDTH * indent), (Y_HEIGHT * indent), (X_WIDTH * (1-(2*indent))), (Y_HEIGHT * (1-(2*indent))), cgs.media.snooperShaderSimple );
 		}
 
 		// hairs
@@ -2124,16 +2127,13 @@ static void CG_DrawWeapReticle( void ) {
 
 		CG_FillRect( 240, 220, 1, 40, color );   // r
 	} else if ( weap == WP_FG42SCOPE ) {
-		// sides
-		CG_FillRect( 0, 0, 80, 480, color );
-		CG_FillRect( 560, 0, 80, 480, color );
 
 		// center
 		if ( cgs.media.reticleShaderSimpleQ ) {
-			trap_R_DrawStretchPic( x,   0, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );  // tl
-			trap_R_DrawStretchPic( x + w, 0, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ );  // tr
-			trap_R_DrawStretchPic( x,   h, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );  // bl
-			trap_R_DrawStretchPic( x + w, h, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ );  // br
+			trap_R_DrawStretchPic( x, y, w, h, 0, 0, 1, 1, cgs.media.reticleShaderSimpleQ );  // tl
+			trap_R_DrawStretchPic( x + w, y, w, h, 1, 0, 0, 1, cgs.media.reticleShaderSimpleQ );  // tr
+			trap_R_DrawStretchPic( x, y + h, w, h, 0, 1, 1, 0, cgs.media.reticleShaderSimpleQ );  // bl
+			trap_R_DrawStretchPic( x + w, y + h, w, h, 1, 1, 0, 0, cgs.media.reticleShaderSimpleQ );  // br
 		}
 
 		// hairs
@@ -2161,14 +2161,27 @@ CG_DrawBinocReticle
 static void CG_DrawBinocReticle( void ) {
 	// an alternative.  This gives nice sharp lines at the expense of a few extra polys
 	vec4_t color = {0, 0, 0, 1};
-	float x, y, w = 320, h = 240;
+    float indent = 0.265;
+    float X_WIDTH=640;
+    float Y_HEIGHT=480;
+
+    float x = (X_WIDTH * indent), y = (Y_HEIGHT * indent), w = (X_WIDTH * (1-(2*indent))) / 2.0f, h = (Y_HEIGHT * (1-(2*indent))) / 2;
+
+    // sides
+    CG_FillRect( 0, 0, (X_WIDTH * indent), Y_HEIGHT, color );
+    CG_FillRect( X_WIDTH * (1 - indent), 0, (X_WIDTH * indent), Y_HEIGHT, color );
+// top/bottom
+    CG_FillRect( X_WIDTH * indent, 0, X_WIDTH * (1-indent), Y_HEIGHT * indent, color );
+    CG_FillRect( X_WIDTH * indent, Y_HEIGHT * (1-indent), X_WIDTH * (1-indent), Y_HEIGHT * indent, color );
+
+
+    CG_AdjustFrom640( &x, &y, &w, &h );
 
 	if ( cgs.media.binocShaderSimpleQ ) {
-		CG_AdjustFrom640( &x, &y, &w, &h );
-		trap_R_DrawStretchPic( 0, 0, w, h, 0, 0, 1, 1, cgs.media.binocShaderSimpleQ );  // tl
-		trap_R_DrawStretchPic( w, 0, w, h, 1, 0, 0, 1, cgs.media.binocShaderSimpleQ );  // tr
-		trap_R_DrawStretchPic( 0, h, w, h, 0, 1, 1, 0, cgs.media.binocShaderSimpleQ );  // bl
-		trap_R_DrawStretchPic( w, h, w, h, 1, 1, 0, 0, cgs.media.binocShaderSimpleQ );  // br
+        trap_R_DrawStretchPic( x, y, w, h, 0, 0, 1, 1, cgs.media.binocShaderSimpleQ );    // tl
+        trap_R_DrawStretchPic( x + w, y, w, h, 1, 0, 0, 1, cgs.media.binocShaderSimpleQ );  // tr
+        trap_R_DrawStretchPic( x, y + h, w, h, 0, 1, 1, 0, cgs.media.binocShaderSimpleQ );    // bl
+        trap_R_DrawStretchPic( x + w, y + h, w, h, 1, 1, 0, 0, cgs.media.binocShaderSimpleQ );  // br
 	}
 
 	CG_FillRect( 146, 239, 348, 1, color );
@@ -3390,7 +3403,7 @@ static void CG_Draw2D( void ) {
 		// don't draw any status if dead
 		if ( cg.snap->ps.stats[STAT_HEALTH] > 0 ) {
 
-			if (cg.zoomedScope) {
+			if (cg.zoomedScope || cg.zoomedBinoc) {
 				CG_DrawCrosshair();
 			}
 
@@ -3572,7 +3585,6 @@ void CG_DrawActive( int stereoView ) {
                  cg_worldScale.value * (-cg_stereoSeparation.value / 2) : //left
                  cg_worldScale.value * (cg_stereoSeparation.value / 2); // right
 
-
     cg.refdef.worldscale = cg_worldScale.value;
     VectorCopy(cg.refdefViewAngles, cg.refdef.viewangles);
 
@@ -3581,7 +3593,8 @@ void CG_DrawActive( int stereoView ) {
 
 	// offset vieworg appropriately if we're doing stereo separation
 	VectorCopy( cg.refdef.vieworg, baseOrg );
-	if ( separation != 0 ) {
+
+	if ( !cgVR->scopeengaged ) {
 		VectorMA( cg.refdef.vieworg, -separation, cg.refdef.viewaxis[1], cg.refdef.vieworg );
 	}
 

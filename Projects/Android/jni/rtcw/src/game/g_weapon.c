@@ -183,7 +183,9 @@ void Weapon_Knife( gentity_t *ent ) {
 		}
 	}
 
-	G_Damage( traceEnt, ent, ent, vec3_origin, tr.endpos, ( damage + rand() % 5 ) * s_quadFactor, 0, mod );
+    trap_Vibrate(50, gVR->right_handed ? 1 : 0, 0.6);
+
+    G_Damage( traceEnt, ent, ent, vec3_origin, tr.endpos, ( damage + rand() % 5 ) * s_quadFactor, 0, mod );
 }
 
 // JPW NERVE
@@ -692,20 +694,20 @@ float G_GetWeaponSpread( int weapon ) {
 		if ( g_userAim.integer ) {
 			// these should be higher since they become erratic if aiming is out
 			switch ( weapon ) {
-			case WP_LUGER:      return 600;
+			case WP_LUGER:      return 400;
 			case WP_SILENCER:   return 900;
-			case WP_COLT:       return 700;
+			case WP_COLT:       return 600;
 			case WP_AKIMBO:     return 700; //----(SA)	added
 			case WP_VENOM:      return 1000;
 			case WP_MP40:       return 1000;
-			case WP_FG42SCOPE:  return 300;
+			case WP_FG42SCOPE:  return 100;
 			case WP_FG42:       return 800;
 			case WP_THOMPSON:   return 1200;
 			case WP_STEN:       return 1200;
 			case WP_MAUSER:     return 400;
 			case WP_GARAND:     return 500;
-			case WP_SNIPERRIFLE:    return 300;
-			case WP_SNOOPERSCOPE:   return 300;
+			case WP_SNIPERRIFLE:    return 100;
+			case WP_SNOOPERSCOPE:   return 100;
 			}
 		} else {    // old values
 			switch ( weapon ) {
@@ -957,7 +959,11 @@ void Bullet_Fire( gentity_t *ent, float spread, int damage ) {
 
 	LOGI("Bullet_Fire %i %i %i",(int)end[0],(int)end[1],(int)end[2]);
 
-
+	trap_Vibrate(100, gVR->right_handed ? 1 : 0, 1.0);
+	if (gVR->weapon_stabilised)
+	{
+		trap_Vibrate(100, gVR->right_handed ? 0 : 1, 0.7);
+	}
 
 	//If we have an autoaim target and player shooting..
 	if (g_autoAimEntity && !(ent->r.svFlags& SVF_CASTAI))
@@ -1862,6 +1868,16 @@ void FireWeapon( gentity_t *ent ) {
 		aimSpreadScale = 1.0;
 	}
 
+	//Let VR user be the bad shot
+	aimSpreadScale /= 1.2;
+
+	if (gVR->weapon_stabilised)
+	{
+		//Stabilised weapon is even more accurate
+		aimSpreadScale /= 2.0;
+	}
+
+
 	// fire the specific weapon
 	switch ( ent->s.weapon ) {
 	case WP_KNIFE:
@@ -1946,7 +1962,12 @@ void FireWeapon( gentity_t *ent ) {
 	case WP_PANZERFAUST:
 		ent->client->ps.classWeaponTime = level.time; // JPW NERVE
 		Weapon_RocketLauncher_Fire( ent, aimSpreadScale );
-		break;
+        trap_Vibrate(200, gVR->right_handed ? 1 : 0, 1.0);
+        if (gVR->weapon_stabilised)
+        {
+            trap_Vibrate(200, gVR->right_handed ? 0 : 1, 0.7);
+        }
+        break;
 	case WP_GRENADE_LAUNCHER:
 	case WP_GRENADE_PINEAPPLE:
 	case WP_DYNAMITE:

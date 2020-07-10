@@ -537,7 +537,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	static float yaw = 0;
 	static long long lastFrameIndex = 0;
 	long long frameIndex = RTCWVR_getFrameIndex();
-	if ((RTCWVR_useScreenLayer() || resyncClientYawWithGameYaw > 0 || scopeEngaged))
+	if ((RTCWVR_useScreenLayer() || resyncClientYawWithGameYaw > 0 || vr.scopeengaged))
 	{
 		//Resyncing with known game yaw
         yaw = fd->viewangles[YAW];

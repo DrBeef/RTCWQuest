@@ -28,7 +28,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
 {
 	//Ensure handedness is set correctly
-	Cvar_Set("hand", vr_control_scheme->value < 10 ? "0" : "1");
+	vr.right_handed = vr_control_scheme->value < 10;
 
 	//Get the cvar
     sv_cheats = Cvar_Get("cheats", "1", CVAR_ARCHIVE);
@@ -59,12 +59,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         ALOGV("        weaponangles_last: %f, %f, %f",
               vr.weaponangles_last[0], vr.weaponangles_last[1], vr.weaponangles_last[2]);
 
-    }
-
-    static float forwardYaw = 0;
-    if (scopeEngaged)
-    {
-        //forwardYaw = (cl.viewangles[YAW] - vr.hmdorientation[YAW]);
     }
 
     //Menu button
@@ -137,14 +131,15 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         }
 
         //Engage scope if conditions are right
-        if (vr.weapon_stabilised && !scopeEngaged && distanceToHMD < SCOPE_ENGAGE_DISTANCE)
+        vr.scopeready = vr.weapon_stabilised && (distanceToHMD < SCOPE_ENGAGE_DISTANCE) && vr.scopedweapon;
+        if (!vr.scopeengaged && vr.scopeready)
         {
-            scopeEngaged = qtrue;
             sendButtonActionSimple("weapalt");
         }
-        else if (scopeEngaged && (distanceToHMD > SCOPE_ENGAGE_DISTANCE || !vr.weapon_stabilised))
+        else if (vr.scopeengaged && !vr.scopeready)
         {
-            scopeEngaged = qfalse;
+            //Set this here so we don't retrigger scope by accident too soon
+            vr.scopeengaged = qfalse;
             sendButtonActionSimple("weapalt");
             RTCWVR_ResyncClientYawWithGameYaw();
         }
@@ -206,7 +201,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                         }
                     } else{
                         if (dominantGripPushed) {
-                            //Initiate crowbar from backpack mode
+                            //Initiate knife from backpack mode
                             sendButtonActionSimple("weapon 0");
                             int channel = (vr_control_scheme->integer >= 10) ? 0 : 1;
                             RTCWVR_Vibrate(80, channel, 0.8); // vibrate to let user know they switched
@@ -215,7 +210,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                     }
                 } else if (grabMeleeWeapon == 1 && !dominantGripPushed) {
                     //Restores last used weapon
-                    sendButtonActionSimple("lastinv");
+                    sendButtonActionSimple("weaplastused");
                     grabMeleeWeapon = 0;
                 }
             }
@@ -224,17 +219,15 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         float controllerYawHeading = 0.0f;
         //off-hand stuff
         {
-            vr.flashlightoffset[0] = pOffTracking->HeadPose.Pose.Position.x - vr.hmdposition[0];
-            vr.flashlightoffset[1] = pOffTracking->HeadPose.Pose.Position.y - vr.hmdposition[1];
-            vr.flashlightoffset[2] = pOffTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
+            vr.offhandoffset[0] = pOffTracking->HeadPose.Pose.Position.x - vr.hmdposition[0];
+            vr.offhandoffset[1] = pOffTracking->HeadPose.Pose.Position.y - vr.hmdposition[1];
+            vr.offhandoffset[2] = pOffTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
 
             vec3_t rotation = {0};
-            QuatToYawPitchRoll(pOffTracking->HeadPose.Pose.Orientation, rotation, vr.flashlightangles);
-
-            vr.flashlightangles[YAW] += (cl.viewangles[YAW] - vr.hmdorientation[YAW]);
+            QuatToYawPitchRoll(pOffTracking->HeadPose.Pose.Orientation, rotation, vr.offhandangles);
 
 			if (vr_walkdirection->value == 0) {
-				controllerYawHeading = -cl.viewangles[YAW] + vr.flashlightangles[YAW];
+				controllerYawHeading = vr.offhandangles[YAW] - vr.hmdorientation[YAW];
 			}
 			else
 			{
@@ -270,14 +263,14 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             //in meantime, then it wouldn't stop the gun firing and it would get stuck
             static bool firingPrimary = false;
 
-            if (!firingPrimary && dominantGripPushed && (GetTimeInMilliSeconds() - dominantGripPushTime) > vr_reloadtimeoutms->integer)
+            if (!firingPrimary && dominantGripPushed && (GetTimeInMilliSeconds() - dominantGripPushTime) > vr_reloadtimeoutms->integer && !vr.scopedweapon)
             {
                 //Fire Secondary
                 if (((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
                     (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger))
                     && (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger))
                 {
-                    //sendButtonActionSimple("weapalt");
+                    sendButtonActionSimple("weapalt");
                 }
             }
             else
@@ -288,13 +281,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
                     firingPrimary = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
                     sendButtonAction("+attack", firingPrimary);
-                }
-                // we need to release secondary fire if dominantGripPushed has been released before releasing trigger -> should fix the gun jamming and non stop firing secondary attack bug
-                if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
-                    (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger) &&
-                    (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) == false)
-                {
-                    //sendButtonActionSimple("weapalt");
                 }
             }
 
@@ -459,7 +445,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 			}
         }
 
-        updateScopeAngles(forwardYaw);
+        updateScopeAngles();
     }
 
     //Save state

@@ -35,12 +35,33 @@ If you have questions concerning this license or the applicable additional terms
 
 
 #include "cg_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 ///////////////////////
 extern int propellerModel;
 ///////////////////////
 
 
+extern vr_client_info_t *cgVR;
+
+void rotateAboutOrigin(float x, float y, float rotation, vec2_t out);
+void convertFromVR(vec3_t in, vec3_t offset, vec3_t out);
+
+static void CG_CalculateVRPropPosition( vec3_t origin, vec3_t angles ) {
+
+	convertFromVR(cgVR->offhandoffset, cg.refdef.vieworg, origin);
+	origin[2] -= 64;
+	origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
+
+	VectorCopy(cgVR->offhandangles, angles);
+	angles[YAW] = cg.refdefViewAngles[YAW] + (cgVR->offhandangles[YAW] - cgVR->hmdorientation[YAW]);
+
+	vec3_t forward, right, up;
+	AngleVectors( angles, forward, right, up );
+	VectorMA( origin, -20, forward, origin );
+	VectorMA( origin, 18, right, origin );
+	VectorMA( origin, 6, up, origin );
+}
 
 /*
 ======================
@@ -2126,8 +2147,9 @@ static void CG_Prop( centity_t *cent ) {
 		ent.backlerp = 0;
 	} else
 	{
-		VectorCopy( cg.refdef.vieworg, ent.origin );
-		VectorCopy( cg.refdefViewAngles, angles );
+		CG_CalculateVRPropPosition(ent.origin, angles);
+//		VectorCopy( cg.refdef.vieworg, ent.origin );
+//		VectorCopy( cg.refdefViewAngles, angles );
 
 		if ( cg.bobcycle & 1 ) {
 			scale = -cg.xyspeed;
@@ -2136,10 +2158,10 @@ static void CG_Prop( centity_t *cent ) {
 		}
 
 		// modify angles from bobbing
-		angles[ROLL] += scale * cg.bobfracsin * 0.005;
+/*		angles[ROLL] += scale * cg.bobfracsin * 0.005;
 		angles[YAW] += scale * cg.bobfracsin * 0.01;
 		angles[PITCH] += cg.xyspeed * cg.bobfracsin * 0.005;
-
+*/
 		VectorCopy( angles, cent->lerpAngles );
 
 		ent.frame = s1->frame;

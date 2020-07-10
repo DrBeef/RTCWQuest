@@ -2576,6 +2576,11 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		}
 	}
 
+	if (cgVR->scopeengaged)
+	{
+		return;
+	}
+
 	// don't draw weapon stuff when looking through a scope
 	if ( weaponNum == WP_SNOOPERSCOPE || weaponNum == WP_SNIPERRIFLE || weaponNum == WP_FG42SCOPE ||
 		 weapSelect == WP_SNOOPERSCOPE || weapSelect == WP_SNIPERRIFLE || weapSelect == WP_FG42SCOPE ) {
@@ -3830,6 +3835,7 @@ void CG_SetSniperZoom( int lastweap, int newweap ) {
 		break;
 	}
 
+
 	switch ( newweap ) {
 
 	default:
@@ -3855,6 +3861,8 @@ void CG_SetSniperZoom( int lastweap, int newweap ) {
 		shake = 0.01f;
 		break;
 	}
+
+	cgVR->scopeengaged = cg.zoomedScope != 0;
 
 //	if(shake) {
 // (SA) all shake disabled 11/12
@@ -3944,6 +3952,20 @@ void CG_FinishWeaponChange( int lastweap, int newweap ) {
 		if ( cg.switchbackWeapon == newweap ) {
 			cg.switchbackWeapon = lastweap;
 		}
+	}
+
+	switch ( newweap ) {
+		case WP_GARAND:
+		case WP_SNIPERRIFLE:
+		case WP_MAUSER:
+		case WP_SNOOPERSCOPE:
+		case WP_FG42:
+		case WP_FG42SCOPE:
+			cgVR->scopedweapon = qtrue;
+			break;
+		default:
+			cgVR->scopedweapon = qfalse;
+			break;
 	}
 
 	cg.weaponSelect     = newweap;
