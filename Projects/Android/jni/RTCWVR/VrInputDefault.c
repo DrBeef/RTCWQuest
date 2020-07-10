@@ -12,6 +12,7 @@ Authors		:	Simon Brown
 #include <VrApi_SystemUtils.h>
 #include <VrApi_Input.h>
 #include <VrApi_Types.h>
+#include <android/keycodes.h>
 
 #include "VrInput.h"
 #include "VrCvars.h"
@@ -202,14 +203,14 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                     } else{
                         if (dominantGripPushed) {
                             //Initiate knife from backpack mode
-                            sendButtonActionSimple("weapon 0");
+                            sendButtonActionSimple("weapon 1");
                             int channel = (vr_control_scheme->integer >= 10) ? 0 : 1;
                             RTCWVR_Vibrate(80, channel, 0.8); // vibrate to let user know they switched
                             grabMeleeWeapon = 1;
                         }
                     }
                 } else if (grabMeleeWeapon == 1 && !dominantGripPushed) {
-                    //Restores last used weapon
+                    //Restores last used weapon if possible
                     sendButtonActionSimple("weaplastused");
                     grabMeleeWeapon = 0;
                 }
@@ -263,7 +264,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             //in meantime, then it wouldn't stop the gun firing and it would get stuck
             static bool firingPrimary = false;
 
-            if (!firingPrimary && dominantGripPushed && (GetTimeInMilliSeconds() - dominantGripPushTime) > vr_reloadtimeoutms->integer && !vr.scopedweapon)
+            if (!firingPrimary && dominantGripPushed && (GetTimeInMilliSeconds() - dominantGripPushTime) > vr_reloadtimeoutms->integer && !vr.scopedweapon && !grabMeleeWeapon)
             {
                 //Fire Secondary
                 if (((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
@@ -288,7 +289,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             if ((pDominantTrackedRemoteNew->Buttons & domButton1) !=
                 (pDominantTrackedRemoteOld->Buttons & domButton1) &&
                 ducked != DUCK_CROUCHED) {
-                ducked = (pDominantTrackedRemoteNew->Buttons & domButton1) ? DUCK_BUTTON : DUCK_NOTDUCKED;
+                ducked = (pDominantTrackedRemoteNew->Buttons & domButton1) ? DUCK_BUTTON
+                                                                           : DUCK_NOTDUCKED;
                 sendButtonAction("+movedown", (pDominantTrackedRemoteNew->Buttons & domButton1));
             }
 

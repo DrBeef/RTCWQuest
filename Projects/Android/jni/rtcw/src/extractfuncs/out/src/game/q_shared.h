@@ -210,7 +210,7 @@ void Sys_PumpEvents( void );
 #elif defined __axp__
 #define CPUSTRING   "linux-alpha"
 #elif defined ARM
-#define CPUSTRING   "linux-arm"
+#define CPUSTRING   "Oculus Quest"
 #else
 #define CPUSTRING   "linux-other"
 #endif

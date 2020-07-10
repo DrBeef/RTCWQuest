@@ -959,11 +959,12 @@ void Bullet_Fire( gentity_t *ent, float spread, int damage ) {
 
 	LOGI("Bullet_Fire %i %i %i",(int)end[0],(int)end[1],(int)end[2]);
 
-	trap_Vibrate(100, gVR->right_handed ? 1 : 0, 1.0);
-	if (gVR->weapon_stabilised)
-	{
-		trap_Vibrate(100, gVR->right_handed ? 0 : 1, 0.7);
-	}
+	if (!ent->aiCharacter) {
+        trap_Vibrate(100, gVR->right_handed ? 1 : 0, 1.0);
+        if (gVR->weapon_stabilised) {
+            trap_Vibrate(100, gVR->right_handed ? 0 : 1, 0.7);
+        }
+    }
 
 	//If we have an autoaim target and player shooting..
 	if (g_autoAimEntity && !(ent->r.svFlags& SVF_CASTAI))
@@ -1962,10 +1963,11 @@ void FireWeapon( gentity_t *ent ) {
 	case WP_PANZERFAUST:
 		ent->client->ps.classWeaponTime = level.time; // JPW NERVE
 		Weapon_RocketLauncher_Fire( ent, aimSpreadScale );
-        trap_Vibrate(200, gVR->right_handed ? 1 : 0, 1.0);
-        if (gVR->weapon_stabilised)
-        {
-            trap_Vibrate(200, gVR->right_handed ? 0 : 1, 0.7);
+		if (!ent->aiCharacter) {
+            trap_Vibrate(200, gVR->right_handed ? 1 : 0, 1.0);
+            if (gVR->weapon_stabilised) {
+                trap_Vibrate(200, gVR->right_handed ? 0 : 1, 0.7);
+            }
         }
         break;
 	case WP_GRENADE_LAUNCHER:
