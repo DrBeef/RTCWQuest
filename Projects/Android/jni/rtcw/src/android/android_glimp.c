@@ -514,7 +514,7 @@ void GLimp_Init( void ) {
 	// to be overridden when testing driver fixes, etc. but only sets
 	// them to their default state when the hardware is first installed/run.
 	//
-	if ( Q_stricmp( lastValidRenderer->string, glConfig.renderer_string ) ) {
+	/*if ( Q_stricmp( lastValidRenderer->string, glConfig.renderer_string ) ) {
 		glConfig.hardwareType = GLHW_GENERIC;
 
 		ri.Cvar_Set( "r_textureMode", "GL_LINEAR_MIPMAP_NEAREST" );
@@ -535,7 +535,7 @@ void GLimp_Init( void ) {
 				ri.Cvar_Set( "r_texturemode", "GL_LINEAR_MIPMAP_LINEAR" );
 			}
 		}
-	}
+	}*/
 
 	//
 	// this is where hardware specific workarounds that should be
