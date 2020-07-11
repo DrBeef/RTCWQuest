@@ -1787,8 +1787,17 @@ static void CG_CalculateVRWeaponPosition( vec3_t origin, vec3_t angles ) {
     origin[2] -= 64;
     origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
 
-    VectorCopy(cgVR->weaponangles, angles);
-    angles[YAW] = cg.refdefViewAngles[YAW] + (cgVR->weaponangles[YAW] - cgVR->hmdorientation[YAW]);
+    switch (cg.predictedPlayerState.weapon)
+    {
+        case WP_KNIFE:
+            VectorCopy(cgVR->weaponangles_unadjusted, angles);
+            break;
+        default:
+            VectorCopy(cgVR->weaponangles, angles);
+            break;
+    }
+
+    angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
 }
 
 /*
@@ -1829,9 +1838,10 @@ static float CG_CalculateWeaponPositionAndScale( vec3_t origin, vec3_t angles ) 
     VectorMA( origin, offset[2], forward, origin );
     VectorMA( origin, offset[1], up, origin );
     VectorMA( origin, offset[0], right, origin );
+
 	return scale;
 
-	int delta;
+/*	int delta;
 	float fracsin, leanscale;
 
 	VectorCopy( cg.refdef.vieworg, origin );
@@ -1926,6 +1936,7 @@ static float CG_CalculateWeaponPositionAndScale( vec3_t origin, vec3_t angles ) 
 
 	// RF, subtract the kickAngles
 	VectorMA( angles, -1.0, cg.kickAngles, angles );
+ */
 }
 
 
@@ -3034,7 +3045,14 @@ void CG_AddPlayerFoot( refEntity_t *parent, playerState_t *ps, centity_t *cent )
 	wolfkick.hModel = wolfkickModel;
 
 	VectorCopy( cg.refdef.vieworg, wolfkick.origin );
-	//----(SA)	allow offsets for testing boot model
+
+	//Adjust kick origin for player height
+	if (cgVR != NULL) {
+        wolfkick.origin[2] -= 64;
+        wolfkick.origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
+    }
+
+    //----(SA)	allow offsets for testing boot model
 	if ( cg_gun_x.value ) {
 		VectorMA( wolfkick.origin, cg_gun_x.value,  cg.refdef.viewaxis[0], wolfkick.origin );
 	}

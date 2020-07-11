@@ -1800,12 +1800,10 @@ extern vmCvar_t vr_weapon_adjustment_11;
 extern vmCvar_t vr_weapon_adjustment_12;
 extern vmCvar_t vr_weapon_adjustment_13;
 extern vmCvar_t vr_weapon_adjustment_14;
-extern vmCvar_t vr_weapon_adjustment_15;
-extern vmCvar_t vr_weapon_adjustment_16;
-extern vmCvar_t vr_weapon_adjustment_17;
 extern vmCvar_t vr_weapon_adjustment_18;
 extern vmCvar_t vr_weapon_adjustment_19;
 extern vmCvar_t vr_weapon_adjustment_20;
+extern vmCvar_t vr_weapon_adjustment_22;
 
 
 // NERVE - SMF - Wolf multiplayer configuration cvars
