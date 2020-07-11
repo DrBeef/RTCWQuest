@@ -30,9 +30,12 @@ If you have questions concerning this license or the applicable additional terms
 #include "g_local.h"
 
 #include "ai_cast_fight.h"   // need these for avoidance
+#include "../../../RTCWVR/VrClientInfo.h"
 
 
 extern void G_CheckForCursorHints( gentity_t *ent );
+
+extern vr_client_info_t* gVR;
 
 
 /*
@@ -90,6 +93,10 @@ void P_DamageFeedback( gentity_t *player ) {
 
 
 	client->ps.damageCount = count;
+
+	trap_Vibrate(300, 1, (count / 255.0) + 0.5f);
+	trap_Vibrate(300, 0, (count / 255.0) + 0.5f);
+
 
 	//
 	// clear totals

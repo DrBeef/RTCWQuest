@@ -1,6 +1,8 @@
 #if !defined(vr_client_info_h)
 #define vr_client_info_h
 
+#define NUM_WEAPON_SAMPLES      72
+
 typedef struct {
     float  fov;
     qboolean weapon_stabilised;
@@ -20,6 +22,9 @@ typedef struct {
     vec3_t weaponangles_delta;
 
     vec3_t weaponoffset;
+    float weaponoffset_timestamp;
+    vec3_t weaponoffset_history[NUM_WEAPON_SAMPLES];
+    float weaponoffset_history_timestamp[NUM_WEAPON_SAMPLES];
 
     qboolean scopeengaged; // Scope has been engaged on a scoped weapon
     qboolean scopeready;   // Scope can be engaged

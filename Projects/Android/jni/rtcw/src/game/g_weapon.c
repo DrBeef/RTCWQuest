@@ -112,7 +112,7 @@ void Weapon_Knife( gentity_t *ent ) {
     if (gVR != NULL) {
         VectorCopy(gVR->weaponangles_unadjusted, angles);
         angles[YAW] = ent->client->ps.viewangles[YAW] +
-                      (gVR->weaponangles[YAW] - gVR->hmdorientation[YAW]);
+                      (gVR->weaponangles_unadjusted[YAW] - gVR->hmdorientation[YAW]);
     }
 
     AngleVectors( angles, forward, right, up );
@@ -1212,6 +1212,84 @@ gentity_t *weapon_crowbar_throw( gentity_t *ent ) {
 	return m;
 }
 
+#define OLDEST_READING		24
+#define NEWEST_READING		20
+
+gentity_t *weapon_grenadelauncher_fire_vr( gentity_t *ent, int grenType ) {
+    gentity_t   *m, *te; // JPW NERVE
+    float power = 1;
+    vec3_t tosspos;
+    vec3_t trajectory;
+
+    if (gVR != NULL) {
+
+
+        //Caclulate speed between two controller position readings
+        float distance = VectorDistance(gVR->weaponoffset_history[NEWEST_READING], gVR->weaponoffset_history[OLDEST_READING]);
+        float t = gVR->weaponoffset_history_timestamp[NEWEST_READING] - gVR->weaponoffset_history_timestamp[OLDEST_READING];
+        float worldscale = trap_Cvar_VariableIntegerValue("cg_worldScale");
+        float velocity = distance / (t/(float)1000.0);
+
+        //Calculate trajectory
+        VectorSubtract(gVR->weaponoffset_history[NEWEST_READING], gVR->weaponoffset_history[OLDEST_READING], trajectory);
+        VectorNormalize( trajectory );
+        convertFromVR(worldscale, ent, trajectory, NULL, trajectory);
+        VectorScale(trajectory, velocity, trajectory);
+    }
+
+    // pineapples are not thrown as far as mashers
+    if ( grenType == WP_GRENADE_LAUNCHER )
+    {
+        power = 6;
+    } else if ( grenType == WP_GRENADE_PINEAPPLE )
+    {
+        power = 4;
+    }
+    else {      // WP_DYNAMITE
+        power = 3;
+    }
+
+    //And then throw..
+    VectorScale( trajectory, power, trajectory );
+    VectorCopy( muzzleEffect, tosspos );
+    m = fire_grenade( ent, tosspos, trajectory, grenType );
+
+
+    //m->damage *= s_quadFactor;
+    m->damage = 0;  // Ridah, grenade's don't explode on contact
+    m->splashDamage *= s_quadFactor;
+
+    if ( ent->aiCharacter == AICHAR_VENOM ) { // poison gas grenade
+        m->think = G_ExplodeMissilePoisonGas;
+        m->s.density = 1;
+    }
+
+// JPW NERVE
+    if ( grenType == WP_GRENADE_SMOKE ) {
+        if ( ent->client->sess.sessionTeam == TEAM_RED ) { // store team so we can generate red or blue smoke
+            m->s.otherEntityNum2 = 1;
+        } else {
+            m->s.otherEntityNum2 = 0;
+        }
+        m->nextthink = level.time + 4000;
+        m->think = weapon_callAirStrike;
+
+        te = G_TempEntity( m->s.pos.trBase, EV_GLOBAL_SOUND );
+        te->s.eventParm = G_SoundIndex( "sound/scenaric/forest/me109_flight.wav" );
+//		te->r.svFlags |= SVF_BROADCAST | SVF_USE_CURRENT_ORIGIN;
+    }
+// jpw
+
+    //----(SA)	adjust for movement of character.  TODO: Probably comment in later, but only for forward/back not strafing
+//	VectorAdd( m->s.pos.trDelta, ent->client->ps.velocity, m->s.pos.trDelta );	// "real" physics
+
+    // let the AI know which grenade it has fired
+    ent->grenadeFired = m->s.number;
+
+    // Ridah, return the grenade so we can do some prediction before deciding if we really want to throw it or not
+    return m;
+}
+
 gentity_t *weapon_grenadelauncher_fire( gentity_t *ent, int grenType ) {
 	gentity_t   *m, *te; // JPW NERVE
 	float upangle = 0;                  //	start with level throwing and adjust based on angle
@@ -1981,7 +2059,12 @@ void FireWeapon( gentity_t *ent ) {
 		if ( ent->s.weapon == WP_DYNAMITE ) {
 			ent->client->ps.classWeaponTime = level.time; // JPW NERVE
 		}
-		weapon_grenadelauncher_fire( ent, ent->s.weapon );
+		if (ent->aiCharacter) {
+            weapon_grenadelauncher_fire(ent, ent->s.weapon);
+        }
+		else {
+            weapon_grenadelauncher_fire_vr(ent, ent->s.weapon);
+		}
 		break;
 	case WP_FLAMETHROWER:
 		// RF, this is done client-side only now

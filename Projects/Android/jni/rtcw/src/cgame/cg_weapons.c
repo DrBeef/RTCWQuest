@@ -1969,6 +1969,12 @@ static void CG_FlamethrowerFlame( centity_t *cent, vec3_t origin ) {
         CG_CalculateVRWeaponPosition(origin, angles);
 
         CG_FireFlameChunks(cent, origin, angles, 1.0, qtrue, 1);
+
+        trap_Vibrate(-1, cgVR->right_handed ? 1 : 0, 0.6);
+        if (cgVR->weapon_stabilised)
+        {
+            trap_Vibrate(-1, cgVR->right_handed ? 0 : 1, 0.5);
+        }
     }
 
 	return;
@@ -2511,6 +2517,11 @@ void CG_PlayerTeslaCoilFire( centity_t *cent, vec3_t flashorigin ) {
 		trap_R_AddLightToScene( tr.endpos, 256 + 600 * tr.fraction, 0.2, 0.6, 1, 0 );
 	}
 
+    trap_Vibrate(-1, cgVR->right_handed ? 1 : 0, 0.8);
+    if (cgVR->weapon_stabilised)
+    {
+        trap_Vibrate(-1, cgVR->right_handed ? 0 : 1, 0.8);
+    }
 
 	// shake the camera a bit
 	CG_StartShakeCamera( 0.05, 200, cent->lerpOrigin, 100 );

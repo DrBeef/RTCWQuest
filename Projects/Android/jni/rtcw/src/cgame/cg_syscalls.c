@@ -544,3 +544,7 @@ void trap_UI_ClosePopup( const char *arg0 ) {
 qboolean trap_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **modelInfo ) {
 	return syscall( CG_GETMODELINFO, clientNum, modelName, modelInfo );
 }
+
+qboolean trap_Vibrate( float duration, int channel, float intensity ) {
+	return syscall( CG_HAPTIC, PASSFLOAT(duration), channel, PASSFLOAT(intensity) );
+}

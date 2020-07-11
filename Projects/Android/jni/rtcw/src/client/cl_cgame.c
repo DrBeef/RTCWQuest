@@ -44,6 +44,7 @@ extern qboolean getCameraInfo( int camNum, int time, vec3_t *origin, vec3_t *ang
 // RF, this is only used when running a local server
 extern void SV_SendMoveSpeedsToGame( int entnum, char *text );
 extern qboolean SV_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **modelInfo );
+void RTCWVR_Vibrate(float duration, int channel, float intensity );
 
 
 /*
@@ -852,6 +853,10 @@ int CL_CgameSystemCalls( int *args ) {
 
 	case CG_GETMODELINFO:
 		return SV_GetModelInfo( args[1], VMA( 2 ), VMA( 3 ) );
+
+	case CG_HAPTIC:
+		RTCWVR_Vibrate( VMF(1), args[2], VMF( 3 ) );
+		return 0;
 
 	default:
 		Com_Error( ERR_DROP, "Bad cgame system trap: %i", args[0] );

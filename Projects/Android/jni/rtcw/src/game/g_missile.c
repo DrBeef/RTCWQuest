@@ -1051,7 +1051,7 @@ gentity_t *fire_grenade( gentity_t *self, vec3_t start, vec3_t dir, int grenadeW
 	bolt->clipmask = MASK_MISSILESHOT;
 
 	bolt->s.pos.trType = TR_GRAVITY;
-	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;     // move a bit on the very first frame
+	bolt->s.pos.trTime = level.time;// - MISSILE_PRESTEP_TIME;     // move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
 	VectorCopy( dir, bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );          // save net bandwidth

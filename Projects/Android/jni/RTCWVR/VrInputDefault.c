@@ -147,10 +147,20 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
         //dominant hand stuff first
         {
+            //Record recent weapon position for trajectory based stuff
+            for (int i = (NUM_WEAPON_SAMPLES-1); i != 0; --i)
+            {
+                VectorCopy(vr.weaponoffset_history[i-1], vr.weaponoffset_history[i]);
+                vr.weaponoffset_history_timestamp[i] = vr.weaponoffset_history_timestamp[i-1];
+            }
+            VectorCopy(vr.weaponoffset, vr.weaponoffset_history[0]);
+            vr.weaponoffset_history_timestamp[0] = vr.weaponoffset_timestamp;
+
 			///Weapon location relative to view
             vr.weaponoffset[0] = pDominantTracking->HeadPose.Pose.Position.x - vr.hmdposition[0];
             vr.weaponoffset[1] = pDominantTracking->HeadPose.Pose.Position.y - vr.hmdposition[1];
             vr.weaponoffset[2] = pDominantTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
+            vr.weaponoffset_timestamp = Sys_Milliseconds( );
 
             if (vr.weapon_stabilised)
             {
