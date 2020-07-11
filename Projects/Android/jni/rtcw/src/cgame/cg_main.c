@@ -272,6 +272,27 @@ vmCvar_t cg_waitForFire;
 
 vmCvar_t cg_loadWeaponSelect;
 
+vmCvar_t vr_weapon_adjustment_1;
+vmCvar_t vr_weapon_adjustment_2;
+vmCvar_t vr_weapon_adjustment_3;
+vmCvar_t vr_weapon_adjustment_4;
+vmCvar_t vr_weapon_adjustment_5;
+vmCvar_t vr_weapon_adjustment_6;
+vmCvar_t vr_weapon_adjustment_7;
+vmCvar_t vr_weapon_adjustment_8;
+vmCvar_t vr_weapon_adjustment_9;
+vmCvar_t vr_weapon_adjustment_10;
+vmCvar_t vr_weapon_adjustment_11;
+vmCvar_t vr_weapon_adjustment_12;
+vmCvar_t vr_weapon_adjustment_13;
+vmCvar_t vr_weapon_adjustment_14;
+vmCvar_t vr_weapon_adjustment_15;
+vmCvar_t vr_weapon_adjustment_16;
+vmCvar_t vr_weapon_adjustment_17;
+vmCvar_t vr_weapon_adjustment_18;
+vmCvar_t vr_weapon_adjustment_19;
+vmCvar_t vr_weapon_adjustment_20;
+
 // NERVE - SMF - Wolf multiplayer configuration cvars
 vmCvar_t mp_playerType;
 vmCvar_t mp_team;
@@ -467,6 +488,30 @@ cvarTable_t cvarTable[] = {
 	{ &cg_loadWeaponSelect, "cg_loadWeaponSelect", "0", CVAR_ROM},
 
 	{ &cg_expectedhunkusage, "com_expectedhunkusage", "0", CVAR_ROM},
+
+
+	//Default Weapon adjustments - these WILL be overridden
+	{ &vr_weapon_adjustment_1, "vr_weapon_adjustment_1", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_2, "vr_weapon_adjustment_2", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_3, "vr_weapon_adjustment_3", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_4, "vr_weapon_adjustment_4", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_5, "vr_weapon_adjustment_5", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_6, "vr_weapon_adjustment_6", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_7, "vr_weapon_adjustment_7", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_8, "vr_weapon_adjustment_8", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_9, "vr_weapon_adjustment_9", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_10, "vr_weapon_adjustment_10", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_11, "vr_weapon_adjustment_11", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_12, "vr_weapon_adjustment_12", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_13, "vr_weapon_adjustment_13", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_14, "vr_weapon_adjustment_14", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_15, "vr_weapon_adjustment_15", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_16, "vr_weapon_adjustment_16", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_17, "vr_weapon_adjustment_17", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_18, "vr_weapon_adjustment_18", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_19, "vr_weapon_adjustment_19", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+	{ &vr_weapon_adjustment_20, "vr_weapon_adjustment_20", "0.62,-9.8,11.3,-16.1", CVAR_ARCHIVE},
+
 
 	// NERVE - SMF
 	{ &mp_playerType, "mp_playerType", "0", 0 },

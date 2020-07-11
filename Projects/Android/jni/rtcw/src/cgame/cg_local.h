@@ -1785,6 +1785,29 @@ extern vmCvar_t cg_waitForFire;
 
 extern vmCvar_t cg_loadWeaponSelect;
 
+//VR Weapon Offsets
+extern vmCvar_t vr_weapon_adjustment_1;
+extern vmCvar_t vr_weapon_adjustment_2;
+extern vmCvar_t vr_weapon_adjustment_3;
+extern vmCvar_t vr_weapon_adjustment_4;
+extern vmCvar_t vr_weapon_adjustment_5;
+extern vmCvar_t vr_weapon_adjustment_6;
+extern vmCvar_t vr_weapon_adjustment_7;
+extern vmCvar_t vr_weapon_adjustment_8;
+extern vmCvar_t vr_weapon_adjustment_9;
+extern vmCvar_t vr_weapon_adjustment_10;
+extern vmCvar_t vr_weapon_adjustment_11;
+extern vmCvar_t vr_weapon_adjustment_12;
+extern vmCvar_t vr_weapon_adjustment_13;
+extern vmCvar_t vr_weapon_adjustment_14;
+extern vmCvar_t vr_weapon_adjustment_15;
+extern vmCvar_t vr_weapon_adjustment_16;
+extern vmCvar_t vr_weapon_adjustment_17;
+extern vmCvar_t vr_weapon_adjustment_18;
+extern vmCvar_t vr_weapon_adjustment_19;
+extern vmCvar_t vr_weapon_adjustment_20;
+
+
 // NERVE - SMF - Wolf multiplayer configuration cvars
 extern vmCvar_t mp_playerType;
 extern vmCvar_t mp_weapon;

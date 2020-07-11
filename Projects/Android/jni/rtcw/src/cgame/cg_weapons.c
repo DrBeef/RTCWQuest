@@ -1793,24 +1793,44 @@ static void CG_CalculateVRWeaponPosition( vec3_t origin, vec3_t angles ) {
 
 /*
 ==============
-CG_CalculateWeaponPosition
+CG_CalculateWeaponPositionAndScale
 ==============
 */
 
 
-static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
+static float CG_CalculateWeaponPositionAndScale( vec3_t origin, vec3_t angles ) {
 
     CG_CalculateVRWeaponPosition(origin, angles);
 
-	//Now move weapon closer to proper origin
+    //Now adjust weapon:  scale, right, up, forward
+    vec3_t offset;
+	float scale=1.0f;
+    if (cg.predictedPlayerState.weapon != 0)
+    {
+        char cvar_name[64];
+        Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", cg.predictedPlayerState.weapon);
+
+        char weapon_adjustment[256];
+        trap_Cvar_VariableStringBuffer(cvar_name, weapon_adjustment, 256);
+
+        vec3_t temp_offset;
+        VectorClear(temp_offset);
+        sscanf(weapon_adjustment, "%f,%f,%f,%f", &scale, &(temp_offset[0]), &(temp_offset[1]), &(temp_offset[2]));
+        VectorScale(temp_offset, scale, offset);
+
+        //int lrOffset = (( r_lefthand->value != 0.0f ) ? -1 : 1);
+        //offset[1] *= lrOffset;
+    }
+
+
+    //Now move weapon closer to proper origin
     vec3_t forward, right, up;
     AngleVectors( angles, forward, right, up );
-    VectorMA( origin, -10, forward, origin );
-    VectorMA( origin, 7, up, origin );
-    VectorMA( origin, -6, right, origin );
-	return;
+    VectorMA( origin, offset[2], forward, origin );
+    VectorMA( origin, offset[1], up, origin );
+    VectorMA( origin, offset[0], right, origin );
+	return scale;
 
-	float scale;
 	int delta;
 	float fracsin, leanscale;
 
@@ -3134,7 +3154,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		memset( &hand, 0, sizeof( hand ) );
 
 		// set up gun position
-		CG_CalculateWeaponPosition( hand.origin, angles );
+		float scale = CG_CalculateWeaponPositionAndScale( hand.origin, angles );
 
 		gunoff[0] = cg_gun_x.value;
 		gunoff[1] = cg_gun_y.value;
@@ -3161,7 +3181,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 		//scale the whole model (hand and weapon)
 		for ( int i = 0; i < 3; i++ ) {
-			VectorScale( hand.axis[i], cg_weaponScale.value, hand.axis[i] );
+			VectorScale( hand.axis[i], scale, hand.axis[i] );
 		}
 
 		// add everything onto the hand
