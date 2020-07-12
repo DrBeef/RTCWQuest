@@ -422,71 +422,6 @@ void convertFromVR(float worldscale, vec3_t in, vec3_t offset, vec3_t out)
 	}
 }
 
-/*
-==============
-RB_SurfaceBeam
-==============
-*/
-void R_LaserBeam( vec3_t vieworigin ) {
-#define NUM_BEAM_SEGS 6
-	int i;
-	vec3_t angles;
-	vec3_t perpvec;
-	vec3_t direction, normalized_direction;
-	vec3_t start_points[NUM_BEAM_SEGS], end_points[NUM_BEAM_SEGS];
-	vec3_t oldorigin, origin;
-
-	float worldscale = Cvar_VariableValue("cg_worldScale");
-	float heightAdjust = Cvar_VariableValue("cg_heightAdjust");
-	convertFromVR(worldscale, vr.weaponoffset, vieworigin, origin);
-	origin[2] -=  24; // mmmmmmm magic number
-	origin[2] += (vr.hmdposition[1] + heightAdjust) * worldscale;
-
-	VectorCopy(vr.weaponangles, angles);
-	angles[YAW] += cl.viewangles[YAW] - vr.hmdorientation[YAW];
-
-	vec3_t forward;
-	AngleVectors(angles, forward, NULL, NULL);
-	VectorMA( origin, 256, forward, oldorigin );
-
-	normalized_direction[0] = direction[0] = oldorigin[0] - origin[0];
-	normalized_direction[1] = direction[1] = oldorigin[1] - origin[1];
-	normalized_direction[2] = direction[2] = oldorigin[2] - origin[2];
-
-	PerpendicularVector( perpvec, normalized_direction );
-
-	VectorScale( perpvec, 4, perpvec );
-
-	for ( i = 0; i < NUM_BEAM_SEGS ; i++ )
-	{
-		RotatePointAroundVector( start_points[i], normalized_direction, perpvec, ( 360.0 / NUM_BEAM_SEGS ) * i );
-		VectorAdd( start_points[i], direction, end_points[i] );
-	}
-
-	GL_Bind( tr.whiteImage );
-
-	GL_State( GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
-
-	qglColor3f( 1, 0, 0 );
-
-	GLboolean text = qglIsEnabled(GL_TEXTURE_COORD_ARRAY);
-	GLboolean glcol = qglIsEnabled(GL_COLOR_ARRAY);
-	if (glcol)
-		qglDisableClientState(GL_COLOR_ARRAY);
-	if (text)
-		qglDisableClientState( GL_TEXTURE_COORD_ARRAY );
-	GLfloat vtx[NUM_BEAM_SEGS*6+6];
-	for ( i = 0; i <= NUM_BEAM_SEGS; i++ ) {
-		memcpy(vtx+i*6, start_points[ i % NUM_BEAM_SEGS], sizeof(GLfloat)*3);
-		memcpy(vtx+i*6+3, end_points[ i % NUM_BEAM_SEGS], sizeof(GLfloat)*3);
-	}
-	qglVertexPointer (3, GL_FLOAT, 0, vtx);
-	qglDrawArrays(GL_TRIANGLE_STRIP, 0, NUM_BEAM_SEGS*2+2);
-	if (glcol)
-		qglEnableClientState(GL_COLOR_ARRAY);
-	if (text)
-		qglEnableClientState( GL_TEXTURE_COORD_ARRAY );
-}
 
 /*
 @@@@@@@@@@@@@@@@@@@@@
@@ -656,8 +591,6 @@ void RE_RenderScene( const refdef_t *fd ) {
 	VectorCopy( fd->vieworg, parms.pvsOrigin );
 
 	R_RenderView( &parms );
-
-    R_LaserBeam (fd->vieworg);
 
 	// the next scene rendered in this frame will tack on after this one
 	r_firstSceneDrawSurf = tr.refdef.numDrawSurfs;

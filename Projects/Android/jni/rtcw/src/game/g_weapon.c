@@ -110,9 +110,9 @@ void Weapon_Knife( gentity_t *ent ) {
 
     vec3_t angles;
     if (gVR != NULL) {
-        VectorCopy(gVR->weaponangles_unadjusted, angles);
+        VectorCopy(gVR->weaponangles_knife, angles);
         angles[YAW] = ent->client->ps.viewangles[YAW] +
-                      (gVR->weaponangles_unadjusted[YAW] - gVR->hmdorientation[YAW]);
+                      (gVR->weaponangles_knife[YAW] - gVR->hmdorientation[YAW]);
     }
 
     AngleVectors( angles, forward, right, up );
@@ -139,6 +139,9 @@ void Weapon_Knife( gentity_t *ent ) {
 	tent->s.otherEntityNum = tr.entityNum;
 	tent->s.eventParm = DirToByte( tr.plane.normal );
 	tent->s.weapon = ent->s.weapon;
+
+	//we hit something
+	trap_Vibrate(100, gVR->right_handed ? 1 : 0, 0.9);
 
 	if ( tr.entityNum == ENTITYNUM_WORLD ) { // don't worry about doing any damage
 		return;
@@ -182,8 +185,6 @@ void Weapon_Knife( gentity_t *ent ) {
 //----(SA)	end
 		}
 	}
-
-    trap_Vibrate(50, gVR->right_handed ? 1 : 0, 0.6);
 
     G_Damage( traceEnt, ent, ent, vec3_origin, tr.endpos, ( damage + rand() % 5 ) * s_quadFactor, 0, mod );
 }
