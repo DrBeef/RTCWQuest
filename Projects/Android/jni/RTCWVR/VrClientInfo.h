@@ -1,7 +1,7 @@
 #if !defined(vr_client_info_h)
 #define vr_client_info_h
 
-#define NUM_WEAPON_SAMPLES      72
+#define NUM_WEAPON_SAMPLES      10
 
 typedef struct {
     float  fov;

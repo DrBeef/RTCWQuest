@@ -1212,8 +1212,8 @@ gentity_t *weapon_crowbar_throw( gentity_t *ent ) {
 	return m;
 }
 
-#define OLDEST_READING		24
-#define NEWEST_READING		20
+#define OLDEST_READING		7
+#define NEWEST_READING		3
 
 gentity_t *weapon_grenadelauncher_fire_vr( gentity_t *ent, int grenType ) {
     gentity_t   *m, *te; // JPW NERVE
@@ -1240,13 +1240,13 @@ gentity_t *weapon_grenadelauncher_fire_vr( gentity_t *ent, int grenType ) {
     // pineapples are not thrown as far as mashers
     if ( grenType == WP_GRENADE_LAUNCHER )
     {
-        power = 6;
+        power = 4;
     } else if ( grenType == WP_GRENADE_PINEAPPLE )
     {
-        power = 4;
+        power = 3;
     }
     else {      // WP_DYNAMITE
-        power = 3;
+        power = 2.5;
     }
 
     //And then throw..
