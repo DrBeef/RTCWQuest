@@ -3223,6 +3223,28 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	// add the foot
 	CG_AddPlayerFoot( &hand, ps, &cg.predictedPlayerEntity );
 
+
+    //Set some important flags based on the current weapon
+    switch ( ps->weapon ) {
+        case WP_KNIFE:
+            cgVR->velocitytriggered = qtrue;
+            cgVR->scopedweapon = qfalse;
+            break;
+        case WP_GARAND:
+        case WP_SNIPERRIFLE:
+        case WP_MAUSER:
+        case WP_SNOOPERSCOPE:
+        case WP_FG42:
+        case WP_FG42SCOPE:
+            cgVR->velocitytriggered = qfalse;
+            cgVR->scopedweapon = qtrue;
+            break;
+        default:
+            cgVR->velocitytriggered = qfalse;
+            cgVR->scopedweapon = qfalse;
+            break;
+    }
+
 	cg.predictedPlayerEntity.lastWeaponClientFrame = cg.clientFrame;
 }
 
@@ -4001,20 +4023,6 @@ void CG_FinishWeaponChange( int lastweap, int newweap ) {
 		if ( cg.switchbackWeapon == newweap ) {
 			cg.switchbackWeapon = lastweap;
 		}
-	}
-
-	switch ( newweap ) {
-		case WP_GARAND:
-		case WP_SNIPERRIFLE:
-		case WP_MAUSER:
-		case WP_SNOOPERSCOPE:
-		case WP_FG42:
-		case WP_FG42SCOPE:
-			cgVR->scopedweapon = qtrue;
-			break;
-		default:
-			cgVR->scopedweapon = qfalse;
-			break;
 	}
 
 	cg.weaponSelect     = newweap;

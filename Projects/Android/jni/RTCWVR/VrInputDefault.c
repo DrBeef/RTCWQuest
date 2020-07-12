@@ -162,6 +162,22 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             vr.weaponoffset[2] = pDominantTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
             vr.weaponoffset_timestamp = Sys_Milliseconds( );
 
+            //Does weapon velocity trigger attack (knife) and is it fast enough
+            if (vr.velocitytriggered)
+            {
+                static qboolean fired = qfalse;
+                float velocity = sqrtf(powf(pDominantTracking->HeadPose.LinearVelocity.x, 2) +
+                                       powf(pDominantTracking->HeadPose.LinearVelocity.y, 2) +
+                                       powf(pDominantTracking->HeadPose.LinearVelocity.z, 2));
+
+                ALOGV("        Velocity: %f", velocity);
+
+                if (fired != (velocity > VELOCITY_TRIGGER)) {
+                    sendButtonAction("+attack", (velocity > VELOCITY_TRIGGER));
+                    fired = (velocity > VELOCITY_TRIGGER);
+                }
+            }
+
             if (vr.weapon_stabilised)
             {
                 float z = pOffTracking->HeadPose.Pose.Position.z - pDominantTracking->HeadPose.Pose.Position.z;
@@ -287,7 +303,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             else
             {
                 //Fire Primary
-                if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
+                if (!vr.velocitytriggered && // Don't fire velocity triggered weapons
+                    (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
                     (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
 
                     firingPrimary = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);

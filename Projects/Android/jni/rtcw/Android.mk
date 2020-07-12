@@ -2,10 +2,8 @@
 
 RTCW_BASE_CFLAGS = \
 -fsigned-char \
- -march=armv7-a -mfloat-abi=softfp \
- -DNDEBUG  -DNDEBUG -Ofast -fomit-frame-pointer -ffast-math -fno-strict-aliasing -fstrength-reduce -ftree-vectorize -fsingle-precision-constant \
- -pipe -DPANDORA -DHAVE_GLES -DARM  -DC_ONLY \
-  -DAUTOAIM
+ -Ofast -fomit-frame-pointer -ffast-math -fno-strict-aliasing -fstrength-reduce -ftree-vectorize -fsingle-precision-constant \
+ -pipe -DPANDORA -DHAVE_GLES -DARM  -DC_ONLY
 
 #-DNEON  -mfpu=neon 
 

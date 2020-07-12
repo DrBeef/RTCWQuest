@@ -3303,6 +3303,9 @@ if ( pm->ps->weapon == WP_AKIMBO ) {
 }
 
 switch ( pm->ps->weapon ) {
+case WP_KNIFE:
+	//Play no animation for the knife (as it is physical stabby stabby)
+	break;
 case WP_MAUSER:
 case WP_GRENADE_LAUNCHER:
 case WP_GRENADE_PINEAPPLE:

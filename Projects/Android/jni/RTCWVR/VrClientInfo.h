@@ -30,6 +30,10 @@ typedef struct {
     qboolean scopeready;   // Scope can be engaged
     qboolean scopedweapon; // Weapon supports scope
 
+    qboolean velocitytriggered; // Weapon attack triggered by velocity (knife)
+
+
+
     vec3_t offhandangles;
     vec3_t offhandoffset;
 } vr_client_info_t;
