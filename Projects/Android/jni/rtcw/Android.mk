@@ -1,8 +1,8 @@
 
 
 RTCW_BASE_CFLAGS = \
--fsigned-char \
- -Ofast -fomit-frame-pointer -ffast-math -fno-strict-aliasing -fstrength-reduce -ftree-vectorize -fsingle-precision-constant \
+-fsigned-char -O0 \
+ -Ofast -ffast-math -fno-strict-aliasing -fstrength-reduce -ftree-vectorize -fsingle-precision-constant \
  -pipe -DPANDORA -DHAVE_GLES -DARM  -DC_ONLY
 
 #-DNEON  -mfpu=neon 
