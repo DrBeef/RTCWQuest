@@ -1994,36 +1994,63 @@ CG_CalculateWeaponPositionAndScale
 */
 
 
-static float CG_CalculateWeaponPositionAndScale( vec3_t origin, vec3_t angles ) {
+static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origin, vec3_t angles ) {
 
     CG_CalculateVRWeaponPosition(origin, angles);
 
-    //Now adjust weapon:  scale, right, up, forward
     vec3_t offset;
-	float scale=1.0f;
-    if (cg.predictedPlayerState.weapon != 0)
-    {
-        char cvar_name[64];
-        Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", cg.predictedPlayerState.weapon);
 
-        char weapon_adjustment[256];
-        trap_Cvar_VariableStringBuffer(cvar_name, weapon_adjustment, 256);
+    char buffer[32];
+    trap_Cvar_VariableStringBuffer("vr_control_scheme", buffer, 32);
 
-        vec3_t adjust;
-        vec3_t temp_offset;
-        VectorClear(temp_offset);
-        sscanf(weapon_adjustment, "%f,%f,%f,%f,%f,%f,%f", &scale, &(temp_offset[0]), &(temp_offset[1]), &(temp_offset[2]), &(adjust[PITCH]), &(adjust[YAW]), &(adjust[ROLL]));
-        VectorScale(temp_offset, scale, offset);
+    //Weapon offset debugging
+    float scale=1.0f;
+    if (strcmp(buffer, "99") == 0) {
+        scale = cgVR->test_scale;
 
         //Adjust angles for weapon models that aren't aligned very well
         matrix4x4 m1, m2, m3;
         vec3_t zero;
         VectorClear(zero);
-        Matrix4x4_CreateFromEntity(m1, angles,zero, 1.0);
-        Matrix4x4_CreateFromEntity(m2, adjust,zero, 1.0);
+        Matrix4x4_CreateFromEntity(m1, angles, zero, 1.0);
+        Matrix4x4_CreateFromEntity(m2, cgVR->test_angles, zero, 1.0);
         Matrix4x4_Concat(m3, m1, m2);
         Matrix4x4_ConvertToEntity(m3, angles, zero);
+
+        VectorCopy(cgVR->test_offset, offset);
+
+        CG_CenterPrint( cgVR->test_name, SCREEN_HEIGHT * 0.45, SMALLCHAR_WIDTH );
+    } else {
+        //Now adjust weapon:  scale, right, up, forward
+        if (ps->weapon != 0)
+        {
+            char cvar_name[64];
+            Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", ps->weapon);
+
+            char weapon_adjustment[256];
+            trap_Cvar_VariableStringBuffer(cvar_name, weapon_adjustment, 256);
+
+            if (strlen(weapon_adjustment) > 0) {
+                vec3_t adjust;
+                vec3_t temp_offset;
+                VectorClear(temp_offset);
+                sscanf(weapon_adjustment, "%f,%f,%f,%f,%f,%f,%f", &scale,
+                       &(temp_offset[0]), &(temp_offset[1]), &(temp_offset[2]),
+                       &(adjust[PITCH]), &(adjust[YAW]), &(adjust[ROLL]));
+                VectorScale(temp_offset, scale, offset);
+
+                //Adjust angles for weapon models that aren't aligned very well
+                matrix4x4 m1, m2, m3;
+                vec3_t zero;
+                VectorClear(zero);
+                Matrix4x4_CreateFromEntity(m1, angles, zero, 1.0);
+                Matrix4x4_CreateFromEntity(m2, adjust, zero, 1.0);
+                Matrix4x4_Concat(m3, m1, m2);
+                Matrix4x4_ConvertToEntity(m3, angles, zero);
+            }
+        }
     }
+
 
     //Now move weapon closer to proper origin
     vec3_t forward, right, up;
@@ -3338,6 +3365,9 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		return;
 	}
 
+    char buffer[32];
+    trap_Cvar_VariableStringBuffer("vr_control_scheme", buffer, 32);
+    qboolean weaponDebugging = (strcmp(buffer, "99") == 0);
 
 /*	// drop gun lower at higher fov
 	if ( cg_fov.integer > 90 ) {
@@ -3376,7 +3406,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		memset( &hand, 0, sizeof( hand ) );
 
 		// set up gun position
-		float scale = CG_CalculateWeaponPositionAndScale( hand.origin, angles );
+		float scale = CG_CalculateWeaponPositionAndScale( ps, hand.origin, angles );
 
 		gunoff[0] = cg_gun_x.value;
 		gunoff[1] = cg_gun_y.value;
@@ -3399,7 +3429,15 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 
 		hand.hModel = weapon->handsModel;
-		hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT;   //----(SA)
+        //Weapon offset debugging
+        if (weaponDebugging)
+        {
+            hand.renderfx = RF_FIRST_PERSON | RF_MINLIGHT; //No depth hack for weapon adjusting mode
+        }
+        else
+        {
+            hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT;   //----(SA)
+        }
 
 		//scale the whole model (hand and weapon)
 		for ( int i = 0; i < 3; i++ ) {
@@ -3446,20 +3484,29 @@ void CG_AddViewWeapon( playerState_t *ps ) {
     VectorMA(beam_entity.currentState.pos.trBase, 64, forward, beam_entity.currentState.origin2); //beam end
 
     //Weapon offset debugging
+    if (weaponDebugging)
     {
         vec3_t origin;
-        vec3_t origin2;
+        vec3_t endForward, endRight, endUp;
         vec3_t angles;
-        CG_CalculateVRWeaponPosition(
-        origin,
-        angles );
-        vec3_t forward;
-        AngleVectors(angles, forward, NULL, NULL);
-        VectorMA(origin, 48, forward, origin2); //beam end
-        CG_RailTrail2(NULL, origin, origin2);
-    }
+        clientInfo_t ci;
+        CG_CalculateVRWeaponPosition(        origin,        angles );
 
-    //CG_Beam(&beam_entity);
+        vec3_t forward, right, up;
+        AngleVectors(angles, forward, right, up);
+
+        VectorMA(origin, 24, forward, endForward);
+        VectorSet(ci.color, 1, 0, 0); // Forward is red
+        CG_RailTrail2(&ci, origin, endForward);
+
+        VectorMA(origin, 24, right, endRight);
+        VectorSet(ci.color, 0, 1, 0); // right is green
+        CG_RailTrail2(&ci, origin, endRight);
+
+        VectorMA(origin, 24, up, endUp);
+        VectorSet(ci.color, 0, 0, 1); // up is blue
+        CG_RailTrail2(&ci, origin, endUp);
+    }
 
 	cg.predictedPlayerEntity.lastWeaponClientFrame = cg.clientFrame;
 }

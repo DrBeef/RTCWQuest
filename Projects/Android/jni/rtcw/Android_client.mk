@@ -200,6 +200,7 @@ SERVER_FILES = \
 RTCWVR_SRC_FILES :=  ../RTCWVR/RTCWVR_SurfaceView.c \
        ../RTCWVR/VrCompositor.c \
        ../RTCWVR/VrInputCommon.c \
+       ../RTCWVR/VrInputWeaponAlign.c \
        ../RTCWVR/VrInputDefault.c \
        ../RTCWVR/mathlib.c \
        ../RTCWVR/matrixlib.c \

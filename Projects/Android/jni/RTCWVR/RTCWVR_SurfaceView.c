@@ -105,7 +105,7 @@ extern cvar_t   *cl_paused;
 enum control_scheme {
 	RIGHT_HANDED_DEFAULT = 0,
 	LEFT_HANDED_DEFAULT = 10,
-	GAMEPAD = 20 //Not implemented, someone else can do this!
+	WEAPON_ALIGN = 99
 };
 
 /*
@@ -1306,11 +1306,14 @@ void RTCWVR_Init()
 	vr_positional_factor = Cvar_Get( "vr_positional_factor", "12", CVAR_ARCHIVE);
     vr_walkdirection = Cvar_Get( "vr_walkdirection", "0", CVAR_ARCHIVE);
 	vr_weapon_pitchadjust = Cvar_Get( "vr_weapon_pitchadjust", "-20.0", CVAR_ARCHIVE);
-	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
     vr_height_adjust = Cvar_Get( "vr_height_adjust", "0.0", CVAR_ARCHIVE);
 	vr_weaponscale = Cvar_Get( "vr_weaponscale", "0.56", CVAR_ARCHIVE);
 	vr_lasersight = Cvar_Get( "vr_lasersight", "0", CVAR_LATCH);
     vr_comfort_mask = Cvar_Get( "vr_comfort_mask", "0.0", CVAR_ARCHIVE);
+
+    //Defaults
+	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
+    vr_weapon_test_values = Cvar_Get( "vr_weapon_test_values", "0.0,0.0,0.0,0.0,0.0,0.0,0.0", CVAR_ARCHIVE);
 }
 
 
@@ -1620,6 +1623,11 @@ void RTCWVR_getTrackedRemotesOrientation() {//Get info for tracked remotes
 			HandleInput_Default(&leftTrackedRemoteState_new, &leftTrackedRemoteState_old, &leftRemoteTracking_new,
 								&rightTrackedRemoteState_new, &rightTrackedRemoteState_old, &rightRemoteTracking_new,
 								ovrButton_X, ovrButton_Y, ovrButton_A, ovrButton_B);
+			break;
+		case WEAPON_ALIGN:
+			HandleInput_WeaponAlign(&rightTrackedRemoteState_new, &rightTrackedRemoteState_old, &rightRemoteTracking_new,
+								&leftTrackedRemoteState_new, &leftTrackedRemoteState_old, &leftRemoteTracking_new,
+								ovrButton_A, ovrButton_B, ovrButton_X, ovrButton_Y);
 			break;
 	}
 }

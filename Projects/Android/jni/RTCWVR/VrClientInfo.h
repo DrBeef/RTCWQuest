@@ -32,10 +32,19 @@ typedef struct {
 
     qboolean velocitytriggered; // Weapon attack triggered by velocity (knife)
 
-
-
     vec3_t offhandangles;
     vec3_t offhandoffset;
+
+
+    //////////////////////////////////////
+    //    Test stuff for weapon alignment
+    //////////////////////////////////////
+
+    char    test_name[256];
+    float   test_scale;
+    vec3_t  test_angles;
+    vec3_t  test_offset;
+
 } vr_client_info_t;
 
 #endif //vr_client_info_h
