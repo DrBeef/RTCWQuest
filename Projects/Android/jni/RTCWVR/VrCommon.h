@@ -38,7 +38,6 @@ ovrTracking2 tracking;
 #define DUCK_CROUCHED 2
 int ducked;
 
-qboolean player_moving;
 int resyncClientYawWithGameYaw;
 
 vr_client_info_t vr;

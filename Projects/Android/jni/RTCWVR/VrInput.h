@@ -7,7 +7,7 @@
 //New control scheme definitions to be defined L1VR_SurfaceView.c enumeration
 enum control_scheme;
 
-#define SCOPE_ENGAGE_DISTANCE   0.3
+#define SCOPE_ENGAGE_DISTANCE   0.22
 #define VELOCITY_TRIGGER        1.8
 
 ovrInputStateTrackedRemote leftTrackedRemoteState_old;

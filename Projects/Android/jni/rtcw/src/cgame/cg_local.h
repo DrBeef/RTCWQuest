@@ -59,7 +59,7 @@ If you have questions concerning this license or the applicable additional terms
 #define WEAPON_SELECT_TIME  1400
 #define HOLDABLE_SELECT_TIME 1400   //----(SA)	for drawing holdable icons
 #define ITEM_SCALEUP_TIME   1000
-#define ZOOM_TIME           150
+#define ZOOM_TIME           100 // Speed the zoom up for VR
 #define ITEM_BLOB_TIME      200
 #define MUZZLE_FLASH_TIME   30      //----(SA)
 #define SINK_TIME           1000        // time for fragments to sink into ground before going away
@@ -2012,6 +2012,7 @@ void CG_LastWeaponUsed_f( void );     //----(SA)	added
 void CG_NextWeaponInBank_f( void );   //----(SA)	added
 void CG_PrevWeaponInBank_f( void );   //----(SA)	added
 void CG_AltWeapon_f( void );
+void CG_WeaponDetachScope_f( void );
 void CG_NextWeapon_f( void );
 void CG_PrevWeapon_f( void );
 void CG_Weapon_f( void );

@@ -440,6 +440,7 @@ static consoleCommand_t commands[] = {
 	{ "weapnext", CG_NextWeapon_f },
 	{ "weapprev", CG_PrevWeapon_f },
 	{ "weapalt", CG_AltWeapon_f },
+	{ "weapdetachscope", CG_WeaponDetachScope_f },
 	{ "weapon", CG_Weapon_f },
 	{ "weaponbank", CG_WeaponBank_f },
 	{ "itemnext", CG_NextItem_f },

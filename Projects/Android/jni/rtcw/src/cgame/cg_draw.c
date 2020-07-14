@@ -2051,7 +2051,7 @@ static void CG_DrawWeapReticle( void ) {
 	//vec4_t snoopercolor = {0.7, .8, 0.7, 0};    // greenish
 	vec4_t snoopercolor = {0.7, .8, 0.7, 1};    // greenish
 
-	float indent = 0.265;
+	float indent = 0.26;
 	float X_WIDTH=640;
 	float Y_HEIGHT=480;
 

@@ -3083,7 +3083,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	// add the scope model to the rifle if you've got it
 	if ( isPlayer && !cg.renderingThirdPerson ) {      // (SA) for now just do it on the first person weapons
 		if ( weaponNum == WP_MAUSER ) {
-			if ( COM_BitCheck( cg.predictedPlayerState.weapons, WP_SNIPERRIFLE ) ) {
+			if ( COM_BitCheck( cg.predictedPlayerState.weapons, WP_SNIPERRIFLE ) && !cgVR->scopedetached) {
 				barrel.hModel = weapon->modModel[0];
 				if ( barrel.hModel ) {
 					CG_PositionEntityOnTag( &barrel, &gun, "tag_scope", 0, NULL );
@@ -3444,6 +3444,35 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 			VectorScale( hand.axis[i], scale, hand.axis[i] );
 		}
 
+
+		//Set some important flags based on the current weapon
+		switch ( ps->weapon ) {
+			case WP_KNIFE:
+				cgVR->velocitytriggered = qtrue;
+				cgVR->scopedweapon = qfalse;
+				break;
+			case WP_MAUSER:
+				cgVR->velocitytriggered = qfalse;
+				cgVR->scopedweapon = qtrue;
+                cgVR->detachablescope = qtrue;
+				break;
+			case WP_SNIPERRIFLE:
+			case WP_GARAND:
+			case WP_SNOOPERSCOPE:
+			case WP_FG42:
+			case WP_FG42SCOPE:
+				cgVR->velocitytriggered = qfalse;
+				cgVR->scopedweapon = qtrue;
+                cgVR->scopedetached = qfalse;
+                cgVR->detachablescope = qfalse;
+				break;
+			default:
+				cgVR->velocitytriggered = qfalse;
+				cgVR->scopedweapon = qfalse;
+				break;
+		}
+
+
 		// add everything onto the hand
 		CG_AddPlayerWeapon( &hand, ps, &cg.predictedPlayerEntity );
 		// Ridah
@@ -3453,28 +3482,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	// Rafael
 	// add the foot
 	CG_AddPlayerFoot( &hand, ps, &cg.predictedPlayerEntity );
-
-
-    //Set some important flags based on the current weapon
-    switch ( ps->weapon ) {
-        case WP_KNIFE:
-            cgVR->velocitytriggered = qtrue;
-            cgVR->scopedweapon = qfalse;
-            break;
-        case WP_GARAND:
-        case WP_SNIPERRIFLE:
-        case WP_MAUSER:
-        case WP_SNOOPERSCOPE:
-        case WP_FG42:
-        case WP_FG42SCOPE:
-            cgVR->velocitytriggered = qfalse;
-            cgVR->scopedweapon = qtrue;
-            break;
-        default:
-            cgVR->velocitytriggered = qfalse;
-            cgVR->scopedweapon = qfalse;
-            break;
-    }
 
     //Add beam
     static centity_t beam_entity;
@@ -4289,6 +4296,22 @@ void CG_FinishWeaponChange( int lastweap, int newweap ) {
 	}
 
 	cg.weaponSelect     = newweap;
+}
+
+void CG_WeaponDetachScope_f( void ) {
+	int original;
+
+	original = cg.weaponSelect;
+
+	//Can only detach the scope from the mauser
+	if (original != WP_MAUSER)
+	{
+		return;
+	}
+
+    CG_PlaySwitchSound( WP_MAUSER, WP_MAUSER );
+
+	cgVR->scopedetached = !cgVR->scopedetached;
 }
 
 /*

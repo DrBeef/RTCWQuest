@@ -7,6 +7,7 @@ typedef struct {
     float  fov;
     qboolean weapon_stabilised;
     qboolean right_handed;
+    qboolean player_moving;
 
     vec3_t hmdposition;
     vec3_t hmdposition_last; // Don't use this, it is just for calculating delta!
@@ -26,9 +27,11 @@ typedef struct {
     vec3_t weaponoffset_history[NUM_WEAPON_SAMPLES];
     float weaponoffset_history_timestamp[NUM_WEAPON_SAMPLES];
 
-    qboolean scopeengaged; // Scope has been engaged on a scoped weapon
-    qboolean scopeready;   // Scope can be engaged
-    qboolean scopedweapon; // Weapon supports scope
+    //Lots of scope weapon stuff
+    qboolean scopeengaged;          // Scope has been engaged on a scoped weapon
+    qboolean scopedweapon;          // Weapon scope is available
+    qboolean scopedetached;         // Scope has been detached from weapon
+    qboolean detachablescope;       // Scope can be detached from weapon
 
     qboolean velocitytriggered; // Weapon attack triggered by velocity (knife)
 

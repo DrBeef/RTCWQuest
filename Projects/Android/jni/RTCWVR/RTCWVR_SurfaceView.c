@@ -630,7 +630,7 @@ void ovrFramebuffer_ClearEdgeTexels( ovrFramebuffer * frameBuffer )
 
 	//Glide comfort mask in and out
 	static float currentVLevel = 0.0f;
-	if (player_moving)
+	if (vr.player_moving)
 	{
 		if (currentVLevel <  vr_comfort_mask->value)
 			currentVLevel += vr_comfort_mask->value * 0.05;
@@ -890,7 +890,8 @@ void RTCWVR_Vibrate( float duration, int channel, float intensity )
 	vibration_channel_intensity[channel] = intensity;
 }
 
-void VR_GetMove( float *forward, float *side, float *pos_forward, float *pos_side, float *up, float *yaw, float *pitch, float *roll )
+void RTCWVR_GetMove(float *forward, float *side, float *pos_forward, float *pos_side, float *up,
+                    float *yaw, float *pitch, float *roll)
 {
     *forward = remote_movementForward;
     *pos_forward = positional_movementForward;

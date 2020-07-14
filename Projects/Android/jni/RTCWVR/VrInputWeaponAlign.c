@@ -164,7 +164,9 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
             if (!itemSwitched) {
                 if (between(0.8f, pDominantTrackedRemoteNew->Joystick.x, 1.0f))
                 {
-                    item_index = (item_index+1)%7;
+                    item_index++;
+                    if (item_index == 7)
+                        item_index = 0;
                 }
                 else
                 {
@@ -196,15 +198,16 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
             }
 
 
-			if (pDominantTrackedRemoteNew->Joystick.y > 0.5f)
-			{
-                *(items[item_index]) += item_inc[item_index];
-			}
+            if (between(-0.2f, pDominantTrackedRemoteNew->Joystick.x, 0.2f))
+            {
+                if (pDominantTrackedRemoteNew->Joystick.y > 0.6f) {
+                    *(items[item_index]) += item_inc[item_index];
+                }
 
-			if (pDominantTrackedRemoteNew->Joystick.y < -0.5f)
-			{
-                *(items[item_index]) -= item_inc[item_index];
-			}
+                if (pDominantTrackedRemoteNew->Joystick.y < -0.6f) {
+                    *(items[item_index]) -= item_inc[item_index];
+                }
+            }
         }
 
         sprintf(vr.test_name, "%s: %.2f", item_names[item_index], *(items[item_index]));
