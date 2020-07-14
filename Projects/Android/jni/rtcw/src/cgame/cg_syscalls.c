@@ -545,6 +545,6 @@ qboolean trap_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **mo
 	return syscall( CG_GETMODELINFO, clientNum, modelName, modelInfo );
 }
 
-qboolean trap_Vibrate( float duration, int channel, float intensity ) {
-	return syscall( CG_HAPTIC, PASSFLOAT(duration), channel, PASSFLOAT(intensity) );
+int trap_Vibrate( int duration, int channel, float intensity ) {
+	return syscall( CG_HAPTIC, duration, channel, PASSFLOAT(intensity) );
 }

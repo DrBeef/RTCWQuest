@@ -59,7 +59,7 @@ void interactWithTouchScreen(qboolean reset, ovrInputStateTrackedRemote *newStat
 //Called from engine code
 qboolean RTCWVR_useScreenLayer();
 void RTCWVR_GetScreenRes(int *width, int *height);
-void RTCWVR_Vibrate(float duration, int channel, float intensity );
+void RTCWVR_Vibrate(int duration, int channel, float intensity );
 qboolean RTCWVR_processMessageQueue();
 void RTCWVR_FrameSetup();
 void RTCWVR_setUseScreenLayer(qboolean use);

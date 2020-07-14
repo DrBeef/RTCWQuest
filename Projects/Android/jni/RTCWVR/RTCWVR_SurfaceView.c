@@ -878,7 +878,7 @@ RTCWVR_Vibrate
 float vibration_channel_duration[2] = {0.0f, 0.0f};
 float vibration_channel_intensity[2] = {0.0f, 0.0f};
 
-void RTCWVR_Vibrate( float duration, int channel, float intensity )
+void RTCWVR_Vibrate( int duration, int channel, float intensity )
 {
 	if (vibration_channel_duration[channel] > 0.0f)
 		return;

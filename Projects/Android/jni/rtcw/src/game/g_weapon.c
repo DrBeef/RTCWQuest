@@ -1601,8 +1601,9 @@ void Weapon_RocketLauncher_Fire( gentity_t *ent, float aimSpreadScale ) {
 
 		m = fire_rocket( ent, launchpos, dir );
 
+		//DON'T DO THIS BIT IN VR - COULD RESULT IN NAUSEA
 		// add kick-back
-		VectorMA( ent->client->ps.velocity, -64, forward, ent->client->ps.velocity );
+//		VectorMA( ent->client->ps.velocity, -64, forward, ent->client->ps.velocity );
 
 	} else {
 		m = fire_rocket( ent, muzzleEffect, forward );
@@ -2076,8 +2077,9 @@ void FireWeapon( gentity_t *ent ) {
 			Tesla_Fire( ent );
 		}
 
+		//DON'T DO THIS BIT IN VR - COULD RESULT IN NAUSEA
 		// push the player back a bit
-		if ( !ent->aiCharacter ) {
+/*		if ( !ent->aiCharacter ) {
 			vec3_t forward, vangle;
 			VectorCopy( ent->client->ps.viewangles, vangle );
 			vangle[PITCH] = 0;  // nullify pitch so you can't lightning jump
@@ -2088,7 +2090,7 @@ void FireWeapon( gentity_t *ent ) {
 			} else {
 				VectorMA( ent->client->ps.velocity, -100, forward, ent->client->ps.velocity );
 			}
-		}
+		}*/
 		break;
 	case WP_GAUNTLET:
 		Weapon_Gauntlet( ent );

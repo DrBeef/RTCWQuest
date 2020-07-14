@@ -303,7 +303,7 @@ static int  FloatAsInt( float f ) {
 	return temp;
 }
 
-void RTCWVR_Vibrate(float duration, int channel, float intensity );
+void RTCWVR_Vibrate(int duration, int channel, float intensity );
 
 /*
 ====================
@@ -472,7 +472,7 @@ int SV_GameSystemCalls( int *args ) {
 	case G_GETTAG:
 		return SV_GetTag( args[1], VMA( 2 ), VMA( 3 ) );
 	case G_HAPTIC:
-		RTCWVR_Vibrate( VMF(1), args[2], VMF( 3 ) );
+		RTCWVR_Vibrate( args[1], args[2], VMF( 3 ) );
 		return 0;
 
 		//====================================

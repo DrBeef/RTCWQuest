@@ -3228,7 +3228,9 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 
 	if ( ps || cg.renderingThirdPerson || !isPlayer ) {
 
+		static qboolean wasfiring = qfalse;
 		if ( firing ) {
+			wasfiring = qtrue;
 			// Ridah, Flamethrower effect
 			CG_FlamethrowerFlame( cent, flash.origin );
 
@@ -3245,6 +3247,13 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 				vec3_t angles;
 				AxisToAngles( flash.axis, angles );
 				CG_FireFlameChunks( cent, flash.origin, angles, 1.0, qfalse, 0 );
+			}
+
+			if (wasfiring) {
+			    //Stop haptics
+				trap_Vibrate(0, 0, 0.0);
+    			trap_Vibrate(0, 1, 0.0);
+				wasfiring = qfalse;
 			}
 		}
 	}
