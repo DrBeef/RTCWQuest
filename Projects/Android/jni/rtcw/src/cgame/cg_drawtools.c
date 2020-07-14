@@ -28,6 +28,9 @@ If you have questions concerning this license or the applicable additional terms
 
 // cg_drawtools.c -- helper functions called by cg_draw, cg_scoreboard, cg_info, etc
 #include "cg_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
+
+extern vr_client_info_t* cgVR;
 
 /*
 ================
@@ -56,11 +59,32 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 	}
 	// -NERVE - SMF
 
-	// scale for screen sizes
-	*x *= cgs.screenXScale;
-	*y *= cgs.screenYScale;
-	*w *= cgs.screenXScale;
-	*h *= cgs.screenYScale;
+	if (cg.zoomedScope || cg.zoomedBinoc || cg.viewFade > 0 || ( cg.v_dmg_time > cg.time ) || ( cgs.scrFadeAlphaCurrent > 0.0 ))
+	{
+		// scale for screen sizes
+		*x *= cgs.screenXScale;
+		*y *= cgs.screenYScale;
+		*w *= cgs.screenXScale;
+		*h *= cgs.screenYScale;
+	}
+	else
+	{
+		float screenXScale = cgs.screenXScale / 3.0f;
+		float screenYScale = cgs.screenYScale / 3.0f;
+
+		int xoffset = -24;
+		if (cg.refdef.stereoView == 1) {
+			xoffset *= -1;
+		}
+
+		*x *= screenXScale;
+		*y *= screenYScale;
+		*w *= screenXScale;
+		*h *= screenYScale;
+
+		*x += (cg.refdef.width - (640 * screenXScale)) / 2.0f + xoffset;
+		*y += (cg.refdef.height - (480 * screenYScale)) / 2.0f;
+	}
 }
 
 /*
