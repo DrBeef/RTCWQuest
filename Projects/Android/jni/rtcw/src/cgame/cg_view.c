@@ -1513,7 +1513,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		return;
 	}
 
-	if ( cg.weaponSelect == WP_FG42SCOPE || cg.weaponSelect == WP_SNOOPERSCOPE || cg.weaponSelect == WP_SNIPERRIFLE ) {
+/*	if ( cg.weaponSelect == WP_FG42SCOPE || cg.weaponSelect == WP_SNOOPERSCOPE || cg.weaponSelect == WP_SNIPERRIFLE ) {
 		float spd;
 		spd = VectorLength( cg.snap->ps.velocity );
 		if ( spd > 180.0f ) {
@@ -1530,7 +1530,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 			}
 		}
 	}
-
+*/
 	DEBUGTIME
 
 	if ( !cg.lightstylesInited ) {

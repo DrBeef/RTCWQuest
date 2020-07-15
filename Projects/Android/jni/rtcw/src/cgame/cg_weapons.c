@@ -223,6 +223,7 @@ void Matrix4x4_ConvertToEntity( vec4_t *in, vec3_t angles, vec3_t origin )
 }
 
 
+int binocularModel;
 int wolfkickModel;
 int hWeaponSnd;
 int hflakWeaponSnd;
@@ -1679,6 +1680,7 @@ void CG_RegisterItemVisuals( int itemNum ) {
 
 	itemInfo->registered = qtrue;   //----(SA)	moved this down after the registerweapon()
 
+	binocularModel = trap_R_RegisterModel( "models/powerups/keys/binoculars.md3" );
 	wolfkickModel = trap_R_RegisterModel( "models/weapons2/foot/v_wolfoot_10f.md3" );
 	hWeaponSnd = trap_S_RegisterSound( "sound/weapons/mg42/37mm.wav" );
 
@@ -2021,8 +2023,24 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
 
         CG_CenterPrint( cgVR->test_name, SCREEN_HEIGHT * 0.45, SMALLCHAR_WIDTH );
     } else {
+        if (cgVR->backpackitemactive == 3)
+        {
+            scale = 0.5f;
+            VectorSet(offset, 1, -3, 0);
+            vec3_t adjust;
+            VectorSet(adjust, 20, 140, 0);
+
+            //Adjust angles for weapon models that aren't aligned very well
+            matrix4x4 m1, m2, m3;
+            vec3_t zero;
+            VectorClear(zero);
+            Matrix4x4_CreateFromEntity(m1, angles, zero, 1.0);
+            Matrix4x4_CreateFromEntity(m2, adjust, zero, 1.0);
+            Matrix4x4_Concat(m3, m1, m2);
+            Matrix4x4_ConvertToEntity(m3, angles, zero);
+        }
         //Now adjust weapon:  scale, right, up, forward
-        if (ps->weapon != 0)
+        else if (ps->weapon != 0)
         {
             char cvar_name[64];
             Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", ps->weapon);
@@ -2904,7 +2922,16 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	}
 
 	if ( ps ) {
-		gun.hModel = weapon->weaponModel[W_FP_MODEL];
+		if (cgVR->backpackitemactive == 3)
+		{
+			gun.hModel = binocularModel;
+            CG_PositionEntityOnTag( &gun, parent, "tag_weapon", 0, NULL );
+            CG_AddWeaponWithPowerups( &gun, 0, ps, cent );
+            return;
+		}
+		else {
+			gun.hModel = weapon->weaponModel[W_FP_MODEL];
+		}
 	} else {
 		CG_AddProtoWeapons( parent, ps, cent );
 		// skeletal guys use a different third person weapon (for different tag business)
@@ -3429,15 +3456,18 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 		AnglesToAxis( angles, hand.axis );
 
-		if ( cg_gun_frame.integer ) {
+		if ( cg_gun_frame.integer) {
 			hand.frame = hand.oldframe = cg_gun_frame.integer;
 			hand.backlerp = 0;
 		} else {  // get the animation state
 			CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );   //----(SA)	changed
 		}
 
+		if (cgVR->backpackitemactive != 3)
+		{
+			hand.hModel = weapon->handsModel;
+		}
 
-		hand.hModel = weapon->handsModel;
         //Weapon offset debugging
         if (weaponDebugging)
         {
@@ -3483,21 +3513,13 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 
 		// add everything onto the hand
-		CG_AddPlayerWeapon( &hand, ps, &cg.predictedPlayerEntity );
+		CG_AddPlayerWeapon(&hand, ps, &cg.predictedPlayerEntity);
 		// Ridah
-
 	}   // end  "if ( ps->weapon > WP_NONE)"
 
 	// Rafael
 	// add the foot
 	CG_AddPlayerFoot( &hand, ps, &cg.predictedPlayerEntity );
-
-    //Add beam
-    static centity_t beam_entity;
-    VectorCopy(hand.origin, beam_entity.currentState.pos.trBase); //beam origin
-    vec3_t forward;
-    AngleVectors(angles, forward, NULL, NULL);
-    VectorMA(beam_entity.currentState.pos.trBase, 64, forward, beam_entity.currentState.origin2); //beam end
 
     //Weapon offset debugging
     if (weaponDebugging)
@@ -4305,6 +4327,7 @@ void CG_FinishWeaponChange( int lastweap, int newweap ) {
 	}
 
 	cg.weaponSelect     = newweap;
+	cgVR->weaponid    = newweap; //Store in case we use backpack
 }
 
 void CG_WeaponDetachScope_f( void ) {

@@ -34,6 +34,7 @@ If you have questions concerning this license or the applicable additional terms
 // It also handles local physics interaction, like fragments bouncing off walls
 
 #include "cg_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 static pmove_t cg_pmove;
 
@@ -41,6 +42,8 @@ static int cg_numSolidEntities;
 static centity_t   *cg_solidEntities[MAX_ENTITIES_IN_SNAPSHOT];
 static int cg_numTriggerEntities;
 static centity_t   *cg_triggerEntities[MAX_ENTITIES_IN_SNAPSHOT];
+
+extern vr_client_info_t *cgVR;
 
 /*
 ====================
@@ -761,5 +764,8 @@ void CG_PredictPlayerState( void ) {
 
 	// fire events and other transition triggered things
 	CG_TransitionPlayerState( &cg.predictedPlayerState, &oldPlayerState );
+
+	//set a flag
+	cgVR->hasbinoculars = (cg.predictedPlayerState.stats[STAT_KEYS] & ( 1 << INV_BINOCS ));
 }
 

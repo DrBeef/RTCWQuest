@@ -8,6 +8,10 @@ typedef struct {
     qboolean weapon_stabilised;
     qboolean right_handed;
     qboolean player_moving;
+    qboolean visible_hud;
+    int weaponid;
+    int lastweaponid;
+    int backpackitemactive; //0 - nothing, 1 - grenades, 2 - knife, 3 - Binoculars
 
     vec3_t hmdposition;
     vec3_t hmdposition_last; // Don't use this, it is just for calculating delta!
@@ -32,6 +36,7 @@ typedef struct {
     qboolean scopedweapon;          // Weapon scope is available
     qboolean scopedetached;         // Scope has been detached from weapon
     qboolean detachablescope;       // Scope can be detached from weapon
+    qboolean hasbinoculars;
 
     qboolean velocitytriggered; // Weapon attack triggered by velocity (knife)
 

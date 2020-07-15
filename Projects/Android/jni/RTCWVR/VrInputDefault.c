@@ -36,7 +36,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
     static qboolean dominantGripPushed = false;
 	static float dominantGripPushTime = 0.0f;
-    static int grabBackpackWeapon = 0;
     static bool canUseBackpack = false;
 
 
@@ -145,6 +144,17 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             }
         }
 
+        static qboolean binocularstate = qfalse;
+        qboolean binocularsactive = (vr.hasbinoculars && vr.backpackitemactive == 3 &&
+                (distanceToHMD < BINOCULAR_ENGAGE_DISTANCE) &&
+                (pDominantTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)));
+        if (binocularstate != binocularsactive)
+        {
+            //Engage scope if conditions are right
+            binocularstate = binocularsactive;
+            sendButtonAction("+zoom", binocularstate);
+        }
+
         //dominant hand stuff first
         {
             //Record recent weapon position for trajectory based stuff
@@ -200,45 +210,81 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             if (pDominantTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)) {
                 canUseBackpack = false;
             }
-            else if (!canUseBackpack && grabBackpackWeapon == 0) {
+            else if (!canUseBackpack && vr.backpackitemactive == 0) {
                 int channel = (vr_control_scheme->integer >= 10) ? 0 : 1;
                     RTCWVR_Vibrate(40, channel, 0.5); // vibrate to let user know they can switch
 
                 canUseBackpack = true;
             }
 
-            if ((pDominantTrackedRemoteNew->Buttons & ovrButton_GripTrigger) !=
-                (pDominantTrackedRemoteOld->Buttons & ovrButton_GripTrigger)) {
+            dominantGripPushed = (pDominantTrackedRemoteNew->Buttons &
+                                  ovrButton_GripTrigger) != 0;
+            bool dominantButton1Pushed = (pDominantTrackedRemoteNew->Buttons &
+                                     domButton1) != 0;
+            bool dominantButton2Pushed = (pDominantTrackedRemoteNew->Buttons &
+                                          domButton2) != 0;
 
-                dominantGripPushed = (pDominantTrackedRemoteNew->Buttons &
-                                      ovrButton_GripTrigger) != 0;
-
-                if (grabBackpackWeapon == 0)
-                {
-                    if (pDominantTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)) {
-
-                        if (dominantGripPushed) {
-                            dominantGripPushTime = GetTimeInMilliSeconds();
-                        } else {
-                            if ((GetTimeInMilliSeconds() - dominantGripPushTime) <
-                                vr_reloadtimeoutms->integer) {
-                                sendButtonActionSimple("+reload");
-                                finishReloadNextFrame = true;
-                            }
-                        }
-                    } else{
-                        if (dominantGripPushed) {
-                            //Initiate grenade from backpack mode
-                            sendButtonActionSimple("weaponbank 6");
-                            int channel = (vr_control_scheme->integer >= 10) ? 0 : 1;
-                            RTCWVR_Vibrate(80, channel, 0.8); // vibrate to let user know they switched
-                            grabBackpackWeapon = 1;
-                        }
+            if (!canUseBackpack)
+            {
+                if (dominantGripPushed) {
+                    if (dominantGripPushTime == 0) {
+                        dominantGripPushTime = GetTimeInMilliSeconds();
                     }
-                } else if (grabBackpackWeapon == 1 && !dominantGripPushed) {
-                    //Restores last used weapon if possible
-                    sendButtonActionSimple("weaplastused");
-                    grabBackpackWeapon = 0;
+                }
+                else
+                {
+                    if (vr.backpackitemactive == 1) {
+                        //Restores last used weapon if possible
+                        char buffer[32];
+                        sprintf(buffer, "weapon %i", vr.lastweaponid);
+                        sendButtonActionSimple(buffer);
+                        vr.backpackitemactive = 0;
+                    }
+                    else if ((GetTimeInMilliSeconds() - dominantGripPushTime) <
+                        vr_reloadtimeoutms->integer) {
+                        sendButtonActionSimple("+reload");
+                        finishReloadNextFrame = true;
+                    }
+                    dominantGripPushTime = 0;
+                }
+
+                if (!dominantButton1Pushed && vr.backpackitemactive == 2)
+                {
+                    char buffer[32];
+                    sprintf(buffer, "weapon %i", vr.lastweaponid);
+                    sendButtonActionSimple(buffer);
+                    vr.backpackitemactive = 0;
+                }
+
+                if (!dominantButton2Pushed && vr.backpackitemactive == 3)
+                {
+                    vr.backpackitemactive = 0;
+                }
+            } else {
+                if (vr.backpackitemactive == 0) {
+                    if (dominantGripPushed) {
+                        vr.lastweaponid = vr.weaponid;
+                        //Initiate grenade from backpack mode
+                        sendButtonActionSimple("weaponbank 6");
+                        int channel = (vr_control_scheme->integer >= 10) ? 0 : 1;
+                        RTCWVR_Vibrate(80, channel, 0.8); // vibrate to let user know they switched
+                        vr.backpackitemactive = 1;
+                    }
+                    else if (dominantButton1Pushed)
+                    {
+                        vr.lastweaponid = vr.weaponid;
+                        //Initiate knife from backpack mode
+                        sendButtonActionSimple("weapon 1");
+                        int channel = (vr_control_scheme->integer >= 10) ? 0 : 1;
+                        RTCWVR_Vibrate(80, channel, 0.8); // vibrate to let user know they switched
+                        vr.backpackitemactive = 2;
+                    }
+                    else if (dominantButton2Pushed && vr.hasbinoculars)
+                    {
+                        int channel = (vr_control_scheme->integer >= 10) ? 0 : 1;
+                        RTCWVR_Vibrate(80, channel, 0.8); // vibrate to let user know they switched
+                        vr.backpackitemactive = 3;
+                    }
                 }
             }
         }
@@ -282,14 +328,15 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                   positional_movementForward);
 
             //Jump (B Button)
-            handleTrackedControllerButton(pDominantTrackedRemoteNew,
-                                          pDominantTrackedRemoteOld, domButton2, K_SPACE);
+            if (vr.backpackitemactive != 2 && !canUseBackpack) {
+                handleTrackedControllerButton(pDominantTrackedRemoteNew,
+                                              pDominantTrackedRemoteOld, domButton2, K_SPACE);
+            }
 
 
             //We need to record if we have started firing primary so that releasing trigger will stop firing, if user has pushed grip
             //in meantime, then it wouldn't stop the gun firing and it would get stuck
-            static bool firingPrimary = false;
-            if (!firingPrimary && dominantGripPushed && (GetTimeInMilliSeconds() - dominantGripPushTime) > vr_reloadtimeoutms->integer && !grabBackpackWeapon)
+            if (dominantGripPushed && (GetTimeInMilliSeconds() - dominantGripPushTime) > vr_reloadtimeoutms->integer && vr.backpackitemactive == 0)
             {
                 if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
                     (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger))
@@ -309,25 +356,26 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                     else
                     {
                         //Just ignore grip and fire
-                        firingPrimary = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
-                        sendButtonAction("+attack", firingPrimary);
+                        sendButtonAction("+attack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger));
                     }
                 }
             }
             else
             {
                 //Fire Primary
-                if (!vr.velocitytriggered && // Don't fire velocity triggered weapons
+                if (vr.backpackitemactive != 3 && // Can't fire while holding binoculars
+                    !vr.velocitytriggered && // Don't fire velocity triggered weapons
                     (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
                     (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
 
-                    firingPrimary = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
-                    sendButtonAction("+attack", firingPrimary);
+                    sendButtonAction("+attack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger));
                 }
             }
 
             //Duck with A
-            if ((pDominantTrackedRemoteNew->Buttons & domButton1) !=
+            if (vr.backpackitemactive != 2 &&
+                !canUseBackpack &&
+                (pDominantTrackedRemoteNew->Buttons & domButton1) !=
                 (pDominantTrackedRemoteOld->Buttons & domButton1) &&
                 ducked != DUCK_CROUCHED) {
                 ducked = (pDominantTrackedRemoteNew->Buttons & domButton1) ? DUCK_BUTTON
@@ -344,11 +392,11 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 				if (!itemSwitched) {
 					if (between(0.8f, pDominantTrackedRemoteNew->Joystick.y, 1.0f))
 					{
-                        sendButtonActionSimple("weapnext");
+                        sendButtonActionSimple("weapprev");
 					}
 					else
 					{
-                        sendButtonActionSimple("weapprev");
+                        sendButtonActionSimple("weapnext");
 					}
 					itemSwitched = true;
 				}
@@ -371,21 +419,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 sendButtonAction("+activate", (pDominantTrackedRemoteNew->Buttons & ovrButton_Joystick) ? 1 : 0);
             }
 
-			//Laser-sight - not implemented
-/*
-			if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Joystick) !=
-				(pDominantTrackedRemoteOld->Buttons & ovrButton_Joystick)
-				&& (pDominantTrackedRemoteNew->Buttons & ovrButton_Joystick)) {
-
-			    if (vr_lasersight->value != 0.0)
-                {
-//                    Cvar_ForceSet("vr_lasersight", "0.0");
-                } else {
-//                    Cvar_ForceSet("vr_lasersight", "1.0");
-			    }
-			}
-*/
-
 			//Apply a filter and quadratic scaler so small movements are easier to make
 			float dist = length(pOffTrackedRemoteNew->Joystick.x, pOffTrackedRemoteNew->Joystick.y);
 			float nlf = nonLinearFilter(dist);
@@ -407,22 +440,24 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
 
             if (!canUseQuickSave) {
-                if ((pOffTrackedRemoteNew->Buttons & offButton1) !=
-                    (pOffTrackedRemoteOld->Buttons & offButton1)) {
+                if (((pOffTrackedRemoteNew->Buttons & offButton1) !=
+                    (pOffTrackedRemoteOld->Buttons & offButton1)) &&
+                        (pOffTrackedRemoteNew->Buttons & offButton1)){
 
                     if (dominantGripPushed) {
                         //If cheats enabled, give all weapons/pickups to player
                         Cbuf_AddText("give all\n");
                     } else {
-                        sendButtonAction("+zoom", (pOffTrackedRemoteNew->Buttons & offButton1));
+                        vr.visible_hud = !vr.visible_hud;
                     }
                 }
             }
 
             //notebook
             if (!canUseQuickSave) {
-                if ((pOffTrackedRemoteNew->Buttons & offButton2) !=
-                    (pOffTrackedRemoteOld->Buttons & offButton2)) {
+                if (((pOffTrackedRemoteNew->Buttons & offButton2) !=
+                    (pOffTrackedRemoteOld->Buttons & offButton2)) &&
+                    (pOffTrackedRemoteNew->Buttons & offButton2)) {
                     sendButtonActionSimple("notebook");
                 }
             }

@@ -37,6 +37,7 @@ If you have questions concerning this license or the applicable additional terms
 #define STATUSBARHEIGHT 452
 //----(SA) end
 
+extern qboolean fullscreen_override;
 extern displayContextDef_t cgDC;
 extern vr_client_info_t* cgVR;
 menuDef_t *menuScoreboard = NULL;
@@ -2896,7 +2897,9 @@ static void CG_DrawFlashFade( void ) {
 		VectorClear( col );
 		col[3] = cgs.scrFadeAlphaCurrent;
 //		CG_FillRect( -10, -10, 650, 490, col );
+		fullscreen_override = qtrue;
 		CG_FillRect( 0, 0, 640, 480, col ); // why do a bunch of these extend outside 640x480?
+		fullscreen_override = qfalse;
 	}
 }
 
@@ -2950,7 +2953,9 @@ static void CG_DrawFlashZoomTransition( void ) {
 			Vector4Set( color, 0, 0, 0, 1.0f - frac );
 		}
 
+		fullscreen_override = qtrue;
 		CG_FillRect( -10, -10, 650, 490, color );
+		fullscreen_override = qfalse;
 	}
 }
 
@@ -2980,7 +2985,9 @@ static void CG_DrawFlashDamage( void ) {
 		VectorSet( col, 0.2, 0, 0 );
 		col[3] =  0.7 * ( redFlash / 5.0 );
 
+		fullscreen_override = qtrue;
 		CG_FillRect( -10, -10, 650, 490, col );
+		fullscreen_override = qfalse;
 	}
 }
 
@@ -3032,7 +3039,9 @@ static void CG_DrawFlashFire( void ) {
 		col[2] = alpha;
 		col[3] = alpha;
 		trap_R_SetColor( col );
+		fullscreen_override = qtrue;
 		CG_DrawPic( -10, -10, 650, 490, cgs.media.viewFlashFire[( cg.time / 50 ) % 16] );
+		fullscreen_override = qfalse;
 		trap_R_SetColor( NULL );
 
 		trap_S_AddLoopingSound( cg.snap->ps.clientNum, cg.snap->ps.origin, vec3_origin, cgs.media.flameSound, (int)( 255.0 * alpha ) );
@@ -3079,7 +3088,9 @@ static void CG_DrawFlashLightning( void ) {
 			shader = cgs.media.viewTeslaDamageEffectShader;
 		}
 
+		fullscreen_override = qtrue;
 		CG_DrawPic( -10, -10, 650, 490, shader );
+		fullscreen_override = qfalse;
 	}
 }
 

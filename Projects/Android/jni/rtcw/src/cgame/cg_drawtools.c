@@ -31,7 +31,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../../../RTCWVR/VrClientInfo.h"
 
 extern vr_client_info_t* cgVR;
-
+qboolean fullscreen_override = qfalse;
 /*
 ================
 CG_AdjustFrom640
@@ -59,7 +59,10 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 	}
 	// -NERVE - SMF
 
-	if (cg.zoomedScope || cg.zoomedBinoc || cg.viewFade > 0 || ( cg.v_dmg_time > cg.time ) || ( cgs.scrFadeAlphaCurrent > 0.0 ))
+	if (fullscreen_override
+		|| cg.zoomedScope || cg.zoomedBinoc || cg.zoomval > 0
+		|| cg.viewFade > 0 || ( cgs.scrFadeAlphaCurrent > 0.0 )
+		|| !cgVR->visible_hud)
 	{
 		// scale for screen sizes
 		*x *= cgs.screenXScale;
@@ -67,10 +70,10 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 		*w *= cgs.screenXScale;
 		*h *= cgs.screenYScale;
 	}
-	else
+	else // scale to clearly visible portion of VR screen
 	{
-		float screenXScale = cgs.screenXScale / 3.0f;
-		float screenYScale = cgs.screenYScale / 3.0f;
+		float screenXScale = cgs.screenXScale / 2.75f;
+		float screenYScale = cgs.screenYScale / 2.75f;
 
 		int xoffset = -24;
 		if (cg.refdef.stereoView == 1) {
