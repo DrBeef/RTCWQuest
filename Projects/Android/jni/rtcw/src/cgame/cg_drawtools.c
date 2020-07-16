@@ -31,7 +31,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "../../../RTCWVR/VrClientInfo.h"
 
 extern vr_client_info_t* cgVR;
-qboolean fullscreen_override = qfalse;
+int hudflags = 0;
 /*
 ================
 CG_AdjustFrom640
@@ -59,13 +59,22 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 	}
 	// -NERVE - SMF
 
-	if (fullscreen_override
+	if ((hudflags & HUD_FLAGS_FULLSCREEN)
 		|| cg.zoomedScope || cg.zoomedBinoc || cg.zoomval > 0
 		|| cg.viewFade > 0 || ( cgs.scrFadeAlphaCurrent > 0.0 )
 		|| !cgVR->visible_hud)
 	{
+		int xoffset = 0;
+		if (hudflags & HUD_FLAGS_STEREO) {
+			xoffset = -40;
+			if (cg.refdef.stereoView == 1) {
+				xoffset *= -1;
+			}
+		}
+
 		// scale for screen sizes
 		*x *= cgs.screenXScale;
+        *x += xoffset;
 		*y *= cgs.screenYScale;
 		*w *= cgs.screenXScale;
 		*h *= cgs.screenYScale;

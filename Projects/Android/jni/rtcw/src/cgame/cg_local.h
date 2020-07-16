@@ -108,6 +108,10 @@ If you have questions concerning this license or the applicable additional terms
 #define LIMBO_3D_H  330
 // -NERVE - SMF
 
+//VR HUD
+#define HUD_FLAGS_FULLSCREEN	1
+#define HUD_FLAGS_STEREO		2
+
 //=================================================
 
 // player entities need to track more information

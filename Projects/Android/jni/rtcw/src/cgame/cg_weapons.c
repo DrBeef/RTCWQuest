@@ -4370,8 +4370,10 @@ void CG_AltWeapon_f( void ) {
 		return; // force pause so holding it down won't go too fast
 
 	}
-	// Don't try to switch when in the middle of reloading.
-	if ( cg.snap->ps.weaponstate == WEAPON_RELOADING ) {
+	// Don't try to switch when in the middle of reloading (or starting to reload).
+	if ( cg.snap->ps.weaponstate == WEAPON_RELOADING ||
+            cg.snap->ps.weaponstate == WEAPON_RAISING_TORELOAD ||
+            cg.snap->ps.weaponstate == WEAPON_DROPPING_TORELOAD ) {
 		return;
 	}
 

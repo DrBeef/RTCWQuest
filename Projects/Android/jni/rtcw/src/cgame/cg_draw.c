@@ -37,7 +37,7 @@ If you have questions concerning this license or the applicable additional terms
 #define STATUSBARHEIGHT 452
 //----(SA) end
 
-extern qboolean fullscreen_override;
+extern qboolean hudflags;
 extern displayContextDef_t cgDC;
 extern vr_client_info_t* cgVR;
 menuDef_t *menuScoreboard = NULL;
@@ -2052,7 +2052,7 @@ static void CG_DrawWeapReticle( void ) {
 	//vec4_t snoopercolor = {0.7, .8, 0.7, 0};    // greenish
 	vec4_t snoopercolor = {0.7, .8, 0.7, 1};    // greenish
 
-	float indent = 0.26;
+	float indent = 0.255;
 	float X_WIDTH=640;
 	float Y_HEIGHT=480;
 
@@ -2162,7 +2162,7 @@ CG_DrawBinocReticle
 static void CG_DrawBinocReticle( void ) {
 	// an alternative.  This gives nice sharp lines at the expense of a few extra polys
 	vec4_t color = {0, 0, 0, 1};
-    float indent = 0.265;
+    float indent = 0.255;
     float X_WIDTH=640;
     float Y_HEIGHT=480;
 
@@ -2185,6 +2185,7 @@ static void CG_DrawBinocReticle( void ) {
         trap_R_DrawStretchPic( x + w, y + h, w, h, 1, 1, 0, 0, cgs.media.binocShaderSimpleQ );  // br
 	}
 
+	hudflags |= HUD_FLAGS_STEREO;
 	CG_FillRect( 146, 239, 348, 1, color );
 
 	CG_FillRect( 188, 234, 1, 13, color );   // ll
@@ -2194,6 +2195,7 @@ static void CG_DrawBinocReticle( void ) {
 	CG_FillRect( 360, 234, 1, 13, color );   // rl
 	CG_FillRect( 406, 226, 1, 29, color );   // r
 	CG_FillRect( 452, 234, 1, 13, color );   // rr
+	hudflags &= ~HUD_FLAGS_STEREO;
 }
 
 void CG_FinishWeaponChange( int lastweap, int newweap ); // JPW NERVE
@@ -2897,9 +2899,9 @@ static void CG_DrawFlashFade( void ) {
 		VectorClear( col );
 		col[3] = cgs.scrFadeAlphaCurrent;
 //		CG_FillRect( -10, -10, 650, 490, col );
-		fullscreen_override = qtrue;
+		hudflags |= HUD_FLAGS_FULLSCREEN;
 		CG_FillRect( 0, 0, 640, 480, col ); // why do a bunch of these extend outside 640x480?
-		fullscreen_override = qfalse;
+		hudflags &= ~HUD_FLAGS_FULLSCREEN;
 	}
 }
 
@@ -2953,9 +2955,9 @@ static void CG_DrawFlashZoomTransition( void ) {
 			Vector4Set( color, 0, 0, 0, 1.0f - frac );
 		}
 
-		fullscreen_override = qtrue;
+		hudflags |= HUD_FLAGS_FULLSCREEN;
 		CG_FillRect( -10, -10, 650, 490, color );
-		fullscreen_override = qfalse;
+		hudflags &= ~HUD_FLAGS_FULLSCREEN;
 	}
 }
 
@@ -2985,9 +2987,9 @@ static void CG_DrawFlashDamage( void ) {
 		VectorSet( col, 0.2, 0, 0 );
 		col[3] =  0.7 * ( redFlash / 5.0 );
 
-		fullscreen_override = qtrue;
+		hudflags |= HUD_FLAGS_FULLSCREEN;
 		CG_FillRect( -10, -10, 650, 490, col );
-		fullscreen_override = qfalse;
+		hudflags &= ~HUD_FLAGS_FULLSCREEN;
 	}
 }
 
@@ -3039,9 +3041,9 @@ static void CG_DrawFlashFire( void ) {
 		col[2] = alpha;
 		col[3] = alpha;
 		trap_R_SetColor( col );
-		fullscreen_override = qtrue;
+		hudflags |= HUD_FLAGS_FULLSCREEN;
 		CG_DrawPic( -10, -10, 650, 490, cgs.media.viewFlashFire[( cg.time / 50 ) % 16] );
-		fullscreen_override = qfalse;
+		hudflags &= ~HUD_FLAGS_FULLSCREEN;
 		trap_R_SetColor( NULL );
 
 		trap_S_AddLoopingSound( cg.snap->ps.clientNum, cg.snap->ps.origin, vec3_origin, cgs.media.flameSound, (int)( 255.0 * alpha ) );
@@ -3088,9 +3090,9 @@ static void CG_DrawFlashLightning( void ) {
 			shader = cgs.media.viewTeslaDamageEffectShader;
 		}
 
-		fullscreen_override = qtrue;
+		hudflags |= HUD_FLAGS_FULLSCREEN;
 		CG_DrawPic( -10, -10, 650, 490, shader );
-		fullscreen_override = qfalse;
+		hudflags &= ~HUD_FLAGS_FULLSCREEN;
 	}
 }
 

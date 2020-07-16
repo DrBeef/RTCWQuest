@@ -34,6 +34,7 @@ If you have questions concerning this license or the applicable additional terms
 #include "q_shared.h"
 #include "bg_public.h"
 #include "bg_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 // Rafael gameskill
 int bg_pmove_gameskill_integer;
@@ -42,10 +43,13 @@ int bg_pmove_gameskill_integer;
 // JPW NERVE -- added because I need to check single/multiplayer instances and branch accordingly
 #ifdef CGAMEDLL
 extern vmCvar_t cg_gameType;
+extern vr_client_info_t* cgVR;
 #endif
 #ifdef GAMEDLL
 extern vmCvar_t g_gametype;
+extern vr_client_info_t* gVR;
 #endif
+
 
 // JPW NERVE -- stuck this here so it can be seen client & server side
 float Com_GetFlamethrowerRange( void ) {
@@ -2336,6 +2340,12 @@ void PM_CheckForReload( int weapon ) {
 					doReload = qfalse;
 				}
 				PM_BeginWeaponChange( weapon, weapAlts[weapon], doReload );
+#ifdef CGAMEDLL
+				cgVR->scopeengaged = qfalse;
+#endif
+#ifdef GAMEDLL
+				gVR->scopeengaged = qfalse;
+#endif
 			}
 			return;
 		default:
@@ -2386,6 +2396,14 @@ void PM_CheckForReload( int weapon ) {
 
 	if ( doReload ) {
 		PM_BeginWeaponReload( weapon );
+
+		//Reloading will always disengage the scope
+#ifdef CGAMEDLL
+        cgVR->scopeengaged = qfalse;
+#endif
+#ifdef GAMEDLL
+        gVR->scopeengaged = qfalse;
+#endif
 	}
 
 

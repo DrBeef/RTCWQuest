@@ -29,10 +29,6 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
 
 {
 	//always right handed for this
-	vr.right_handed = qtrue;
-
-	//Get the cvar
-    sv_cheats = Cvar_Get("cheats", "1", CVAR_ARCHIVE);
 
     static qboolean dominantGripPushed = false;
 	static float dominantGripPushTime = 0.0f;

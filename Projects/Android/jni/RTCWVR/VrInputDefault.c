@@ -31,9 +31,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 	//Ensure handedness is set correctly
 	vr.right_handed = vr_control_scheme->value < 10;
 
-	//Get the cvar
-    sv_cheats = Cvar_Get("cheats", "1", CVAR_ARCHIVE);
-
     static qboolean dominantGripPushed = false;
 	static float dominantGripPushTime = 0.0f;
     static bool canUseBackpack = false;
@@ -131,16 +128,22 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             }
         }
 
-        if (vr.scopedweapon && !vr.scopedetached) {
-            //Engage scope if conditions are right
-            qboolean scopeready = vr.weapon_stabilised && (distanceToHMD < SCOPE_ENGAGE_DISTANCE);
-            if (!vr.scopeengaged && scopeready) {
-                sendButtonActionSimple("weapalt");
-            } else if (vr.scopeengaged && !scopeready) {
-                //Set this here so we don't retrigger scope by accident too soon
-                vr.scopeengaged = qfalse;
-                sendButtonActionSimple("weapalt");
-                RTCWVR_ResyncClientYawWithGameYaw();
+        //Engage scope if conditions are right
+        qboolean scopeready = vr.weapon_stabilised && (distanceToHMD < SCOPE_ENGAGE_DISTANCE);
+        static qboolean lastScopeready = qfalse;
+        if (scopeready != lastScopeready) {
+            if (vr.scopedweapon && !vr.scopedetached) {
+                if (!vr.scopeengaged && scopeready) {
+                    ALOGV("**WEAPON EVENT**  trigger scope mode");
+                    sendButtonActionSimple("weapalt");
+                } else if (vr.scopeengaged && !scopeready) {
+                    //Set this here so we don't retrigger scope by accident too soon
+                    vr.scopeengaged = qfalse;
+                    ALOGV("**WEAPON EVENT**  disable scope mode");
+                    sendButtonActionSimple("weapalt");
+                    RTCWVR_ResyncClientYawWithGameYaw();
+                }
+                lastScopeready = scopeready;
             }
         }
 
@@ -203,6 +206,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             static bool finishReloadNextFrame = false;
             if (finishReloadNextFrame)
             {
+                ALOGV("**WEAPON EVENT**  -reload");
                 sendButtonActionSimple("-reload");
                 finishReloadNextFrame = false;
             }
@@ -336,27 +340,39 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             //We need to record if we have started firing primary so that releasing trigger will stop firing, if user has pushed grip
             //in meantime, then it wouldn't stop the gun firing and it would get stuck
-            if (dominantGripPushed && (GetTimeInMilliSeconds() - dominantGripPushTime) > vr_reloadtimeoutms->integer && vr.backpackitemactive == 0)
+            static qboolean firing = false;
+            if (dominantGripPushed && vr.backpackitemactive == 0)
             {
                 if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
                     (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger))
                 {
                     if (!vr.scopedweapon) {
                         if (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) {
+                            ALOGV("**WEAPON EVENT**  weapalt");
                             sendButtonActionSimple("weapalt");
+                        }
+                        else if (firing)
+                        {
+                            //no longer firing
+                            firing = qfalse;
+                            ALOGV("**WEAPON EVENT**  Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
+                            sendButtonAction("+attack", firing);
                         }
                     }
                     else if (vr.detachablescope)
                     {
                         if (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) {
                             //See if we are able to detach the scope
+                            ALOGV("**WEAPON EVENT**  weapdetachscope");
                             sendButtonActionSimple("weapdetachscope");
                         }
                     }
                     else
                     {
                         //Just ignore grip and fire
-                        sendButtonAction("+attack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger));
+                        firing = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
+                        ALOGV("**WEAPON EVENT**  Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
+                        sendButtonAction("+attack", firing);
                     }
                 }
             }
@@ -368,7 +384,9 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                     (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
                     (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
 
-                    sendButtonAction("+attack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger));
+                    ALOGV("**WEAPON EVENT**  Not Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
+                    firing = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
+                    sendButtonAction("+attack", firing);
                 }
             }
 
