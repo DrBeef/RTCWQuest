@@ -4326,6 +4326,8 @@ void CG_FinishWeaponChange( int lastweap, int newweap ) {
 		}
 	}
 
+    cgVR->dualwield = (newweap == WP_AKIMBO);
+
 	cg.weaponSelect     = newweap;
 	cgVR->weaponid    = newweap; //Store in case we use backpack
 }

@@ -191,7 +191,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 }
             }
 
-            if (vr.weapon_stabilised)
+            if (vr.weapon_stabilised || vr.dualwield)
             {
                 float z = pOffTracking->HeadPose.Pose.Position.z - pDominantTracking->HeadPose.Pose.Position.z;
                 float x = pOffTracking->HeadPose.Pose.Position.x - pDominantTracking->HeadPose.Pose.Position.x;
@@ -199,7 +199,16 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 float zxDist = length(x, z);
 
                 if (zxDist != 0.0f && z != 0.0f) {
-                    VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)), -degrees(atan2f(x, -z)), vr.weaponangles[ROLL]);
+                    if (vr.dualwield) {
+                        //SUPER FUDGE
+                        VectorSet(vr.weaponangles, vr.weaponangles[PITCH],
+                                  -90.0f-degrees(atan2f(x, -z)), degrees(atanf(y / zxDist)));
+                    }
+                    else
+                    {
+                        VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)),
+                                  -degrees(atan2f(x, -z)), vr.weaponangles[ROLL]);
+                    }
                 }
             }
 

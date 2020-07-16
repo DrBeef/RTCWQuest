@@ -9,6 +9,7 @@ typedef struct {
     qboolean right_handed;
     qboolean player_moving;
     qboolean visible_hud;
+    qboolean dualwield;
     int weaponid;
     int lastweaponid;
     int backpackitemactive; //0 - nothing, 1 - grenades, 2 - knife, 3 - Binoculars

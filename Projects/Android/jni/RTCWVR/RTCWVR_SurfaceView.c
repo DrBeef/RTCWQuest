@@ -1319,6 +1319,7 @@ void RTCWVR_Init()
     //Set up vr client info
 	vr.backpackitemactive = 0;
 	vr.visible_hud = qtrue;
+	vr.dualwield = qfalse;
 }
 
 
