@@ -1006,7 +1006,12 @@ void CG_RailTrail2( clientInfo_t *ci, vec3_t start, vec3_t end ) {
 	VectorCopy( end, re->oldorigin );
 
 //	// still allow different colors so we can tell AI shots from player shots, etc.
+	le->color[3] = 1.0f;
 	if ( ci ) {
+		if (ci->health == 1)
+		{
+			le->color[3] = (ci->handicap / 255.0f);
+		}
 		le->color[0] = ci->color[0] * 0.75;
 		le->color[1] = ci->color[1] * 0.75;
 		le->color[2] = ci->color[2] * 0.75;
@@ -1015,7 +1020,6 @@ void CG_RailTrail2( clientInfo_t *ci, vec3_t start, vec3_t end ) {
 		le->color[1] = 0;
 		le->color[2] = 0;
 	}
-	le->color[3] = 1.0f;
 
 	AxisClear( re->axis );
 }
@@ -2008,12 +2012,9 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
 
     vec3_t offset;
 
-    char buffer[32];
-    trap_Cvar_VariableStringBuffer("vr_control_scheme", buffer, 32);
-
     //Weapon offset debugging
     float scale=1.0f;
-    if (strcmp(buffer, "99") == 0) {
+    if (trap_Cvar_VariableIntegerValue("vr_control_scheme") == 99) {
         scale = cgVR->test_scale;
 
         //Adjust angles for weapon models that aren't aligned very well
@@ -2062,6 +2063,12 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
                        &(temp_offset[0]), &(temp_offset[1]), &(temp_offset[2]),
                        &(adjust[PITCH]), &(adjust[YAW]), &(adjust[ROLL]));
                 VectorScale(temp_offset, scale, offset);
+
+                if (!cgVR->right_handed)
+                {
+                    //yaw needs to go in the other direction as left handed model is reversed
+                    adjust[YAW] *= -1.0f;
+                }
 
                 //Adjust angles for weapon models that aren't aligned very well
                 matrix4x4 m1, m2, m3;
@@ -3411,9 +3418,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		return;
 	}
 
-    char buffer[32];
-    trap_Cvar_VariableStringBuffer("vr_control_scheme", buffer, 32);
-    qboolean weaponDebugging = (strcmp(buffer, "99") == 0);
+    qboolean weaponDebugging = trap_Cvar_VariableIntegerValue("vr_control_scheme") == 99;
 
 /*	// drop gun lower at higher fov
 	if ( cg_fov.integer > 90 ) {
@@ -3555,6 +3560,39 @@ void CG_AddViewWeapon( playerState_t *ps ) {
         VectorSet(ci.color, 0, 0, 1); // up is blue
         CG_RailTrail2(&ci, origin, endUp);
     }
+
+	if (trap_Cvar_VariableIntegerValue("vr_lasersight") != 0 &&
+	    cgVR->backpackitemactive == 0)
+	{
+	    switch (ps->weapon)
+        {
+        case WP_KNIFE:
+        case WP_DYNAMITE:
+        case WP_GRENADE_LAUNCHER:
+        case WP_GRENADE_PINEAPPLE:
+            break;
+        default:
+        {
+            vec3_t origin;
+            vec3_t endForward;
+            vec3_t angles;
+            clientInfo_t ci;
+            CG_CalculateVRWeaponPosition(0, origin, angles);
+
+            vec3_t forward, right, up;
+            AngleVectors(angles, forward, right, up);
+
+            trace_t trace;
+            VectorMA(origin, 8192, forward, endForward);
+            trap_CM_BoxTrace(&trace, origin, endForward, NULL, NULL, 0, MASK_SOLID);
+
+            ci.health = 1;
+            ci.handicap = 128; // value out of 255 for  alpha channel
+            VectorSet(ci.color, 1, 0, 0);
+            CG_RailTrail2(&ci, origin, trace.endpos);
+        }
+        }
+	}
 
 	cg.predictedPlayerEntity.lastWeaponClientFrame = cg.clientFrame;
 }

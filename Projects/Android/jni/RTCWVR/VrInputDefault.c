@@ -48,7 +48,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
     ovrTracking * pWeapon = pDominantTracking;
     ovrTracking * pOff = pOffTracking;
     if (vr.weaponid == WP_AKIMBO &&
-            !vr.right_handed)
+            !vr.right_handed &&
+            !RTCWVR_useScreenLayer())
     {
         //Revert to same weapon controls as right-handed if using akimbo
         pWeapon = pOffTracking;

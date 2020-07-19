@@ -78,6 +78,10 @@ void trap_Cvar_VariableStringBuffer( const char *var_name, char *buffer, int buf
 	syscall( CG_CVAR_VARIABLESTRINGBUFFER, var_name, buffer, bufsize );
 }
 
+int trap_Cvar_VariableIntegerValue( const char *var_name ) {
+	return syscall( CG_CVAR_VARIABLE_INTEGER_VALUE, var_name );
+}
+
 int     trap_Argc( void ) {
 	return syscall( CG_ARGC );
 }
