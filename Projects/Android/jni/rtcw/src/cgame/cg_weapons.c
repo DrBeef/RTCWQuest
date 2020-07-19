@@ -2081,7 +2081,11 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
     AngleVectors( angles, forward, right, up );
     VectorMA( origin, offset[2], forward, origin );
     VectorMA( origin, offset[1], up, origin );
-    VectorMA( origin, offset[0], right, origin );
+    if (cgVR->right_handed) {
+        VectorMA(origin, offset[0], right, origin);
+    } else {
+        VectorMA(origin, -offset[0], right, origin);
+    }
 
 	return scale;
 
@@ -3477,16 +3481,16 @@ void CG_AddViewWeapon( playerState_t *ps ) {
         //Weapon offset debugging
         if (weaponDebugging)
         {
-            hand.renderfx = RF_FIRST_PERSON | RF_MINLIGHT; //No depth hack for weapon adjusting mode
+            hand.renderfx = RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON; //No depth hack for weapon adjusting mode
         }
         else
         {
-            hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT;   //----(SA)
+            hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON;   //----(SA)
         }
 
 		//scale the whole model (hand and weapon)
 		for ( int i = 0; i < 3; i++ ) {
-			VectorScale( hand.axis[i], scale, hand.axis[i] );
+			VectorScale( hand.axis[i], (cgVR->right_handed || i != 1 || ps->weapon == WP_AKIMBO) ? scale : -scale, hand.axis[i] );
 		}
 
 

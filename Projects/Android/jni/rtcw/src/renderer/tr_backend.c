@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 #include "tr_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 backEndData_t   *backEndData[SMP_FRAMES];
 backEndState_t backEnd;
@@ -888,12 +889,14 @@ void RB_ZombieFX( int part, drawSurf_t *drawSurf, int oldNumVerts, int oldNumInd
 RB_RenderDrawSurfList
 ==================
 */
+extern vr_client_info_t vr;
 void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	shader_t        *shader, *oldShader;
 	int fogNum, oldFogNum;
 	int entityNum, oldEntityNum;
 	int dlighted, oldDlighted;
 	qboolean depthRange, oldDepthRange;
+	qboolean isLeftHandedWeapon, oldIsLeftHandedWeapon;
 	int i;
 	drawSurf_t      *drawSurf;
 	int oldSort;
@@ -926,12 +929,17 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	oldDlighted = qfalse;
 	oldSort = -1;
 	depthRange = qfalse;
+    isLeftHandedWeapon = qfalse;
+    oldIsLeftHandedWeapon = qfalse;
 // GR - tessellation also forces to draw everything
 	oldAtiTess = -1;
+    GLint oldFaceCullMode;
+    GLboolean oldFaceCullEnabled;
 
-	backEnd.pc.c_surfaces += numDrawSurfs;
+    backEnd.pc.c_surfaces += numDrawSurfs;
 
 	for ( i = 0, drawSurf = drawSurfs ; i < numDrawSurfs ; i++, drawSurf++ ) {
+
 		if ( drawSurf->sort == oldSort ) {
 			// fast path, same as previous sort
 			oldNumVerts = tess.numVertexes;
@@ -985,11 +993,12 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 			oldAtiTess = atiTess;
 		}
 
-		//
+        //
 		// change the modelview matrix if needed
 		//
 		if ( entityNum != oldEntityNum ) {
 			depthRange = qfalse;
+			isLeftHandedWeapon = qfalse;
 
 			if ( entityNum != ENTITYNUM_WORLD ) {
 				backEnd.currentEntity = &backEnd.refdef.entities[entityNum];
@@ -1010,6 +1019,10 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 				if ( backEnd.currentEntity->e.renderfx & RF_DEPTHHACK ) {
 					// hack the depth range to prevent view model from poking into walls
 					depthRange = qtrue;
+				}
+
+				if (backEnd.currentEntity->e.renderfx & RF_VIEWWEAPON) {
+					isLeftHandedWeapon = (!vr.right_handed);
 				}
 			} else {
 				backEnd.currentEntity = &tr.worldEntity;
@@ -1036,6 +1049,24 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 				}
 				oldDepthRange = depthRange;
 			}
+
+			if (isLeftHandedWeapon != oldIsLeftHandedWeapon) {
+                if (isLeftHandedWeapon) {
+                    qglGetBooleanv(GL_CULL_FACE, &oldFaceCullEnabled);
+                    qglGetIntegerv(GL_CULL_FACE_MODE, &oldFaceCullMode);
+
+                    qglEnable(GL_CULL_FACE);
+                    glCullFace(GL_BACK);
+                } else{
+                    if (!oldFaceCullEnabled)
+                    {
+                        qglDisable(GL_CULL_FACE);
+                    }
+                    qglCullFace( oldFaceCullMode );
+                }
+				oldIsLeftHandedWeapon = isLeftHandedWeapon;
+            }
+
 
 			oldEntityNum = entityNum;
 		}
