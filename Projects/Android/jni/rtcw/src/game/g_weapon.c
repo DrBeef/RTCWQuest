@@ -1213,8 +1213,8 @@ gentity_t *weapon_crowbar_throw( gentity_t *ent ) {
 	return m;
 }
 
-#define OLDEST_READING		7
-#define NEWEST_READING		3
+#define OLDEST_READING		5
+#define NEWEST_READING		2
 
 gentity_t *weapon_grenadelauncher_fire_vr( gentity_t *ent, int grenType ) {
     gentity_t   *m, *te; // JPW NERVE

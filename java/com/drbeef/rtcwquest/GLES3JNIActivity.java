@@ -171,7 +171,7 @@ import static android.system.Os.setenv;
 		new File("/sdcard/RTCWQuest/Main").mkdirs();
 
 		//Copy the weapon adjustment config
-		copy_asset("/sdcard/RTCWQuest/Main", "weapons.cfg");
+		copy_asset("/sdcard/RTCWQuest/Main", "weapons_hd.cfg");
 
 
 		//Read these from a file and pass through

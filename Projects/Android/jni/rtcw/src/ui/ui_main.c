@@ -3488,6 +3488,36 @@ static int QDECL UI_SavegamesQsortCompare( const void *arg1, const void *arg2 ) 
 	}
 }
 
+
+
+static char *monthStr[12] =
+        {
+                "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+        };
+
+/*
+==============
+G_Save_TimeStr
+==============
+*/
+char *UI_Save_TimeStr( void )
+{
+    qtime_t tm;
+    //
+    trap_RealTime( &tm );
+    //
+    return va( "%i%i%i_%s%i%s%i%s%i",
+               1900 + tm.tm_year,
+               tm.tm_mon,
+               tm.tm_mday,
+               ( tm.tm_hour > 9 ? "" : "0" ),    // hour padding
+               tm.tm_hour, // 24 hour format
+               ( tm.tm_min > 9 ? "" : "0" ),    // minute padding
+               tm.tm_min,
+               ( tm.tm_sec > 9 ? "" : "0" ),    // second padding
+               tm.tm_sec);
+}
+
 /*
 ==============
 UI_SavegameSort
@@ -3511,13 +3541,17 @@ void UI_SavegameSort( int column, qboolean force ) {
 		UI_FeederSelection( FEEDER_SAVEGAMES, cursel );
 		Menu_SetFeederSelection( NULL, FEEDER_SAVEGAMES, cursel, NULL );
 
-		// and clear out the text entry
-		trap_Cvar_Set( "ui_savegame", "" );
-
 	} else {
 		trap_Cvar_Set( "ui_savegameName", "" );
 		trap_Cvar_Set( "ui_savegameInfo", "(no savegames)" );
 	}
+
+    static char filename[SAVE_INFOSTRING_LENGTH];
+    Com_sprintf( filename, sizeof( filename ), "%s",
+                 UI_Save_TimeStr());
+
+    // and set default filename using date/time
+    trap_Cvar_Set( "ui_savegame", filename );
 
 }
 //----(SA)	end
@@ -3609,16 +3643,6 @@ static void UI_DelSavegame() {
 #define SAVE_INFOSTRING_LENGTH  256     // defined in g_save.c
 
 
-/*
-==============
-UI_ParseSavegame
-==============
-*/
-
-static char *monthStr[12] =
-{
-	"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
-};
 
 /*
 ==============

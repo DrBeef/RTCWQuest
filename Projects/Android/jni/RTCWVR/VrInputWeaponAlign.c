@@ -206,12 +206,15 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
             }
         }
 
-        sprintf(vr.test_name, "%s: %.2f", item_names[item_index], *(items[item_index]));
+        Com_sprintf(vr.test_name, sizeof(vr.test_name), "%s: %.2f", item_names[item_index], *(items[item_index]));
+
+        char cvar_name[64];
+        Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", vr.weaponid);
 
         char buffer[256];
-        sprintf(buffer, "%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", vr.test_scale, (vr.test_offset[0] / vr.test_scale), (vr.test_offset[1] / vr.test_scale), (vr.test_offset[2] / vr.test_scale),
+        Com_sprintf(buffer, sizeof(buffer), "%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f", vr.test_scale, (vr.test_offset[0] / vr.test_scale), (vr.test_offset[1] / vr.test_scale), (vr.test_offset[2] / vr.test_scale),
                 (vr.test_angles[PITCH]), (vr.test_angles[YAW]), (vr.test_angles[ROLL]));
-        Cvar_Set("vr_weapon_test_values", buffer );
+        Cvar_Set(cvar_name, buffer );
     }
 
 
