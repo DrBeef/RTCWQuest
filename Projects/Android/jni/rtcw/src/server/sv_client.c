@@ -609,6 +609,7 @@ void SV_SendClientGameState( client_t *client ) {
 SV_ClientEnterWorld
 ==================
 */
+void RTCWVR_ResyncClientYawWithGameYaw();
 void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd ) {
 	int clientNum;
 	sharedEntity_t *ent;
@@ -628,6 +629,9 @@ void SV_ClientEnterWorld( client_t *client, usercmd_t *cmd ) {
 
 	// call the game begin function
 	VM_Call( gvm, GAME_CLIENT_BEGIN, client - svs.clients );
+
+	//Trigger yaw resync
+	RTCWVR_ResyncClientYawWithGameYaw();
 }
 
 /*

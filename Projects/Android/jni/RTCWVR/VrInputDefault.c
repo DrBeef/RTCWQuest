@@ -19,6 +19,8 @@ Authors		:	Simon Brown
 
 #include "../rtcw/src/client/client.h"
 
+#define WP_AKIMBO           20
+
 cvar_t	*sv_cheats;
 
 void CG_CenterPrint( const char *str, int y, int charWidth );
@@ -43,13 +45,23 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 //    }
 
     //Need this for the touch screen
+    ovrTracking * pWeapon = pDominantTracking;
+    ovrTracking * pOff = pOffTracking;
+    if (vr.weaponid == WP_AKIMBO &&
+            !vr.right_handed)
+    {
+        //Revert to same weapon controls as right-handed if using akimbo
+        pWeapon = pOffTracking;
+        pOff = pDominantTracking;
+    }
+
     {
         //Set gun angles - We need to calculate all those we might need (including adjustments) for the client to then take its pick
         vec3_t rotation = {0};
         rotation[PITCH] = 10;
-        QuatToYawPitchRoll(pDominantTracking->HeadPose.Pose.Orientation, rotation, vr.weaponangles_knife);
+        QuatToYawPitchRoll(pWeapon->HeadPose.Pose.Orientation, rotation, vr.weaponangles_knife);
         rotation[PITCH] = vr_weapon_pitchadjust->value;
-        QuatToYawPitchRoll(pDominantTracking->HeadPose.Pose.Orientation, rotation, vr.weaponangles);
+        QuatToYawPitchRoll(pWeapon->HeadPose.Pose.Orientation, rotation, vr.weaponangles);
 
         VectorSubtract(vr.weaponangles_last, vr.weaponangles, vr.weaponangles_delta);
         VectorCopy(vr.weaponangles, vr.weaponangles_last);
@@ -103,13 +115,13 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
 
 
-        float distance = sqrtf(powf(pOffTracking->HeadPose.Pose.Position.x - pDominantTracking->HeadPose.Pose.Position.x, 2) +
-                               powf(pOffTracking->HeadPose.Pose.Position.y - pDominantTracking->HeadPose.Pose.Position.y, 2) +
-                               powf(pOffTracking->HeadPose.Pose.Position.z - pDominantTracking->HeadPose.Pose.Position.z, 2));
+        float distance = sqrtf(powf(pOff->HeadPose.Pose.Position.x - pWeapon->HeadPose.Pose.Position.x, 2) +
+                               powf(pOff->HeadPose.Pose.Position.y - pWeapon->HeadPose.Pose.Position.y, 2) +
+                               powf(pOff->HeadPose.Pose.Position.z - pWeapon->HeadPose.Pose.Position.z, 2));
 
-        float distanceToHMD = sqrtf(powf(vr.hmdposition[0] - pDominantTracking->HeadPose.Pose.Position.x, 2) +
-                                    powf(vr.hmdposition[1] - pDominantTracking->HeadPose.Pose.Position.y, 2) +
-                                    powf(vr.hmdposition[2] - pDominantTracking->HeadPose.Pose.Position.z, 2));
+        float distanceToHMD = sqrtf(powf(vr.hmdposition[0] - pWeapon->HeadPose.Pose.Position.x, 2) +
+                                    powf(vr.hmdposition[1] - pWeapon->HeadPose.Pose.Position.y, 2) +
+                                    powf(vr.hmdposition[2] - pWeapon->HeadPose.Pose.Position.z, 2));
 
         //Turn on weapon stabilisation?
         if ((pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger) !=
@@ -170,18 +182,18 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             vr.weaponoffset_history_timestamp[0] = vr.weaponoffset_timestamp;
 
 			///Weapon location relative to view
-            vr.weaponoffset[0] = pDominantTracking->HeadPose.Pose.Position.x - vr.hmdposition[0];
-            vr.weaponoffset[1] = pDominantTracking->HeadPose.Pose.Position.y - vr.hmdposition[1];
-            vr.weaponoffset[2] = pDominantTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
+            vr.weaponoffset[0] = pWeapon->HeadPose.Pose.Position.x - vr.hmdposition[0];
+            vr.weaponoffset[1] = pWeapon->HeadPose.Pose.Position.y - vr.hmdposition[1];
+            vr.weaponoffset[2] = pWeapon->HeadPose.Pose.Position.z - vr.hmdposition[2];
             vr.weaponoffset_timestamp = Sys_Milliseconds( );
 
             //Does weapon velocity trigger attack (knife) and is it fast enough
             if (vr.velocitytriggered)
             {
                 static qboolean fired = qfalse;
-                float velocity = sqrtf(powf(pDominantTracking->HeadPose.LinearVelocity.x, 2) +
-                                       powf(pDominantTracking->HeadPose.LinearVelocity.y, 2) +
-                                       powf(pDominantTracking->HeadPose.LinearVelocity.z, 2));
+                float velocity = sqrtf(powf(pWeapon->HeadPose.LinearVelocity.x, 2) +
+                                       powf(pWeapon->HeadPose.LinearVelocity.y, 2) +
+                                       powf(pWeapon->HeadPose.LinearVelocity.z, 2));
 
                 ALOGV("        Velocity: %f", velocity);
 
@@ -193,9 +205,9 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             if (vr.weapon_stabilised || vr.dualwield)
             {
-                float z = pOffTracking->HeadPose.Pose.Position.z - pDominantTracking->HeadPose.Pose.Position.z;
-                float x = pOffTracking->HeadPose.Pose.Position.x - pDominantTracking->HeadPose.Pose.Position.x;
-                float y = pOffTracking->HeadPose.Pose.Position.y - pDominantTracking->HeadPose.Pose.Position.y;
+                float z = pOff->HeadPose.Pose.Position.z - pWeapon->HeadPose.Pose.Position.z;
+                float x = pOff->HeadPose.Pose.Position.x - pWeapon->HeadPose.Pose.Position.x;
+                float y = pOff->HeadPose.Pose.Position.y - pWeapon->HeadPose.Pose.Position.y;
                 float zxDist = length(x, z);
 
                 if (zxDist != 0.0f && z != 0.0f) {
@@ -305,12 +317,12 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         float controllerYawHeading = 0.0f;
         //off-hand stuff
         {
-            vr.offhandoffset[0] = pOffTracking->HeadPose.Pose.Position.x - vr.hmdposition[0];
-            vr.offhandoffset[1] = pOffTracking->HeadPose.Pose.Position.y - vr.hmdposition[1];
-            vr.offhandoffset[2] = pOffTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
+            vr.offhandoffset[0] = pOff->HeadPose.Pose.Position.x - vr.hmdposition[0];
+            vr.offhandoffset[1] = pOff->HeadPose.Pose.Position.y - vr.hmdposition[1];
+            vr.offhandoffset[2] = pOff->HeadPose.Pose.Position.z - vr.hmdposition[2];
 
             vec3_t rotation = {0};
-            QuatToYawPitchRoll(pOffTracking->HeadPose.Pose.Orientation, rotation, vr.offhandangles);
+            QuatToYawPitchRoll(pOff->HeadPose.Pose.Orientation, rotation, vr.offhandangles);
 
 			if (vr_walkdirection->value == 0) {
 				controllerYawHeading = vr.offhandangles[YAW] - vr.hmdorientation[YAW];
@@ -323,11 +335,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
         //Right-hand specific stuff
         {
-            ALOGV("        Right-Controller-Position: %f, %f, %f",
-                  pDominantTracking->HeadPose.Pose.Position.x,
-				  pDominantTracking->HeadPose.Pose.Position.y,
-				  pDominantTracking->HeadPose.Pose.Position.z);
-
             //This section corrects for the fact that the controller actually controls direction of movement, but we want to move relative to the direction the
             //player is facing for positional tracking
             vec2_t v;
@@ -434,11 +441,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
         //Left-hand specific stuff
         {
-            ALOGV("        Left-Controller-Position: %f, %f, %f",
-                  pOffTracking->HeadPose.Pose.Position.x,
-				  pOffTracking->HeadPose.Pose.Position.y,
-				  pOffTracking->HeadPose.Pose.Position.z);
-
             //"Use" (open doors etc)
             if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Joystick) !=
                 (pDominantTrackedRemoteOld->Buttons & ovrButton_Joystick)) {

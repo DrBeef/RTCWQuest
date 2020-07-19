@@ -108,8 +108,7 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
 
         //We need to record if we have started firing primary so that releasing trigger will stop firing, if user has pushed grip
         //in meantime, then it wouldn't stop the gun firing and it would get stuck
-        static bool firingPrimary = false;
-        if (!firingPrimary && dominantGripPushed && (GetTimeInMilliSeconds() - dominantGripPushTime) > vr_reloadtimeoutms->integer && !vr.scopedweapon)
+        if (dominantGripPushed)
         {
             //Fire Secondary
             if (((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
@@ -126,8 +125,7 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
                 (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
                 (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
 
-                firingPrimary = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
-                sendButtonAction("+attack", firingPrimary);
+                sendButtonAction("+attack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger));
             }
         }
 
@@ -149,7 +147,7 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
         float* items[7] = {&vr.test_scale, &(vr.test_offset[0]), &(vr.test_offset[1]), &(vr.test_offset[2]),
                            &(vr.test_angles[PITCH]), &(vr.test_angles[YAW]), &(vr.test_angles[ROLL])};
         char*  item_names[7] = {"scale", "right", "up", "forward", "pitch", "yaw", "roll"};
-        float  item_inc[7] = {0.002, 0.02, 0.02, 0.02, 0.2, 0.2, 0.2};
+        float  item_inc[7] = {0.002, 0.02, 0.02, 0.02, 0.1, 0.1, 0.1};
 
         //Weapon/Inventory Chooser
         static qboolean itemSwitched = false;
@@ -182,7 +180,6 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
         {
             *(items[item_index]) = 0.0;
         }
-
 
         //Left-hand specific stuff
         {

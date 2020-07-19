@@ -1970,9 +1970,15 @@ void convertFromVR(vec3_t in, vec3_t offset, vec3_t out)
 	}
 }
 
-static void CG_CalculateVRWeaponPosition( vec3_t origin, vec3_t angles ) {
+void CG_CalculateVRWeaponPosition( int weaponNum, vec3_t origin, vec3_t angles ) {
 
-    convertFromVR(cgVR->weaponoffset, cg.refdef.vieworg, origin);
+	if (weaponNum != WP_AKIMBO || BG_AkimboFireSequence(weaponNum, cg.predictedPlayerState.ammoclip[WP_AKIMBO], cg.predictedPlayerState.ammoclip[WP_COLT] ))
+	{
+		convertFromVR(cgVR->weaponoffset, cg.refdef.vieworg, origin);
+	} else{
+		convertFromVR(cgVR->offhandoffset, cg.refdef.vieworg, origin);
+	}
+
     origin[2] -= 64;
     origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
 
@@ -1998,7 +2004,7 @@ CG_CalculateWeaponPositionAndScale
 
 static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origin, vec3_t angles ) {
 
-    CG_CalculateVRWeaponPosition(origin, angles);
+    CG_CalculateVRWeaponPosition(0, origin, angles);
 
     vec3_t offset;
 
@@ -2204,7 +2210,7 @@ static void CG_FlamethrowerFlame( centity_t *cent, vec3_t origin ) {
         CG_FireFlameChunks(cent, origin, cent->lerpAngles, 1.0, qtrue, 0);
     } else {
         vec3_t origin, angles;
-        CG_CalculateVRWeaponPosition(origin, angles);
+        CG_CalculateVRWeaponPosition(0, origin, angles);
 
         CG_FireFlameChunks(cent, origin, angles, 1.0, qtrue, 1);
 
@@ -3528,7 +3534,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
         vec3_t endForward, endRight, endUp;
         vec3_t angles;
         clientInfo_t ci;
-        CG_CalculateVRWeaponPosition(        origin,        angles );
+        CG_CalculateVRWeaponPosition( 0,       origin,        angles );
 
         vec3_t forward, right, up;
         AngleVectors(angles, forward, right, up);
@@ -6502,17 +6508,17 @@ static qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 	vec3_t forward, right, up;
 	centity_t   *cent;
 	int anim;
-
+	cent = &cg_entities[entityNum];
 	if ( entityNum == cg.snap->ps.clientNum ) {
         vec3_t angles;
-        CG_CalculateVRWeaponPosition(muzzle, angles);
+        CG_CalculateVRWeaponPosition(cent->currentState.weapon, muzzle, angles);
 
 		AngleVectors( angles, forward, NULL, NULL );
 		VectorMA( muzzle, 14, forward, muzzle );
 		return qtrue;
 	}
 
-	cent = &cg_entities[entityNum];
+
 //----(SA)	removed check.  is this still necessary?  (this way works for ai's firing mg42)  should I check for mg42?
 //	if ( !cent->currentValid ) {
 //		return qfalse;

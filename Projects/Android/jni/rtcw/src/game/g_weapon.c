@@ -961,10 +961,19 @@ void Bullet_Fire( gentity_t *ent, float spread, int damage ) {
 	LOGI("Bullet_Fire %i %i %i",(int)end[0],(int)end[1],(int)end[2]);
 
 	if (!ent->aiCharacter) {
-        trap_Vibrate(100, gVR->right_handed ? 1 : 0, 1.0);
-        if (gVR->weapon_stabilised) {
-            trap_Vibrate(100, gVR->right_handed ? 0 : 1, 0.7);
-        }
+
+	    qboolean right = gVR->right_handed;
+	    if (ent->s.weapon == WP_AKIMBO)
+        {
+            right = BG_AkimboFireSequence(ent->s.weapon, ent->client->ps.ammoclip[WP_AKIMBO], ent->client->ps.ammoclip[WP_COLT] );
+            trap_Vibrate(100, right ? 1 : 0, 1.0);
+
+        } else{
+            trap_Vibrate(100, right ? 1 : 0, 1.0);
+            if (gVR->weapon_stabilised) {
+                trap_Vibrate(100, right ? 0 : 1, 0.7);
+            }
+	    }
     }
 
 	//If we have an autoaim target and player shooting..

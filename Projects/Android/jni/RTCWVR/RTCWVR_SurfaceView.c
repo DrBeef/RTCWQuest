@@ -854,6 +854,9 @@ void setHMDPosition( float x, float y, float z )
 
 		//Record player height on transition
         playerHeight = y;
+
+        //Resync yaw on transition
+        RTCWVR_ResyncClientYawWithGameYaw();
     }
 
 	if (!RTCWVR_useScreenLayer())
