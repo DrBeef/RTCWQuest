@@ -2115,10 +2115,11 @@ void Com_Init( char *commandLine ) {
 		Sys_ShowConsole( com_viewlog->integer, qfalse );
 	}
 
-	if ( !com_recommendedSet->integer ) {
+	//Use our own settings - don't go for "recommended"
+/*	if ( !com_recommendedSet->integer ) {
 		Com_SetRecommended( qtrue );
 		Cvar_Set( "com_recommendedSet", "1" );
-	}
+	}*/
 
 	if ( !com_dedicated->integer ) {
 		//Cbuf_AddText ("cinematic gmlogo.RoQ\n");

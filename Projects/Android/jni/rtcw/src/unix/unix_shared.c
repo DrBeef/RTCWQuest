@@ -371,7 +371,7 @@ int Sys_GetProcessorId( void ) {
 
 int Sys_GetHighQualityCPU() {
 	// TODO TTimo see win_shared.c IsP3 || IsAthlon
-	return 0;
+	return 1;
 }
 
 void Sys_ShowConsole( int visLevel, qboolean quitOnClose ) {
