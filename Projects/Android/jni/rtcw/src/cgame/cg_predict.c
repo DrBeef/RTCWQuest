@@ -757,13 +757,15 @@ void CG_PredictPlayerState( void ) {
 		return;
 	}
 
-	// adjust for the movement of the groundentity
-	CG_AdjustPositionForMover( cg.predictedPlayerState.origin,
-							   cg.predictedPlayerState.groundEntityNum,
-							   cg.physicsTime, cg.time, cg.predictedPlayerState.origin, deltaAngles );
+    // adjust for the movement of the groundentity
+    CG_AdjustPositionForMover(cg.predictedPlayerState.origin,
+                              cg.predictedPlayerState.groundEntityNum,
+                              cg.physicsTime, cg.time, cg.predictedPlayerState.origin,
+                              deltaAngles);
 
-	// fire events and other transition triggered things
-	CG_TransitionPlayerState( &cg.predictedPlayerState, &oldPlayerState );
+    // fire events and other transition triggered things
+    CG_TransitionPlayerState( &cg.predictedPlayerState, &oldPlayerState );
+
 
 	//set a flag
 	cgVR->hasbinoculars = (cg.predictedPlayerState.stats[STAT_KEYS] & ( 1 << INV_BINOCS ));

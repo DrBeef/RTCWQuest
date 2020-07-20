@@ -44,6 +44,16 @@ typedef struct {
     vec3_t offhandangles;
     vec3_t offhandoffset;
 
+    //
+    // Teleport Stuff
+    //
+    qboolean teleportenabled;
+    qboolean teleportseek; // player looking to teleport
+    qboolean teleportready; // player pointing to a valid teleport location
+    vec3_t   teleportdest; // teleport destination
+    qboolean teleportexecute; // execute the teleport
+
+
 
     //////////////////////////////////////
     //    Test stuff for weapon alignment

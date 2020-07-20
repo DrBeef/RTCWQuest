@@ -2007,8 +2007,11 @@ void Com_Init( char *commandLine ) {
 
 	Cbuf_AddText( "exec autoexec.cfg\n" );
 
-	//Execute last to overwrite wepon locations with our desired adjustments
+	//Execute to overwrite weapon locations with our desired adjustments
 	Cbuf_AddText( "exec weapons_hd.cfg\n" );
+
+	//Execute last to allow user adjustment of weapon models if they have something else to use
+	Cbuf_AddText( "exec weapons_user.cfg\n" );
 
 	Cbuf_Execute();
 

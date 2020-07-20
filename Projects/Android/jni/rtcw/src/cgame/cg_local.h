@@ -1948,6 +1948,9 @@ qboolean CG_YourTeamHasFlag();
 qboolean CG_OtherTeamHasFlag();
 qhandle_t CG_StatusHandle( int task );
 void CG_Fade( int r, int g, int b, int a, int time, int duration ); //----(SA)	modified
+void CG_Teleport();
+
+void CG_RailTrail2( clientInfo_t *ci, vec3_t start, vec3_t end );
 
 void CG_CalcShakeCamera();
 void CG_ApplyShakeCamera();

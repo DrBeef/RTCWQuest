@@ -1645,6 +1645,9 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	trap_SetUserCmdValue( cg.weaponSelect, cg.holdableSelect, cg.zoomSensitivity, cg.cld );
 #endif
 
+	// Use teleport logic if required
+	CG_Teleport();
+
 	// actually issue the rendering calls
 	CG_DrawActive( stereoView );
 

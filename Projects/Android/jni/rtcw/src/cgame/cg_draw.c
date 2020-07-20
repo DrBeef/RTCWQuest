@@ -3560,6 +3560,60 @@ void CG_ApplyShakeCamera() {
 	AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
 }
 
+void convertFromVR(vec3_t in, vec3_t offset, vec3_t out);
+
+void CG_CalculateVRTeleport( vec3_t origin, vec3_t angles ) {
+
+	convertFromVR(cgVR->offhandoffset, cg.refdef.vieworg, origin);
+
+	origin[2] -= 64;
+	origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
+
+	VectorCopy(cgVR->offhandangles, angles);
+	angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
+}
+
+/*
+====================
+CG_Teleport
+====================
+*/
+void CG_Teleport() {
+	if (!cgVR->teleportenabled || !cgVR->teleportseek ||
+		cg.predictedPlayerState.stats[STAT_HEALTH] <= 0)
+		return;
+
+	{
+		vec3_t origin;
+		vec3_t endForward;
+		vec3_t angles;
+		clientInfo_t ci;
+		CG_CalculateVRTeleport(origin, angles);
+
+		vec3_t forward, right, up;
+		AngleVectors(angles, forward, right, up);
+
+		trace_t trace;
+		VectorMA(origin, 256, forward, endForward);
+		trap_CM_BoxTrace(&trace, origin, endForward, NULL, NULL, 0, MASK_SOLID);
+
+		ci.health = 1;
+		ci.handicap = 128; // value out of 255 for  alpha channel
+		if (trace.fraction < 1.0f && (trace.plane.normal[2] > trace.plane.normal[1] &&
+		    trace.plane.normal[2] > trace.plane.normal[0])) {
+			cgVR->teleportready = qtrue;
+			VectorSet(ci.color, 0, 1, 0);
+			VectorCopy(trace.endpos, cgVR->teleportdest);
+		}
+		else {
+			cgVR->teleportready = qfalse;
+			VectorSet(ci.color, 1, 0, 0);
+		}
+
+		CG_RailTrail2(&ci, origin, trace.endpos);
+	}
+}
+
 /*
 =====================
 CG_DrawActive

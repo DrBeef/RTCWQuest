@@ -517,7 +517,7 @@ void GLimp_Init( void ) {
 	/*if ( Q_stricmp( lastValidRenderer->string, glConfig.renderer_string ) ) {
 		glConfig.hardwareType = GLHW_GENERIC;
 
-		ri.Cvar_Set( "r_textureMode", "GL_LINEAR_MIPMAP_NEAREST" );
+		ri.Cvar_Set( "r_textureMode", "GL_LINEAR_MIPMAP_LINEAR" );
 
 		// VOODOO GRAPHICS w/ 2MB
 		if ( Q_stristr( buf, "voodoo graphics/1 tmu/2 mb" ) ) {

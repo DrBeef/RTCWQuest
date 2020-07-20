@@ -21,9 +21,7 @@ Authors		:	Simon Brown
 
 #define WP_AKIMBO           20
 
-cvar_t	*sv_cheats;
-
-void CG_CenterPrint( const char *str, int y, int charWidth );
+void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, int capsule );
 
 void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew, ovrInputStateTrackedRemote *pDominantTrackedRemoteOld, ovrTracking* pDominantTracking,
                           ovrInputStateTrackedRemote *pOffTrackedRemoteNew, ovrInputStateTrackedRemote *pOffTrackedRemoteOld, ovrTracking* pOffTracking,
@@ -33,16 +31,12 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 	//Ensure handedness is set correctly
 	vr.right_handed = vr_control_scheme->value < 10;
 
+	vr.teleportenabled = vr_teleport->integer != 0;
+
     static qboolean dominantGripPushed = false;
 	static float dominantGripPushTime = 0.0f;
     static bool canUseBackpack = false;
 
-
-    //switch to screen layer override
-//    if ((pOffTrackedRemoteNew->Buttons & ovrButton_Joystick) !=
-//        (pOffTrackedRemoteOld->Buttons & ovrButton_Joystick)) {
-//        showingScreenLayer = !showingScreenLayer;
-//    }
 
     //Need this for the touch screen
     ovrTracking * pWeapon = pDominantTracking;
@@ -446,24 +440,25 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Joystick) !=
                 (pDominantTrackedRemoteOld->Buttons & ovrButton_Joystick)) {
 
-                sendButtonAction("+activate", (pDominantTrackedRemoteNew->Buttons & ovrButton_Joystick) ? 1 : 0);
+                sendButtonAction("+activate",
+                                 (pDominantTrackedRemoteNew->Buttons & ovrButton_Joystick) ? 1 : 0);
             }
 
-			//Apply a filter and quadratic scaler so small movements are easier to make
-			float dist = length(pOffTrackedRemoteNew->Joystick.x, pOffTrackedRemoteNew->Joystick.y);
-			float nlf = nonLinearFilter(dist);
+            //Apply a filter and quadratic scaler so small movements are easier to make
+            float dist = length(pOffTrackedRemoteNew->Joystick.x, pOffTrackedRemoteNew->Joystick.y);
+            float nlf = nonLinearFilter(dist);
             float x = nlf * pOffTrackedRemoteNew->Joystick.x;
             float y = nlf * pOffTrackedRemoteNew->Joystick.y;
 
             vr.player_moving = (fabs(x) + fabs(y)) > 0.05f;
 
-			//Adjust to be off-hand controller oriented
+            //Adjust to be off-hand controller oriented
             vec2_t v;
             rotateAboutOrigin(x, y, controllerYawHeading, v);
 
-            //Move a lot slower if scope is engaged
-            remote_movementSideways = v[0] * (vr.scopeengaged ? 0.3f : 1.0f);
-            remote_movementForward = v[1] * (vr.scopeengaged ? 0.3f : 1.0f);
+            //Move a lot slower if scope is engaged or teleport is standard locomotion mode
+            remote_movementSideways = v[0] * (vr.scopeengaged || vr.teleportenabled ? 0.3f : 1.0f);
+            remote_movementForward = v[1] * (vr.scopeengaged || vr.teleportenabled ? 0.3f : 1.0f);
             ALOGV("        remote_movementSideways: %f, remote_movementForward: %f",
                   remote_movementSideways,
                   remote_movementForward);
@@ -471,8 +466,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             if (!canUseQuickSave) {
                 if (((pOffTrackedRemoteNew->Buttons & offButton1) !=
-                    (pOffTrackedRemoteOld->Buttons & offButton1)) &&
-                        (pOffTrackedRemoteNew->Buttons & offButton1)){
+                     (pOffTrackedRemoteOld->Buttons & offButton1)) &&
+                    (pOffTrackedRemoteNew->Buttons & offButton1)) {
 
                     if (dominantGripPushed) {
                         //If cheats enabled, give all weapons/pickups to player
@@ -486,7 +481,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             //notebook
             if (!canUseQuickSave) {
                 if (((pOffTrackedRemoteNew->Buttons & offButton2) !=
-                    (pOffTrackedRemoteOld->Buttons & offButton2)) &&
+                     (pOffTrackedRemoteOld->Buttons & offButton2)) &&
                     (pOffTrackedRemoteNew->Buttons & offButton2)) {
                     sendButtonActionSimple("notebook");
                 }
@@ -503,10 +498,26 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             //in meantime, then it wouldn't stop the gun firing and it would get stuck
             static bool firingPrimary = false;
 
-			//Run
-			handleTrackedControllerButton(pOffTrackedRemoteNew,
-										  pOffTrackedRemoteOld,
-										  ovrButton_Trigger, K_SHIFT);
+
+            if (!vr.teleportenabled)
+            {
+                //Run
+                handleTrackedControllerButton(pOffTrackedRemoteNew,
+                                              pOffTrackedRemoteOld,
+                                              ovrButton_Trigger, K_SHIFT);
+            } else {
+                if (pOffTrackedRemoteNew->Buttons & ovrButton_Trigger)
+                {
+                    vr.teleportseek = qtrue;
+                }
+                else if (vr.teleportseek)
+                {
+                    vr.teleportseek = qfalse;
+                    vr.teleportexecute = vr.teleportready;
+                    vr.teleportready = qfalse;
+                }
+            }
+
 
             static int increaseSnap = true;
 			if (pDominantTrackedRemoteNew->Joystick.x > 0.6f)

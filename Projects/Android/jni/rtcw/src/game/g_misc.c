@@ -35,11 +35,14 @@ If you have questions concerning this license or the applicable additional terms
 
 
 #include "g_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 extern void AimAtTarget( gentity_t * self );
 
 int sniper_sound;
 int snd_noammo;
+
+extern vr_client_info_t* gVR;
 
 /*QUAKED func_group (0 0 0) ?
 Used to group brushes together just for editor convenience.  They are turned into normal brushes by the utilities.
@@ -107,7 +110,20 @@ void SP_lightJunior( gentity_t *self ) {
 	G_FreeEntity( self );
 }
 
+void G_TeleportPlayer()
+{
+	if (gVR != NULL &&
+	    gVR->teleportexecute &&
+            g_entities[0].health > 0) {
+		vec3_t dummy;
+		vec3_t destination;
+		VectorCopy(gVR->teleportdest, destination);
+		destination[2] +=  (DEFAULT_VIEWHEIGHT - 16);
 
+		TeleportPlayer(&g_entities[0], destination, dummy);
+		gVR->teleportexecute = qfalse;
+	}
+}
 
 /*
 =================================================================================
@@ -133,7 +149,7 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 	trap_UnlinkEntity( player );
 
 	VectorCopy( origin, player->client->ps.origin );
-	player->client->ps.origin[2] += 1;
+	//player->client->ps.origin[2] += 1;
 
 	// spit the player out
 //	AngleVectors( angles, player->client->ps.velocity, NULL, NULL );
@@ -145,12 +161,12 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 	player->client->ps.eFlags ^= EF_TELEPORT_BIT;
 
 	// set angles
-	SetClientViewAngle( player, angles );
+	//SetClientViewAngle( player, angles );
 
 	// kill anything at the destination
-	if ( player->client->sess.sessionTeam != TEAM_SPECTATOR ) {
-		G_KillBox( player );
-	}
+//	if ( player->client->sess.sessionTeam != TEAM_SPECTATOR ) {
+//		G_KillBox( player );
+//	}
 
 	// save results of pmove
 	BG_PlayerStateToEntityState( &player->client->ps, &player->s, qtrue );

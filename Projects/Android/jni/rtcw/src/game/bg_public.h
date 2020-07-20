@@ -33,6 +33,8 @@ If you have questions concerning this license or the applicable additional terms
  *
 */
 
+#pragma once
+
 // because games can change separately from the main system version, we need a
 // second version that must match between game and cgame
 

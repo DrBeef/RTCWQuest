@@ -628,34 +628,17 @@ void ovrFramebuffer_ClearEdgeTexels( ovrFramebuffer * frameBuffer )
 	// Clear to fully opaque black.
 	GL( gles_glClearColor( 0.0f, 0.0f, 0.0f, 1.0f ) );
 
-	//Glide comfort mask in and out
-	static float currentVLevel = 0.0f;
-	if (vr.player_moving)
-	{
-		if (currentVLevel <  vr_comfort_mask->value)
-			currentVLevel += vr_comfort_mask->value * 0.05;
-	} else{
-		if (currentVLevel >  0.0f)
-			currentVLevel -= vr_comfort_mask->value * 0.05;
-	}
-
-
-	bool useMask = (currentVLevel > 0.0f && currentVLevel <= 1.0f);
-
-	float width = useMask ? (frameBuffer->Width / 2.0f) * currentVLevel : 1;
-	float height = useMask ? (frameBuffer->Height / 2.0f) * currentVLevel : 1;
-
 	// bottom
-	GL( gles_glScissor( 0, 0, frameBuffer->Width, width ) );
+	GL( gles_glScissor( 0, 0, frameBuffer->Width, 1 ) );
 	GL( gles_glClear( GL_COLOR_BUFFER_BIT ) );
 	// top
-	GL( gles_glScissor( 0, frameBuffer->Height - height, frameBuffer->Width, height ) );
+	GL( gles_glScissor( 0, frameBuffer->Height - 1, frameBuffer->Width, 1 ) );
 	GL( gles_glClear( GL_COLOR_BUFFER_BIT ) );
 	// left
-	GL( gles_glScissor( 0, 0, width, frameBuffer->Height ) );
+	GL( gles_glScissor( 0, 0, 1, frameBuffer->Height ) );
 	GL( gles_glClear( GL_COLOR_BUFFER_BIT ) );
 	// right
-	GL( gles_glScissor( frameBuffer->Width - width, 0, width, frameBuffer->Height ) );
+	GL( gles_glScissor( frameBuffer->Width - 1, 0, 1, frameBuffer->Height ) );
 	GL( gles_glClear( GL_COLOR_BUFFER_BIT ) );
 
 
@@ -1310,10 +1293,8 @@ void RTCWVR_Init()
 	vr_positional_factor = Cvar_Get( "vr_positional_factor", "12", CVAR_ARCHIVE);
     vr_walkdirection = Cvar_Get( "vr_walkdirection", "0", CVAR_ARCHIVE);
 	vr_weapon_pitchadjust = Cvar_Get( "vr_weapon_pitchadjust", "-20.0", CVAR_ARCHIVE);
-    vr_height_adjust = Cvar_Get( "vr_height_adjust", "0.0", CVAR_ARCHIVE);
-	vr_weaponscale = Cvar_Get( "vr_weaponscale", "0.56", CVAR_ARCHIVE);
 	vr_lasersight = Cvar_Get( "vr_lasersight", "0", CVAR_LATCH);
-    vr_comfort_mask = Cvar_Get( "vr_comfort_mask", "0.0", CVAR_ARCHIVE);
+	vr_teleport = Cvar_Get( "vr_teleport", "0", CVAR_ARCHIVE);
 
     //Defaults
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
@@ -1322,6 +1303,12 @@ void RTCWVR_Init()
 	vr.backpackitemactive = 0;
 	vr.visible_hud = qtrue;
 	vr.dualwield = qfalse;
+
+	//Clear teleport stuff
+	vr.teleportexecute = qfalse;
+	vr.teleportseek = qfalse;
+	vr.teleportenabled = qfalse;
+	vr.teleportready = qfalse;
 }
 
 

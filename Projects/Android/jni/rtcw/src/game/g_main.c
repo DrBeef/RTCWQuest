@@ -271,6 +271,7 @@ void AICast_Init( void );
 // done.
 
 void G_RetrieveMoveSpeedsFromClient( int entnum, char *text );
+void G_TeleportPlayer();
 
 /*
 ================
@@ -2434,6 +2435,8 @@ void G_RunFrame( int levelTime ) {
 
 	// get any cvar changes
 	G_UpdateCvars();
+
+	G_TeleportPlayer();
 
 	//
 	// go through all allocated objects

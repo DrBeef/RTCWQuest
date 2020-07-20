@@ -3562,7 +3562,8 @@ void CG_AddViewWeapon( playerState_t *ps ) {
     }
 
 	if (trap_Cvar_VariableIntegerValue("vr_lasersight") != 0 &&
-	    cgVR->backpackitemactive == 0)
+	    cgVR->backpackitemactive == 0 &&
+	    cg.predictedPlayerState.stats[STAT_HEALTH] > 0)
 	{
 	    switch (ps->weapon)
         {
@@ -3572,25 +3573,25 @@ void CG_AddViewWeapon( playerState_t *ps ) {
         case WP_GRENADE_PINEAPPLE:
             break;
         default:
-        {
-            vec3_t origin;
-            vec3_t endForward;
-            vec3_t angles;
-            clientInfo_t ci;
-            CG_CalculateVRWeaponPosition(0, origin, angles);
+            {
+                vec3_t origin;
+                vec3_t endForward;
+                vec3_t angles;
+                clientInfo_t ci;
+                CG_CalculateVRWeaponPosition(0, origin, angles);
 
-            vec3_t forward, right, up;
-            AngleVectors(angles, forward, right, up);
+                vec3_t forward, right, up;
+                AngleVectors(angles, forward, right, up);
 
-            trace_t trace;
-            VectorMA(origin, 8192, forward, endForward);
-            trap_CM_BoxTrace(&trace, origin, endForward, NULL, NULL, 0, MASK_SOLID);
+                trace_t trace;
+                VectorMA(origin, 8192, forward, endForward);
+                trap_CM_BoxTrace(&trace, origin, endForward, NULL, NULL, 0, MASK_SOLID);
 
-            ci.health = 1;
-            ci.handicap = 128; // value out of 255 for  alpha channel
-            VectorSet(ci.color, 1, 0, 0);
-            CG_RailTrail2(&ci, origin, trace.endpos);
-        }
+                ci.health = 1;
+                ci.handicap = 128; // value out of 255 for  alpha channel
+                VectorSet(ci.color, 1, 0, 0);
+                CG_RailTrail2(&ci, origin, trace.endpos);
+            }
         }
 	}
 

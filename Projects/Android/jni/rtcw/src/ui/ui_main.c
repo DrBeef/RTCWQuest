@@ -4419,7 +4419,7 @@ static void UI_Update( const char *name ) {
 			trap_Cvar_SetValue( "r_fastSky", 0 );
 			trap_Cvar_SetValue( "r_inGameVideo", 1 );
 			trap_Cvar_SetValue( "cg_brassTime", 2500 );
-			trap_Cvar_Set( "r_texturemode", "GL_LINEAR_MIPMAP_NEAREST" ); //----(SA)	modified so wolf never sets trilinear automatically
+			trap_Cvar_Set( "r_texturemode", "GL_LINEAR_MIPMAP_LINEAR" ); //----(SA)	modified so wolf never sets trilinear automatically
 			trap_Cvar_SetValue( "cg_shadows", 0 );
 			break;
 		case 2: // fast
@@ -4437,7 +4437,7 @@ static void UI_Update( const char *name ) {
 			trap_Cvar_SetValue( "r_fastSky", 1 );
 			trap_Cvar_SetValue( "r_inGameVideo", 0 );
 			trap_Cvar_SetValue( "cg_brassTime", 0 );
-			trap_Cvar_Set( "r_texturemode", "GL_LINEAR_MIPMAP_NEAREST" );
+			trap_Cvar_Set( "r_texturemode", "GL_LINEAR_MIPMAP_LINEAR" );
 			break;
 		case 3: // fastest
 			trap_Cvar_SetValue( "r_fullScreen", 1 );

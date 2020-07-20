@@ -4273,7 +4273,8 @@ void PmoveSingle( pmove_t *pmove ) {
 	} else if ( pm->waterlevel > 1 ) {
 		// swimming
 		PM_WaterMove();
-	} else if ( pml.walking ) {
+	}
+	else if ( pml.walking ) {
 		// walking on ground
 		PM_WalkMove();
 	} else {
