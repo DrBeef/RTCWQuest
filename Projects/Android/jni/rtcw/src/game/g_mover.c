@@ -287,12 +287,13 @@ qboolean    G_TryPushingEntity( gentity_t *check, gentity_t *pusher, vec3_t move
 	// try moving the contacted entity
 	VectorAdd( check->s.pos.trBase, move, check->s.pos.trBase );
 	if ( check->client ) {
-		// make sure the client's view rotates when on a rotating mover
-		// RF, this is done client-side now
-		check->client->ps.delta_angles[YAW] += ANGLE2SHORT( amove[YAW] );
-		//
-		// RF, AI's need their ideal angle adjusted instead
+		//Only change yaw for AI characters in VR
 		if ( check->aiCharacter ) {
+			// make sure the client's view rotates when on a rotating mover
+			// RF, this is done client-side now
+			check->client->ps.delta_angles[YAW] += ANGLE2SHORT( amove[YAW] );
+			//
+			// RF, AI's need their ideal angle adjusted instead
 			AICast_AdjustIdealYawForMover( check->s.number, ANGLE2SHORT( amove[YAW] ) );
 		}
 	}

@@ -9,7 +9,7 @@ enum control_scheme;
 
 #define SCOPE_ENGAGE_DISTANCE   0.25
 #define BINOCULAR_ENGAGE_DISTANCE   0.25
-#define VELOCITY_TRIGGER        1.8
+#define VELOCITY_TRIGGER        1.6
 
 ovrInputStateTrackedRemote leftTrackedRemoteState_old;
 ovrInputStateTrackedRemote leftTrackedRemoteState_new;

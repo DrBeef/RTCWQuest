@@ -171,10 +171,10 @@ import static android.system.Os.setenv;
 		copy_asset("/sdcard/RTCWQuest/Main", "weapons_hd.cfg");
 
 		//and the demo version
-		copy_asset("/sdcard/RTCWQuest/Main", "pak0.pk3");
+		//copy_asset("/sdcard/RTCWQuest/Main", "pak0.pk3");
 
-		//and the weapons
-		copy_asset("/sdcard/RTCWQuest/Main", "sp_pak_weapons.pk3");
+		//and the vr weapons
+		copy_asset("/sdcard/RTCWQuest/Main", "vr_sp_pak_weapons.pk3");
 
 		//Read these from a file and pass through
 		commandLineParams = new String("rtcw");

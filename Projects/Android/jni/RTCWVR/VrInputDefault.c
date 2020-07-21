@@ -183,6 +183,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             vr.weaponoffset_timestamp = Sys_Milliseconds( );
 
             //Does weapon velocity trigger attack (knife) and is it fast enough
+            static qboolean velocityTriggeredAttack = false;
             if (vr.velocitytriggered)
             {
                 static qboolean fired = qfalse;
@@ -190,12 +191,20 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                                        powf(pWeapon->HeadPose.LinearVelocity.y, 2) +
                                        powf(pWeapon->HeadPose.LinearVelocity.z, 2));
 
-                ALOGV("        Velocity: %f", velocity);
+                velocityTriggeredAttack = (velocity > VELOCITY_TRIGGER);
 
-                if (fired != (velocity > VELOCITY_TRIGGER)) {
-                    sendButtonAction("+attack", (velocity > VELOCITY_TRIGGER));
-                    fired = (velocity > VELOCITY_TRIGGER);
+                if (fired != velocityTriggeredAttack) {
+                    ALOGV("**WEAPON EVENT**  veocity triggered %s", velocityTriggeredAttack ? "+attack" : "-attack");
+                    sendButtonAction("+attack", velocityTriggeredAttack);
+                    fired = velocityTriggeredAttack;
                 }
+            }
+            else if (velocityTriggeredAttack)
+            {
+                //send a stop attack as we have an unfinished velocity attack
+                velocityTriggeredAttack = qfalse;
+                ALOGV("**WEAPON EVENT**  veocity triggered -attack");
+                sendButtonAction("+attack", velocityTriggeredAttack);
             }
 
             if (vr.weapon_stabilised || vr.dualwield)

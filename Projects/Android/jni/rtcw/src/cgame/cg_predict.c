@@ -678,8 +678,9 @@ void CG_PredictPlayerState( void ) {
 				vec3_t adjusted;
 				CG_AdjustPositionForMover( cg.predictedPlayerState.origin,
 										   cg.predictedPlayerState.groundEntityNum, cg.physicsTime, cg.oldTime, adjusted, deltaAngles );
+
 				// RF, add the deltaAngles (fixes jittery view while riding trains)
-				cg.predictedPlayerState.delta_angles[YAW] += ANGLE2SHORT( deltaAngles[YAW] );
+				//cg.predictedPlayerState.delta_angles[YAW] += ANGLE2SHORT(deltaAngles[YAW]);
 
 				if ( cg_showmiss.integer ) {
 					if ( !VectorCompare( oldPlayerState.origin, adjusted ) ) {

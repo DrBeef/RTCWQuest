@@ -224,6 +224,7 @@ void Matrix4x4_ConvertToEntity( vec4_t *in, vec3_t angles, vec3_t origin )
 
 
 int binocularModel;
+int fg42NoScopeModel;
 int wolfkickModel;
 int hWeaponSnd;
 int hflakWeaponSnd;
@@ -1685,6 +1686,7 @@ void CG_RegisterItemVisuals( int itemNum ) {
 	itemInfo->registered = qtrue;   //----(SA)	moved this down after the registerweapon()
 
 	binocularModel = trap_R_RegisterModel( "models/powerups/keys/binoculars.md3" );
+    fg42NoScopeModel = trap_R_RegisterModel( "models/weapons2/fg42/v_fg42_noscope.mdc" );
 	wolfkickModel = trap_R_RegisterModel( "models/weapons2/foot/v_wolfoot_10f.md3" );
 	hWeaponSnd = trap_S_RegisterSound( "sound/weapons/mg42/37mm.wav" );
 
@@ -2947,7 +2949,14 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
             return;
 		}
 		else {
-			gun.hModel = weapon->weaponModel[W_FP_MODEL];
+		    if (weaponNum == WP_FG42 && cgVR->scopedetached)
+            {
+		        //Use the no-scope model
+		        gun.hModel = fg42NoScopeModel;
+            }
+		    else {
+                gun.hModel = weapon->weaponModel[W_FP_MODEL];
+            }
 		}
 	} else {
 		CG_AddProtoWeapons( parent, ps, cent );
@@ -3505,16 +3514,16 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 				cgVR->velocitytriggered = qtrue;
 				cgVR->scopedweapon = qfalse;
 				break;
+            case WP_FG42:
 			case WP_MAUSER:
 				cgVR->velocitytriggered = qfalse;
 				cgVR->scopedweapon = qtrue;
                 cgVR->detachablescope = qtrue;
 				break;
-			case WP_SNIPERRIFLE:
 			case WP_GARAND:
 			case WP_SNOOPERSCOPE:
-			case WP_FG42:
-			case WP_FG42SCOPE:
+            case WP_SNIPERRIFLE:
+            case WP_FG42SCOPE:
 				cgVR->velocitytriggered = qfalse;
 				cgVR->scopedweapon = qtrue;
                 cgVR->scopedetached = qfalse;
@@ -4386,13 +4395,14 @@ void CG_WeaponDetachScope_f( void ) {
 
 	original = cg.weaponSelect;
 
-	//Can only detach the scope from the mauser
-	if (original != WP_MAUSER)
+	//Can only detach the scope from the Mauser / FG42
+	if (original != WP_MAUSER &&
+            original != WP_FG42 )
 	{
 		return;
 	}
 
-    CG_PlaySwitchSound( WP_MAUSER, WP_MAUSER );
+    CG_PlaySwitchSound( original, original );
 
 	cgVR->scopedetached = !cgVR->scopedetached;
 }
