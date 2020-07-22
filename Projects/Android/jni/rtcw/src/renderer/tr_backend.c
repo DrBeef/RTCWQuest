@@ -896,7 +896,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	int entityNum, oldEntityNum;
 	int dlighted, oldDlighted;
 	qboolean depthRange, oldDepthRange;
-	qboolean isLeftHandedWeapon, oldIsLeftHandedWeapon;
+	qboolean isWeaponModel, oldIsLeftHandedWeapon;
 	int i;
 	drawSurf_t      *drawSurf;
 	int oldSort;
@@ -929,7 +929,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	oldDlighted = qfalse;
 	oldSort = -1;
 	depthRange = qfalse;
-    isLeftHandedWeapon = qfalse;
+    isWeaponModel = qfalse;
     oldIsLeftHandedWeapon = qfalse;
 // GR - tessellation also forces to draw everything
 	oldAtiTess = -1;
@@ -998,7 +998,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 		//
 		if ( entityNum != oldEntityNum ) {
 			depthRange = qfalse;
-			isLeftHandedWeapon = qfalse;
+			isWeaponModel = qfalse;
 
 			if ( entityNum != ENTITYNUM_WORLD ) {
 				backEnd.currentEntity = &backEnd.refdef.entities[entityNum];
@@ -1022,7 +1022,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 				}
 
 				if (backEnd.currentEntity->e.renderfx & RF_VIEWWEAPON) {
-					isLeftHandedWeapon = (!vr.right_handed);
+					isWeaponModel = qtrue;//(!vr.right_handed);
 				}
 			} else {
 				backEnd.currentEntity = &tr.worldEntity;
@@ -1050,21 +1050,23 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 				oldDepthRange = depthRange;
 			}
 
-			if (isLeftHandedWeapon != oldIsLeftHandedWeapon) {
-                if (isLeftHandedWeapon) {
+			if (isWeaponModel != oldIsLeftHandedWeapon) {
+                if (isWeaponModel) {
                     qglGetBooleanv(GL_CULL_FACE, &oldFaceCullEnabled);
                     qglGetIntegerv(GL_CULL_FACE_MODE, &oldFaceCullMode);
 
-                    qglEnable(GL_CULL_FACE);
-                    glCullFace(GL_BACK);
+                    //Draw all faces on weapons
+					qglDisable(GL_CULL_FACE);
                 } else{
                     if (!oldFaceCullEnabled)
                     {
                         qglDisable(GL_CULL_FACE);
+                    } else{
+                        qglEnable(GL_CULL_FACE);
                     }
                     qglCullFace( oldFaceCullMode );
                 }
-				oldIsLeftHandedWeapon = isLeftHandedWeapon;
+				oldIsLeftHandedWeapon = isWeaponModel;
             }
 
 
