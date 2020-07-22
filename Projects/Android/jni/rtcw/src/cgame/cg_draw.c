@@ -2243,9 +2243,11 @@ static void CG_DrawCrosshair( void ) {
 //		CG_FillRect (319, 242, 2, 16, hcolor);	// vertical
 
 		// option 2
+		hudflags |= HUD_FLAGS_MG42_CROSSHAIR;
 		CG_FillRect( 305, 240, 30, 2, hcolor );  // horizontal
 		CG_FillRect( 314, 256, 12, 2, hcolor );  // horizontal2
 		CG_FillRect( 319, 242, 2, 32, hcolor );  // vertical
+		hudflags &= ~HUD_FLAGS_MG42_CROSSHAIR;
 
 		return;
 	}
@@ -3416,7 +3418,7 @@ static void CG_Draw2D( void ) {
 		// don't draw any status if dead
 		if ( cg.snap->ps.stats[STAT_HEALTH] > 0 ) {
 
-			if (cg.zoomedScope || cg.zoomedBinoc) {
+			if (cg.zoomedScope || cg.zoomedBinoc || ( cg.snap->ps.eFlags & EF_MG42_ACTIVE )) {
 				CG_DrawCrosshair();
 			}
 

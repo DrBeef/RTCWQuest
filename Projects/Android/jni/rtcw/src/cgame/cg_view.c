@@ -720,7 +720,7 @@ float zoomTable[ZOOM_MAX_ZOOMS][2] = {
 	{20, 4},    //	sniper
 	{60, 20},   //	snooper
 	{55, 55},   //	fg42
-	{55, 55}    //	mg42
+	{104, 104}    //	mg42 - don't zoom much for VR
 };
 
 void CG_AdjustZoomVal( float val, int type ) {
@@ -891,10 +891,10 @@ static int CG_CalcFov( void ) {
 		cg.refdef.rdflags &= ~RDF_SNOOPERVIEW;
 	}
 
-
-	if ( cg.snap->ps.persistant[PERS_HWEAPON_USE] ) {
-		fov_x = 55;
-	}
+    //Don't do this for the MG42 in VR
+//	if ( cg.snap->ps.persistant[PERS_HWEAPON_USE] ) {
+//		fov_x = 55;
+//	}
 
 	x = cg.refdef.width / tan( fov_x / 360 * M_PI );
 	fov_y = atan2( cg.refdef.height, x );
@@ -1396,9 +1396,10 @@ void CG_DrawSkyBoxPortal( void ) {
 			cg.refdef.rdflags &= ~RDF_SNOOPERVIEW;
 		}
 
-		if ( cg.snap->ps.persistant[PERS_HWEAPON_USE] ) {
-			fov_x = 55;
-		}
+		//MG42?
+		//if ( cg.snap->ps.persistant[PERS_HWEAPON_USE] ) {
+		//	fov_x = 55;
+		//}
 
 		x = cg.refdef.width / tan( fov_x / 360 * M_PI );
 		fov_y = atan2( cg.refdef.height, x );

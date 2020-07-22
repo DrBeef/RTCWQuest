@@ -109,8 +109,9 @@ If you have questions concerning this license or the applicable additional terms
 // -NERVE - SMF
 
 //VR HUD
-#define HUD_FLAGS_FULLSCREEN	1
-#define HUD_FLAGS_STEREO		2
+#define HUD_FLAGS_FULLSCREEN			1
+#define HUD_FLAGS_STEREO				2
+#define HUD_FLAGS_MG42_CROSSHAIR		4
 
 //=================================================
 

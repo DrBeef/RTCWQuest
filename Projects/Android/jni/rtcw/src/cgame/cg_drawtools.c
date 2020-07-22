@@ -84,7 +84,7 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 		float screenXScale = cgs.screenXScale / 2.75f;
 		float screenYScale = cgs.screenYScale / 2.75f;
 
-		int xoffset = -24;
+		int xoffset = (hudflags & HUD_FLAGS_MG42_CROSSHAIR) ? -12 : -24;
 		if (cg.refdef.stereoView == 1) {
 			xoffset *= -1;
 		}
