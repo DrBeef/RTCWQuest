@@ -191,7 +191,6 @@ vmCvar_t cg_thirdPersonRange;
 vmCvar_t cg_thirdPersonAngle;
 vmCvar_t cg_stereoSeparation;
 vmCvar_t cg_worldScale;
-vmCvar_t cg_weaponScale;
 vmCvar_t cg_heightAdjust;
 vmCvar_t cg_lagometer;
 vmCvar_t cg_drawAttacker;
@@ -333,7 +332,6 @@ cvarTable_t cvarTable[] = {
 	{ &cg_letterbox, "cg_letterbox", "0", CVAR_TEMP },    //----(SA)	added
 	{ &cg_stereoSeparation, "cg_stereoSeparation", "0.065", CVAR_ARCHIVE  },
 	{ &cg_worldScale, "cg_worldScale", "37.5", CVAR_ARCHIVE  },
-	{ &cg_weaponScale, "cg_weaponScale", "0.62", CVAR_ARCHIVE  },
 	{ &cg_heightAdjust, "cg_heightAdjust", "0.0", CVAR_ARCHIVE  },
 	{ &cg_shadows, "cg_shadows", "1", CVAR_ARCHIVE  },
 	{ &cg_gibs, "cg_gibs", "1", CVAR_ARCHIVE  },
