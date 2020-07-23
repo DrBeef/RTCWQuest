@@ -505,9 +505,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             //We need to record if we have started firing primary so that releasing trigger will stop definitely firing, if user has pushed grip
             //in meantime, then it wouldn't stop the gun firing and it would get stuck
-            static bool firingPrimary = false;
-
-
             if (!vr.teleportenabled)
             {
                 //Run
@@ -528,50 +525,67 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             }
 
 
+            //Resync Yaw on mounted gun transition
+            static int usingMountedGun = false;
+            if (vr.mountedgun != usingMountedGun)
+            {
+                resyncClientYawWithGameYaw = 10; // HACK
+                usingMountedGun = vr.mountedgun;
+            }
+
+            //No snap turn when using mounted gun
             static int increaseSnap = true;
-			if (pDominantTrackedRemoteNew->Joystick.x > 0.6f)
-			{
-				if (increaseSnap)
-				{
-					snapTurn -= vr_snapturn_angle->value;
-                    if (vr_snapturn_angle->value > 10.0f) {
-                        increaseSnap = false;
-                    }
+            if (!vr.mountedgun) {
+                if (pDominantTrackedRemoteNew->Joystick.x > 0.6f) {
+                    if (increaseSnap) {
+                        snapTurn -= vr_snapturn_angle->value;
+                        if (vr_snapturn_angle->value > 10.0f) {
+                            increaseSnap = false;
+                        }
 
-                    if (snapTurn < -180.0f)
-                    {
-                        snapTurn += 360.f;
-                    }
+                        if (snapTurn < -180.0f) {
+                            snapTurn += 360.f;
+                        }
 
-                    RTCWVR_ResyncClientYawWithGameYaw();
+                        RTCWVR_ResyncClientYawWithGameYaw();
+                    }
+                } else if (pDominantTrackedRemoteNew->Joystick.x < 0.4f) {
+                    increaseSnap = true;
                 }
-			} else if (pDominantTrackedRemoteNew->Joystick.x < 0.4f) {
-				increaseSnap = true;
-			}
 
-			static int decreaseSnap = true;
-			if (pDominantTrackedRemoteNew->Joystick.x < -0.6f)
-			{
-				if (decreaseSnap)
-				{
-					snapTurn += vr_snapturn_angle->value;
+                static int decreaseSnap = true;
+                if (pDominantTrackedRemoteNew->Joystick.x < -0.6f) {
+                    if (decreaseSnap) {
+                        snapTurn += vr_snapturn_angle->value;
 
-					//If snap turn configured for less than 10 degrees
-					if (vr_snapturn_angle->value > 10.0f) {
-                        decreaseSnap = false;
+                        //If snap turn configured for less than 10 degrees
+                        if (vr_snapturn_angle->value > 10.0f) {
+                            decreaseSnap = false;
+                        }
+
+                        if (snapTurn > 180.0f) {
+                            snapTurn -= 360.f;
+                        }
+
+                        RTCWVR_ResyncClientYawWithGameYaw();
                     }
-
-                    if (snapTurn > 180.0f)
+                } else if (pDominantTrackedRemoteNew->Joystick.x > -0.4f) {
+                    decreaseSnap = true;
+                }
+            }
+            else {
+                if (fabs(pDominantTrackedRemoteNew->Joystick.x) > 0.5f) {
+                    if (increaseSnap)
                     {
-                        snapTurn -= 360.f;
+                        RTCWVR_ResyncClientYawWithGameYaw();
                     }
-
-                    RTCWVR_ResyncClientYawWithGameYaw();
-				}
-			} else if (pDominantTrackedRemoteNew->Joystick.x > -0.4f)
-			{
-				decreaseSnap = true;
-			}
+                    increaseSnap = false;
+                }
+                else
+                {
+                    increaseSnap = true;
+                }
+            }
         }
 
         updateScopeAngles();

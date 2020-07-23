@@ -4,6 +4,7 @@
 #define NUM_WEAPON_SAMPLES      10
 
 typedef struct {
+    qboolean screen;
     float  fov;
     qboolean weapon_stabilised;
     qboolean right_handed;
@@ -13,6 +14,7 @@ typedef struct {
     int weaponid;
     int lastweaponid;
     int backpackitemactive; //0 - nothing, 1 - grenades, 2 - knife, 3 - Binoculars
+    qboolean mountedgun;
 
     vec3_t hmdposition;
     vec3_t hmdposition_last; // Don't use this, it is just for calculating delta!

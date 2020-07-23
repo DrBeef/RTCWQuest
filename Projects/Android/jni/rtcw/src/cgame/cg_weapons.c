@@ -3424,6 +3424,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	}
 
 	if ( ps->eFlags & EF_MG42_ACTIVE ) {
+        cgVR->mountedgun = qtrue;
 		return;
 	}
 
@@ -3509,6 +3510,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 
 		//Set some important flags based on the current weapon
+        cgVR->mountedgun = qfalse;
 		switch ( ps->weapon ) {
 			case WP_KNIFE:
 				cgVR->velocitytriggered = qtrue;
@@ -3572,7 +3574,8 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 	if (trap_Cvar_VariableIntegerValue("vr_lasersight") != 0 &&
 	    cgVR->backpackitemactive == 0 &&
-	    cg.predictedPlayerState.stats[STAT_HEALTH] > 0)
+	    cg.predictedPlayerState.stats[STAT_HEALTH] > 0 &&
+	    !cgVR->screen)
 	{
 	    switch (ps->weapon)
         {

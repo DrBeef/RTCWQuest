@@ -2926,10 +2926,16 @@ static void CG_DrawFlashZoomTransition( void ) {
 		return;
 	}
 
-	if ( cg.snap->ps.eFlags & EF_MG42_ACTIVE ) {   // don't draw when on mg_42
+	static qboolean mg42faded = qfalse;
+	if ( cg.snap->ps.eFlags & EF_MG42_ACTIVE && !mg42faded) {   // don't draw when on mg_42
 		// keep the timer fresh so when you remove yourself from the mg42, it'll fade
 		cg.zoomTime = cg.time;
-		return;
+        mg42faded = qtrue;
+	} else {
+        if (!( cg.snap->ps.eFlags & EF_MG42_ACTIVE))
+        {
+            mg42faded = qfalse;
+        }
 	}
 
 	if ( cgs.gametype != GT_SINGLE_PLAYER ) { // JPW NERVE

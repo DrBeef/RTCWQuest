@@ -133,13 +133,15 @@ LAMBDA1VR Stuff
 
 qboolean RTCWVR_useScreenLayer()
 {
-	return (qboolean)(showingScreenLayer ||
+	vr.screen = (qboolean)(showingScreenLayer ||
             (cls.state == CA_CINEMATIC) ||
             (cls.state == CA_LOADING) ||
             (clc.demoplaying) ||
 			(cl.cameraMode) ||
             ( Key_GetCatcher( ) & KEYCATCH_UI ) ||
             ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ));
+
+	return vr.screen;
 }
 
 int runStatus = -1;
