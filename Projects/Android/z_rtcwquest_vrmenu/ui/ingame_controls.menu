@@ -3,61 +3,56 @@
 {
 \\ SETUP MENU \\
 
-menuDef 
-{
-	name "control_menu"
-	visible 1
-	fullscreen 0
+menuDef {
+    	name "ingame_controls"
+    	visible 0
+    	fullscreen 0
+			outOfBoundsClick			// this closes the window if it gets a click out of the rectangle
 	rect 100 125 443 340
-	focusColor 1 .75 0 1
-	style 1
+    	focusColor 1 .75 0 1
+    	style 1
+    	border 1
+	onClose {
+	    uiScript saveControls
+	}
+	onopen { hide grpControls ; show look ; uiScript loadControls }
+
+
+
+
+itemDef {
+	name window
+	group ingamebox	
+	rect 0 2 443 315
+	style WINDOW_STYLE_FILLED
 	border 1
-	onClose { uiScript saveControls }
-	onOpen { 
-		setitemcolor fadebox backcolor 0 0 0 1;
-		fadeout fadebox;
-		hide grpControls;
-		show look;
-		uiScript loadControls
-		}
-
-	onEsc {
-		close control_menu;
-		close setup_menu;
-		open main
-		}
+	bordercolor .5 .5 .5 .5
+	forecolor 1 1 1 1
+	backcolor 0 0 0 .25
+	visible 1
+	decoration
+}
 
 
-	itemDef 
-	{
-		name controls_shader
-		group grpControls
-		style WINDOW_STYLE_SHADER
-		rect 0 45 640 60      
-		visible 0
-	//	background "ui/assets/controls_shader1"
-		decoration 
+itemDef {
+      name keyBindStatus
+      rect 0 400 320 15 
+	ownerdraw UI_KEYBINDSTATUS
+	text " "      
+	forecolor 1 .75 0 1
+	textscale .230
+	textalignx 187
+	textalign 1
+	textaligny 10
+	visible 0
+      decoration 
 	}
 
 
 	itemDef 
 	{
 		name window
-		group grpControlbutton
-		rect 0 2 443 300	
-		style WINDOW_STYLE_FILLED
-		border 1
-		bordercolor .5 .5 .5 .5
-		forecolor 1 1 1 1
-		backcolor 0 0 0 .25
-		visible 1
-		decoration
-	}
-
-	itemDef 
-	{
-		name window2
-		group grpControlbutton
+		group ingamebox2
 		rect 2 4 439 20	
 		style WINDOW_STYLE_FILLED
 		border 1
@@ -67,27 +62,6 @@ menuDef
 		visible 1
 		decoration
 	}
-
-
-
-
-
-
-	itemDef {
-		name keyBindStatus
-		rect 0 322 640 30 
-		ownerdraw UI_KEYBINDSTATUS
-		text " "      
-		forecolor 1 .75 0 1
-		textscale .23
-		textalignx 221
-		textalign 1
-		textaligny 20
-		visible 0
-		decoration 
-	}
-
-
 
 
 
@@ -107,7 +81,7 @@ itemDef
 	backcolor .1 .1 .1 0 
 	visible 1
 	action { play "sound/misc/kcaction.wav" ; 
-	hide grpOptions ; show vr }
+	hide grpControls ; show vr }
 	mouseEnter { show message_graphics ; setitemcolor ctr_vr backcolor .3 .3 .3 0 } 
 	mouseExit { hide message_graphics ; setitemcolor ctr_vr backcolor .1 .1 .1 0 } 
 	}
@@ -115,7 +89,7 @@ itemDef
 
 	itemDef {
 		name vr
-		group grpOptions
+		group grpControls
 		text "Control Scheme:  "
 		type ITEM_TYPE_MULTI	
 		cvar "vr_control_scheme"
@@ -134,7 +108,7 @@ itemDef
 	
 	itemDef {
 		name vr
-		group grpOptions
+		group grpControls
 		text "Teleport:  "
 		type ITEM_TYPE_YESNO	
 		cvar "vr_teleport"
@@ -151,7 +125,7 @@ itemDef
 
 	itemDef {
 		name vr
-		group grpOptions
+		group grpControls
 		type ITEM_TYPE_YESNO
 		text "Laser Sight:  "
 		cvar "vr_lasersight"
@@ -169,7 +143,7 @@ itemDef
 
 	itemDef {
 		name vr
-		group grpOptions
+		group grpControls
 		type ITEM_TYPE_SLIDER
 		text "Height Adjust:"
 		cvarfloat "cg_heightAdjust" .0 .01 1
@@ -187,7 +161,7 @@ itemDef
 
 	itemDef {
 		name vr
-		group grpOptions
+		group grpControls
 		type ITEM_TYPE_SLIDER
 		text "Turn Angle ( <= 10 for smooth turn):"
 		cvarfloat "vr_snapturn_angle" .0 1 90
@@ -205,7 +179,7 @@ itemDef
 
 	itemDef {
 		name vr
-		group grpOptions
+		group grpControls
 		type ITEM_TYPE_YESNO
 		text "Gaze Movement Direction:  "
 		cvar "vr_walkdirection"
@@ -219,66 +193,57 @@ itemDef
 		forecolor 1 1 1 1
 		visible 1
     		}
-			
-	
+
+	itemDef {
+		name vr
+		group grpControls
+		type ITEM_TYPE_SLIDER
+		text "Movement Speed:"
+		cvarfloat "vr_movement_multiplier" .0 0.05 1.0
+		rect 82 120 290 12
+      	textalign ITEM_ALIGN_RIGHT
+      	textalignx 142
+      	textaligny 10
+		textscale .23
+		style WINDOW_STYLE_FILLED
+		backcolor 1 1 1 .07
+      	forecolor 1 1 1 1
+      	visible 1
+    	}
 	
 
-//	TOOLS 	MESSAGE	//
 
-itemDef 
-{
-	name yesno_message
-	rect 0 320 640 30 
+itemDef {
+      name yesno_message
+      rect 0 310 300 15 
 	text "Select the Item to Toggle to Yes or No"      
 	forecolor 1 .75 0 1
-	textscale .23
+	textscale .230
 	textalignx 221
 	textalign 1
 	textaligny 20
 	visible 0
-	decoration 
+      	decoration 
 	}
 
-itemDef 
-{
-	name slider_message
-	rect 0 320 640 30 
-	text "Drag the Slider to Increase and Decrease"      
+itemDef {
+      name slider_message
+      rect 0 310 300 15 
+	text "Drag the Slider to Increase and Decrease"     
 	forecolor 1 .75 0 1
-	textscale .23
+	textscale .230
 	textalignx 221
 	textalign 1
 	textaligny 20
 	visible 0
-	decoration 
+      	decoration 
 	}
 
-itemDef 
-{
-      	name fadebox
-      	style WINDOW_STYLE_FILLED
- 	background "ui/assets/fadebox.tga"
-	forecolor 0 0 0 1
-	backcolor 0 0 0 1
-	rect 0 0 640 480
-      	visible 1 
-	decoration
-    	}
 
-
-
-	
-
-
-
-
-
-	
 
 
 
 }
 
-}
 
 }

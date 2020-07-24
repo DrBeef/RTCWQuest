@@ -10,7 +10,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -18,18 +17,13 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 
-import android.media.AudioFormat;
-import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
-import android.media.MediaRecorder;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-import android.view.KeyEvent;
 
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -168,13 +162,16 @@ import static android.system.Os.setenv;
 		new File("/sdcard/RTCWQuest/Main").mkdirs();
 
 		//Copy the weapon adjustment config
-		copy_asset("/sdcard/RTCWQuest/Main", "weapons_hd.cfg");
+		copy_asset("/sdcard/RTCWQuest/Main", "weapons_vr.cfg");
 
 		//and the demo version
 		//copy_asset("/sdcard/RTCWQuest/Main", "pak0.pk3");
 
 		//and the vr weapons
 		copy_asset("/sdcard/RTCWQuest/Main", "vr_sp_pak_weapons.pk3");
+
+		//and the vr menu pk3
+		copy_asset("/sdcard/RTCWQuest/Main", "z_rtcwquest_vrmenu.pk3");
 
 		//Read these from a file and pass through
 		commandLineParams = new String("rtcw");
