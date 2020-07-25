@@ -162,16 +162,16 @@ import static android.system.Os.setenv;
 		new File("/sdcard/RTCWQuest/Main").mkdirs();
 
 		//Copy the weapon adjustment config
-		copy_asset("/sdcard/RTCWQuest/Main", "weapons_vr.cfg");
+		copy_asset("/sdcard/RTCWQuest/Main", "weapons_vr.cfg", false);
 
 		//and the demo version
 		//copy_asset("/sdcard/RTCWQuest/Main", "pak0.pk3");
 
 		//and the vr weapons
-		copy_asset("/sdcard/RTCWQuest/Main", "vr_sp_pak_weapons.pk3");
+		copy_asset("/sdcard/RTCWQuest/Main", "vr_sp_pak_weapons.pk3", false);
 
 		//and the vr menu pk3
-		copy_asset("/sdcard/RTCWQuest/Main", "z_rtcwquest_vrmenu.pk3");
+		copy_asset("/sdcard/RTCWQuest/Main", "z_rtcwquest_vrmenu.pk3", true);
 
 		//Read these from a file and pass through
 		commandLineParams = new String("rtcw");
@@ -209,9 +209,9 @@ import static android.system.Os.setenv;
 		mNativeHandle = GLES3JNILib.onCreate( this, commandLineParams );
 	}
 
-	public void copy_asset(String path, String name) {
+	public void copy_asset(String path, String name, boolean force) {
 		File f = new File(path + "/" + name);
-		if (!f.exists()) {
+		if (!f.exists() || force) {
 			
 			//Ensure we have an appropriate folder
 			String fullname = path + "/" + name;

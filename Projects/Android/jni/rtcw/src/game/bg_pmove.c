@@ -2341,10 +2341,10 @@ void PM_CheckForReload( int weapon ) {
 				}
 				PM_BeginWeaponChange( weapon, weapAlts[weapon], doReload );
 #ifdef CGAMEDLL
-				cgVR->scopeengaged = qfalse;
+				//cgVR->scopeengaged = qfalse;
 #endif
 #ifdef GAMEDLL
-				gVR->scopeengaged = qfalse;
+				//gVR->scopeengaged = qfalse;
 #endif
 			}
 			return;
@@ -2399,10 +2399,10 @@ void PM_CheckForReload( int weapon ) {
 
 		//Reloading will always disengage the scope
 #ifdef CGAMEDLL
-        cgVR->scopeengaged = qfalse;
+        //cgVR->scopeengaged = qfalse;
 #endif
 #ifdef GAMEDLL
-        gVR->scopeengaged = qfalse;
+        //gVR->scopeengaged = qfalse;
 #endif
 	}
 

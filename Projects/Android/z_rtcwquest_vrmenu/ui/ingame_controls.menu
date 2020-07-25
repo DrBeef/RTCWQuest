@@ -15,7 +15,7 @@ menuDef {
 	onClose {
 	    uiScript saveControls
 	}
-	onopen { hide grpControls ; show look ; uiScript loadControls }
+	onopen { hide grpControls ; show ingame_vr ; uiScript loadControls }
 
 
 
@@ -88,7 +88,7 @@ itemDef
 
 
 	itemDef {
-		name vr
+		name ingame_vr
 		group grpControls
 		text "Control Scheme:  "
 		type ITEM_TYPE_MULTI	
@@ -107,7 +107,7 @@ itemDef
 
 	
 	itemDef {
-		name vr
+		name ingame_vr
 		group grpControls
 		text "Teleport:  "
 		type ITEM_TYPE_YESNO	
@@ -124,7 +124,7 @@ itemDef
     		}
 
 	itemDef {
-		name vr
+		name ingame_vr
 		group grpControls
 		type ITEM_TYPE_YESNO
 		text "Laser Sight:  "
@@ -142,7 +142,7 @@ itemDef
 
 
 	itemDef {
-		name vr
+		name ingame_vr
 		group grpControls
 		type ITEM_TYPE_SLIDER
 		text "Height Adjust:"
@@ -160,7 +160,7 @@ itemDef
 
 
 	itemDef {
-		name vr
+		name ingame_vr
 		group grpControls
 		type ITEM_TYPE_SLIDER
 		text "Turn Angle ( <= 10 for smooth turn):"
@@ -178,7 +178,7 @@ itemDef
 			
 
 	itemDef {
-		name vr
+		name ingame_vr
 		group grpControls
 		type ITEM_TYPE_YESNO
 		text "Gaze Movement Direction:  "
@@ -195,7 +195,7 @@ itemDef
     		}
 
 	itemDef {
-		name vr
+		name ingame_vr
 		group grpControls
 		type ITEM_TYPE_SLIDER
 		text "Movement Speed:"

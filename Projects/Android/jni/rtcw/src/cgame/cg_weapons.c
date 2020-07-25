@@ -3575,7 +3575,8 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	if (trap_Cvar_VariableIntegerValue("vr_lasersight") != 0 &&
 	    cgVR->backpackitemactive == 0 &&
 	    cg.predictedPlayerState.stats[STAT_HEALTH] > 0 &&
-	    !cgVR->screen)
+	    !cgVR->screen &&
+	    !cgVR->scopeengaged)
 	{
 	    switch (ps->weapon)
         {
@@ -4245,6 +4246,20 @@ void CG_SetSniperZoom( int lastweap, int newweap ) {
 	int zoomindex;
 	float shake = 0;
 
+	//Do this here to set scope engagement
+    switch ( newweap ) {
+        case WP_SNIPERRIFLE:
+        case WP_SNOOPERSCOPE:
+        case WP_FG42SCOPE:
+        	Com_Printf("**WEAPON EVENT**  cgVR->scopeengaged = qtrue");
+            cgVR->scopeengaged = qtrue;
+            break;
+        default:
+			Com_Printf("**WEAPON EVENT**  cgVR->scopeengaged = qfalse");
+			cgVR->scopeengaged = qfalse;
+            break;
+    }
+
 	if ( lastweap == newweap ) {
 		return;
 	}
@@ -4252,24 +4267,7 @@ void CG_SetSniperZoom( int lastweap, int newweap ) {
 	cg.zoomval      = 0;
 	cg.zoomedScope  = 0;
 
-	// check for fade-outs
-	switch ( lastweap ) {
-	case WP_SNIPERRIFLE:
-//			cg.zoomedScope	= 500;	// TODO: add to zoomTable
-//			cg.zoomTime		= cg.time;
-		break;
-	case WP_SNOOPERSCOPE:
-//			cg.zoomedScope	= 500;	// TODO: add to zoomTable
-//			cg.zoomTime		= cg.time;
-		break;
-	case WP_FG42SCOPE:
-//			cg.zoomedScope	= 1;	// TODO: add to zoomTable
-//			cg.zoomTime		= cg.time;
-		break;
-	}
-
-
-	switch ( newweap ) {
+    switch ( newweap ) {
 
 	default:
 		return;     // no sniper zoom, get out.
@@ -4294,8 +4292,6 @@ void CG_SetSniperZoom( int lastweap, int newweap ) {
 		shake = 0.01f;
 		break;
 	}
-
-	cgVR->scopeengaged = cg.zoomedScope != 0;
 
 //	if(shake) {
 // (SA) all shake disabled 11/12

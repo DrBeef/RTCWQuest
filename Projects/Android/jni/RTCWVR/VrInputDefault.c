@@ -145,8 +145,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                     sendButtonActionSimple("weapalt");
                 } else if (vr.scopeengaged && !scopeready) {
                     //Set this here so we don't retrigger scope by accident too soon
+                    ALOGV("**WEAPON EVENT**  vr.scopeengaged = qfalse");
                     vr.scopeengaged = qfalse;
-                    ALOGV("**WEAPON EVENT**  disable scope mode");
                     sendButtonActionSimple("weapalt");
                     RTCWVR_ResyncClientYawWithGameYaw();
                 }
