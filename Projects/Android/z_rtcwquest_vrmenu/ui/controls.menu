@@ -17,7 +17,7 @@ menuDef
 		setitemcolor fadebox backcolor 0 0 0 1;
 		fadeout fadebox;
 		hide grpControls;
-		show look;
+		show vr;
 		uiScript loadControls
 		}
 

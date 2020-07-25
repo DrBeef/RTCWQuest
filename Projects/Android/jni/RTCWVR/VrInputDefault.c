@@ -535,8 +535,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             //No snap turn when using mounted gun
             static int increaseSnap = true;
-            if (!vr.mountedgun) {
-                if (pDominantTrackedRemoteNew->Joystick.x > 0.6f) {
+            if (!vr.mountedgun && !vr.scopeengaged) {
+                if (pDominantTrackedRemoteNew->Joystick.x > 0.7f) {
                     if (increaseSnap) {
                         snapTurn -= vr_snapturn_angle->value;
                         if (vr_snapturn_angle->value > 10.0f) {
@@ -549,12 +549,12 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
                         RTCWVR_ResyncClientYawWithGameYaw();
                     }
-                } else if (pDominantTrackedRemoteNew->Joystick.x < 0.4f) {
+                } else if (pDominantTrackedRemoteNew->Joystick.x < 0.3f) {
                     increaseSnap = true;
                 }
 
                 static int decreaseSnap = true;
-                if (pDominantTrackedRemoteNew->Joystick.x < -0.6f) {
+                if (pDominantTrackedRemoteNew->Joystick.x < -0.7f) {
                     if (decreaseSnap) {
                         snapTurn += vr_snapturn_angle->value;
 
@@ -569,7 +569,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
                         RTCWVR_ResyncClientYawWithGameYaw();
                     }
-                } else if (pDominantTrackedRemoteNew->Joystick.x > -0.4f) {
+                } else if (pDominantTrackedRemoteNew->Joystick.x > -0.3f) {
                     decreaseSnap = true;
                 }
             }

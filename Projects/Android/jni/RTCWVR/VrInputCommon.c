@@ -139,7 +139,9 @@ void updateScopeAngles()
         vec3_t angles;
         VectorSet(angles, vr.weaponangles[PITCH], vr.weaponangles[YAW], vr.hmdorientation[ROLL]);
 
-        VectorLerp(currentScopeAngles, 0.125, angles, currentScopeAngles);
+        //Can't use lerp as the change from +180 to -180 causes a rapid spin!
+        //VectorLerp(currentScopeAngles, 0.125, angles, currentScopeAngles);
+        VectorCopy(angles, currentScopeAngles);
 
         //Set "view" Angles
         VectorCopy(currentScopeAngles, vr.hmdorientation);
