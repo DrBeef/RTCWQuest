@@ -3603,7 +3603,7 @@ void CG_Teleport() {
 
 		trace_t trace;
 		VectorMA(origin, 256, forward, endForward);
-		trap_CM_BoxTrace(&trace, origin, endForward, NULL, NULL, 0, MASK_SOLID);
+		trap_CM_BoxTrace(&trace, origin, endForward, NULL, NULL, 0, MASK_SHOT);
 
 		ci.health = 1;
 		ci.handicap = 128; // value out of 255 for  alpha channel

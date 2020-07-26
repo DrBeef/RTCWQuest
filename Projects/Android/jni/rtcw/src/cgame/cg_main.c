@@ -383,7 +383,7 @@ cvarTable_t cvarTable[] = {
 	// END JOSEPH
 
 //----(SA)	added
-	{ &cg_particleDist, "cg_particleDist", "1024", CVAR_ARCHIVE },
+	{ &cg_particleDist, "cg_particleDist", "2048", CVAR_ARCHIVE },
 	{ &cg_particleLOD, "cg_particleLOD", "0", CVAR_ARCHIVE },
 	{ &cg_useSuggestedWeapons, "cg_useSuggestedWeapons", "1", CVAR_ARCHIVE }, //----(SA)	added
 //----(SA)	end

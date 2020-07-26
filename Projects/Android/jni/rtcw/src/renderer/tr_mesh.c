@@ -339,6 +339,11 @@ void R_AddMD3Surfaces( trRefEntity_t *ent ) {
 	lod = R_ComputeLOD( ent );
 
 	header = tr.currentModel->md3[lod];
+	if (header == NULL)
+	{
+		//Fix issue with VENOM
+		return;
+	}
 
 	//
 	// cull the entire model if merged bounding box of both frames
