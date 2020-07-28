@@ -136,7 +136,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         }
 
         //Engage scope if conditions are right
-        qboolean scopeready = vr.weapon_stabilised;// && (distanceToHMD < SCOPE_ENGAGE_DISTANCE);
+        qboolean scopeready = vr.weapon_stabilised && (distanceToHMD < SCOPE_ENGAGE_DISTANCE);
         static qboolean lastScopeready = qfalse;
         if (scopeready != lastScopeready) {
             if (vr.scopedweapon && !vr.scopedetached) {
