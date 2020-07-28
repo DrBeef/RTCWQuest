@@ -675,7 +675,7 @@ static void CG_OffsetFirstPersonView( void ) {
 	// add step offset
 	CG_StepOffset();
 
-	CG_ZoomSway();
+	//CG_ZoomSway();
 
 	// adjust for 'lean'
 	if ( cg.predictedPlayerState.leanf != 0 ) {
@@ -720,7 +720,7 @@ float zoomTable[ZOOM_MAX_ZOOMS][2] = {
 	{20, 4},    //	sniper
 	{60, 20},   //	snooper
 	{55, 55},   //	fg42
-	{104, 104}    //	mg42 - don't zoom much for VR
+	{104, 104}    //	mg42 - don't zoom for VR
 };
 
 void CG_AdjustZoomVal( float val, int type ) {
@@ -741,7 +741,7 @@ void CG_ZoomIn_f( void ) {
 	} else if ( cg_entities[cg.snap->ps.clientNum].currentState.weapon == WP_FG42SCOPE )      {
 		CG_AdjustZoomVal( -( cg_zoomStepSnooper.value ), ZOOM_FG42SCOPE );
 	} else if ( cg.zoomedBinoc )      {
-		CG_AdjustZoomVal( -( cg_zoomStepBinoc.value ), ZOOM_BINOC );
+		CG_AdjustZoomVal( -( 0.2f ), ZOOM_BINOC );
 	}
 }
 
@@ -753,7 +753,7 @@ void CG_ZoomOut_f( void ) {
 	} else if ( cg_entities[cg.snap->ps.clientNum].currentState.weapon == WP_FG42SCOPE )      {
 		CG_AdjustZoomVal( cg_zoomStepSnooper.value, ZOOM_FG42SCOPE );
 	} else if ( cg.zoomedBinoc )      {
-		CG_AdjustZoomVal( cg_zoomStepBinoc.value, ZOOM_BINOC );
+		CG_AdjustZoomVal( 0.2f, ZOOM_BINOC );
 	}
 }
 

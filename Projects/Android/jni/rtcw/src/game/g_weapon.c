@@ -1248,12 +1248,10 @@ gentity_t *weapon_grenadelauncher_fire_vr( gentity_t *ent, int grenType ) {
     }
 
     // pineapples are not thrown as far as mashers
-    if ( grenType == WP_GRENADE_LAUNCHER )
+    if ( grenType == WP_GRENADE_LAUNCHER ||
+    	grenType == WP_GRENADE_PINEAPPLE )
     {
         power = 4;
-    } else if ( grenType == WP_GRENADE_PINEAPPLE )
-    {
-        power = 3;
     }
     else {      // WP_DYNAMITE
         power = 2.5;
@@ -1870,10 +1868,11 @@ void CalcMuzzlePoints( gentity_t *ent, int weapon ) {
 
 			phase = level.time / 1000.0 * ZOOM_YAW_FREQUENCY * M_PI * 2;
 			viewang[YAW] += ZOOM_YAW_AMPLITUDE * sin( phase ) * ( spreadfrac + ZOOM_YAW_MIN_AMPLITUDE );
-			*/
+*/
 
-		VectorCopy(gVR->weaponangles, viewang);
-		viewang[YAW] = ent->client->ps.viewangles[YAW] + (gVR->weaponangles[YAW] - gVR->hmdorientation[YAW]);
+
+        VectorCopy(gVR->weaponangles, viewang);
+        viewang[YAW] = ent->client->ps.viewangles[YAW] + (gVR->weaponangles[YAW] - gVR->hmdorientation[YAW]);
 
 	} else {
 		VectorCopy( ent->client->ps.viewangles, viewang );
@@ -1945,6 +1944,13 @@ void FireWeapon( gentity_t *ent ) {
 				aimSpreadScale += 0.3f;     // it's calculated a different way, so this keeps the accuracy never perfect, but never rediculously wild either
 				break;
 
+			//For the sniper type weapons, leave the bad shooting up to the player
+			case WP_SNIPERRIFLE:
+			case WP_SNOOPERSCOPE:
+			case WP_FG42SCOPE:
+                aimSpreadScale = 0.0f;
+                break;
+
 			default:
 				aimSpreadScale += 0.15f;
 				break;
@@ -1999,7 +2005,7 @@ void FireWeapon( gentity_t *ent ) {
 //		if (g_gametype.integer != GT_SINGLE_PLAYER) {
 			VectorCopy( ent->client->ps.viewangles,viewang );
 //			viewang[PITCH] -= 6; // handled in clientthink instead
-			ent->client->sniperRifleMuzzleYaw = crandom() * 0.5; // used in clientthink
+			ent->client->sniperRifleMuzzleYaw = 0;//crandom() * 0.5; // used in clientthink
 			ent->client->sniperRifleMuzzlePitch = 0.8f;
 			ent->client->sniperRifleFiredTime = level.time;
 			SetClientViewAngle( ent,viewang );
@@ -2012,7 +2018,7 @@ void FireWeapon( gentity_t *ent ) {
 		if ( !ent->aiCharacter ) {
 //		if (g_gametype.integer != GT_SINGLE_PLAYER) {
 			VectorCopy( ent->client->ps.viewangles,viewang );
-			ent->client->sniperRifleMuzzleYaw = crandom() * 0.5; // used in clientthink
+			ent->client->sniperRifleMuzzleYaw = 0;//crandom() * 0.5; // used in clientthink
 			ent->client->sniperRifleMuzzlePitch = 0.9f;
 			ent->client->sniperRifleFiredTime = level.time;
 			SetClientViewAngle( ent,viewang );

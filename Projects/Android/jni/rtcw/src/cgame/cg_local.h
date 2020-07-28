@@ -112,6 +112,7 @@ If you have questions concerning this license or the applicable additional terms
 #define HUD_FLAGS_FULLSCREEN			1
 #define HUD_FLAGS_STEREO				2
 #define HUD_FLAGS_MG42_CROSSHAIR		4
+#define HUD_ZOOMED_CROSSHAIR			8
 
 //=================================================
 
@@ -1693,12 +1694,10 @@ extern vmCvar_t cg_autoswitch;
 extern vmCvar_t cg_ignore;
 extern vmCvar_t cg_simpleItems;
 extern vmCvar_t cg_fov;
-extern vmCvar_t cg_zoomFov;
 extern vmCvar_t cg_zoomDefaultBinoc;
 extern vmCvar_t cg_zoomDefaultSniper;
 extern vmCvar_t cg_zoomDefaultFG;
 extern vmCvar_t cg_zoomDefaultSnooper;
-extern vmCvar_t cg_zoomStepBinoc;
 extern vmCvar_t cg_zoomStepSniper;
 extern vmCvar_t cg_zoomStepSnooper;
 extern vmCvar_t cg_zoomStepFG;

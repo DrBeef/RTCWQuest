@@ -136,7 +136,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         }
 
         //Engage scope if conditions are right
-        qboolean scopeready = vr.weapon_stabilised && (distanceToHMD < SCOPE_ENGAGE_DISTANCE);
+        qboolean scopeready = vr.weapon_stabilised;// && (distanceToHMD < SCOPE_ENGAGE_DISTANCE);
         static qboolean lastScopeready = qfalse;
         if (scopeready != lastScopeready) {
             if (vr.scopedweapon && !vr.scopedetached) {
@@ -407,6 +407,16 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                     ALOGV("**WEAPON EVENT**  Not Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
                     firing = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
                     sendButtonAction("+attack", firing);
+                }
+                else if (binocularsactive) // trigger can zoom-in binoculars, remove from face to reset
+                {
+                    static qboolean zoomin = true;
+                    if (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) {
+                        sendButtonActionSimple(zoomin ? "weapnext" : "weapprev");
+                    } else if (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)
+                    {
+                        zoomin = !zoomin;
+                    }
                 }
             }
 

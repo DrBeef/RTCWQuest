@@ -59,11 +59,11 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 	}
 	// -NERVE - SMF
 
-	if ((hudflags & HUD_FLAGS_FULLSCREEN)
-		|| cg.zoomedScope || cg.zoomedBinoc || cg.zoomval > 0
-		|| cg.viewFade > 0 || ( cgs.scrFadeAlphaCurrent > 0.0 )
-		|| !cgVR->visible_hud)
+	if (hudflags & HUD_ZOOMED_CROSSHAIR)
 	{
+		float screenXScale = cgs.screenXScale / 1.7f;
+		float screenYScale = cgs.screenYScale / 1.7f;
+
 		int xoffset = 0;
 		if (hudflags & HUD_FLAGS_STEREO) {
 			xoffset = -40;
@@ -72,9 +72,22 @@ void CG_AdjustFrom640( float *x, float *y, float *w, float *h ) {
 			}
 		}
 
+		*x *= screenXScale;
+		*x += xoffset;
+		*y *= screenYScale;
+		*w *= screenXScale;
+		*h *= screenYScale;
+
+		*x += (cg.refdef.width - (640 * screenXScale)) / 2.0f;
+		*y += (cg.refdef.height - (480 * screenYScale)) / 2.0f;
+	}
+	else if ((hudflags & HUD_FLAGS_FULLSCREEN)
+		|| cg.zoomedScope || cg.zoomedBinoc || cg.zoomval > 0
+		|| cg.viewFade > 0 || ( cgs.scrFadeAlphaCurrent > 0.0 )
+		|| !cgVR->visible_hud)
+	{
 		// scale for screen sizes
 		*x *= cgs.screenXScale;
-        *x += xoffset;
 		*y *= cgs.screenYScale;
 		*w *= cgs.screenXScale;
 		*h *= cgs.screenYScale;

@@ -131,17 +131,10 @@ void updateScopeAngles()
     static vec3_t lastScopeAngles;
     if (vr.scopeengaged)
     {
-        //Set Position
-        VectorSet(vr.hmdposition, vr.hmdposition[0] + vr.weaponoffset[0], vr.hmdposition[1] + vr.weaponoffset[1], vr.hmdposition[2] + vr.weaponoffset[2]);
+        //Clear weapon offset
         VectorSet(vr.weaponoffset, 0, 0, 0);
 
-        //Lerp the weapon angles to smooth out shaky hands a bit
-        vec3_t angles;
-        VectorSet(angles, vr.weaponangles[PITCH], vr.weaponangles[YAW], vr.hmdorientation[ROLL]);
-
-        //Can't use lerp as the change from +180 to -180 causes a rapid spin!
-        //VectorLerp(currentScopeAngles, 0.125, angles, currentScopeAngles);
-        VectorCopy(angles, currentScopeAngles);
+        VectorSet(currentScopeAngles, vr.weaponangles[PITCH], vr.weaponangles[YAW], vr.hmdorientation[ROLL]);
 
         //Set "view" Angles
         VectorCopy(currentScopeAngles, vr.hmdorientation);

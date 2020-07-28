@@ -37,7 +37,7 @@ If you have questions concerning this license or the applicable additional terms
 #define STATUSBARHEIGHT 452
 //----(SA) end
 
-extern qboolean hudflags;
+extern int hudflags;
 extern displayContextDef_t cgDC;
 extern vr_client_info_t* cgVR;
 menuDef_t *menuScoreboard = NULL;
@@ -2052,7 +2052,7 @@ static void CG_DrawWeapReticle( void ) {
 	//vec4_t snoopercolor = {0.7, .8, 0.7, 0};    // greenish
 	vec4_t snoopercolor = {0.7, .8, 0.7, 1};    // greenish
 
-	float indent = 0.255;
+	float indent = 0.25;
 	float X_WIDTH=640;
 	float Y_HEIGHT=480;
 
@@ -2087,10 +2087,12 @@ static void CG_DrawWeapReticle( void ) {
 		}
 
 		// hairs
+		hudflags |= HUD_ZOOMED_CROSSHAIR;
 		CG_FillRect( 84, 239, 177, 2, color );   // left
 		CG_FillRect( 320, 242, 1, 58, color );   // center top
 		CG_FillRect( 319, 300, 2, 178, color );  // center bot
 		CG_FillRect( 380, 239, 177, 2, color );  // right
+		hudflags &= ~HUD_ZOOMED_CROSSHAIR;
 	} else if ( weap == WP_SNOOPERSCOPE ) {
 
 		// center
@@ -2110,6 +2112,7 @@ static void CG_DrawWeapReticle( void ) {
 
 		// hairs
 
+		hudflags |= HUD_ZOOMED_CROSSHAIR;
 		CG_FillRect( 310, 120, 20, 1, color );   //					-----
 		CG_FillRect( 300, 160, 40, 1, color );   //				-------------
 		CG_FillRect( 310, 200, 20, 1, color );   //					-----
@@ -2127,6 +2130,7 @@ static void CG_DrawWeapReticle( void ) {
 		CG_FillRect( 319, 60, 1, 360, color );   // vert
 
 		CG_FillRect( 240, 220, 1, 40, color );   // r
+		hudflags &= ~HUD_ZOOMED_CROSSHAIR;
 	} else if ( weap == WP_FG42SCOPE ) {
 
 		// center
@@ -2138,6 +2142,7 @@ static void CG_DrawWeapReticle( void ) {
 		}
 
 		// hairs
+		hudflags |= HUD_ZOOMED_CROSSHAIR;
 		CG_FillRect( 84, 239, 150, 3, color );   // left
 		CG_FillRect( 234, 240, 173, 1, color );  // horiz center
 		CG_FillRect( 407, 239, 150, 3, color );  // right
@@ -2148,6 +2153,7 @@ static void CG_DrawWeapReticle( void ) {
 
 		CG_FillRect( 320, 241, 1, 87, color );   // bot center top
 		CG_FillRect( 319, 327, 3, 151, color );  // bot center bot
+		hudflags &= ~HUD_ZOOMED_CROSSHAIR;
 	}
 }
 
@@ -2185,7 +2191,7 @@ static void CG_DrawBinocReticle( void ) {
         trap_R_DrawStretchPic( x + w, y + h, w, h, 1, 1, 0, 0, cgs.media.binocShaderSimpleQ );  // br
 	}
 
-	hudflags |= HUD_FLAGS_STEREO;
+	hudflags |= (HUD_FLAGS_STEREO|HUD_ZOOMED_CROSSHAIR);
 	CG_FillRect( 146, 239, 348, 1, color );
 
 	CG_FillRect( 188, 234, 1, 13, color );   // ll
@@ -2195,7 +2201,7 @@ static void CG_DrawBinocReticle( void ) {
 	CG_FillRect( 360, 234, 1, 13, color );   // rl
 	CG_FillRect( 406, 226, 1, 29, color );   // r
 	CG_FillRect( 452, 234, 1, 13, color );   // rr
-	hudflags &= ~HUD_FLAGS_STEREO;
+	hudflags &= ~(HUD_FLAGS_STEREO|HUD_ZOOMED_CROSSHAIR);
 }
 
 void CG_FinishWeaponChange( int lastweap, int newweap ); // JPW NERVE
