@@ -475,9 +475,9 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             vec2_t v;
             rotateAboutOrigin(x, y, controllerYawHeading, v);
 
-            //Move a lot slower if scope is engaged or teleport is standard locomotion mode
-            remote_movementSideways = v[0] * (vr.scopeengaged || vr.teleportenabled ? 0.3f : 1.0f) * vr_movement_multiplier->value;
-            remote_movementForward = v[1] * (vr.scopeengaged || vr.teleportenabled ? 0.3f : 1.0f) * vr_movement_multiplier->value;
+            //Move a lot slower if scope is engaged
+            remote_movementSideways = v[0] * (vr.scopeengaged ? 0.3f : 1.0f) * vr_movement_multiplier->value;
+            remote_movementForward = v[1] * (vr.scopeengaged ? 0.3f : 1.0f) * vr_movement_multiplier->value;
             ALOGV("        remote_movementSideways: %f, remote_movementForward: %f",
                   remote_movementSideways,
                   remote_movementForward);
