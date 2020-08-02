@@ -2007,7 +2007,7 @@ void FireWeapon( gentity_t *ent ) {
 //			viewang[PITCH] -= 6; // handled in clientthink instead
 			ent->client->sniperRifleMuzzleYaw = 0;//crandom() * 0.5; // used in clientthink
 			ent->client->sniperRifleMuzzlePitch = 0.8f;
-			ent->client->sniperRifleFiredTime = level.time;
+			//ent->client->sniperRifleFiredTime = level.time;
 			SetClientViewAngle( ent,viewang );
 		}
 // jpw
@@ -2020,7 +2020,7 @@ void FireWeapon( gentity_t *ent ) {
 			VectorCopy( ent->client->ps.viewangles,viewang );
 			ent->client->sniperRifleMuzzleYaw = 0;//crandom() * 0.5; // used in clientthink
 			ent->client->sniperRifleMuzzlePitch = 0.9f;
-			ent->client->sniperRifleFiredTime = level.time;
+			//ent->client->sniperRifleFiredTime = level.time;
 			SetClientViewAngle( ent,viewang );
 		}
 // jpw
@@ -2039,7 +2039,7 @@ void FireWeapon( gentity_t *ent ) {
 //			ent->client->sniperRifleMuzzleYaw = crandom()*0.04; // used in clientthink
 			ent->client->sniperRifleMuzzleYaw = 0;
 			ent->client->sniperRifleMuzzlePitch = 0.07f;
-			ent->client->sniperRifleFiredTime = level.time;
+			//ent->client->sniperRifleFiredTime = level.time;
 			SetClientViewAngle( ent,viewang );
 		}
 	case WP_FG42:

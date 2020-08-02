@@ -29,7 +29,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
 {
 	//Ensure handedness is set correctly
-	vr.right_handed = vr_control_scheme->value < 10;
+	vr.right_handed = vr_control_scheme->value < 10 ||
+            vr_control_scheme->value == 99; // Always right-handed for weapon calibration
 
 	vr.teleportenabled = vr_teleport->integer != 0;
 
@@ -143,16 +144,24 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 if (!vr.scopeengaged && scopeready) {
                     ALOGV("**WEAPON EVENT**  trigger scope mode");
                     sendButtonActionSimple("weapalt");
-                } else if (vr.scopeengaged && !scopeready) {
-                    //Set this here so we don't retrigger scope by accident too soon
-                    ALOGV("**WEAPON EVENT**  vr.scopeengaged = qfalse");
-                    vr.scopeengaged = qfalse;
+                }
+                else if (vr.scopeengaged && !scopeready) {
+                    ALOGV("**WEAPON EVENT**  disable scope mode");
                     sendButtonActionSimple("weapalt");
-                    RTCWVR_ResyncClientYawWithGameYaw();
                 }
                 lastScopeready = scopeready;
             }
         }
+
+        static qboolean scopeEngaged = qfalse;
+        if (scopeEngaged != vr.scopeengaged)
+        {
+            scopeEngaged = vr.scopeengaged;
+
+            //Resync on either transition
+            RTCWVR_ResyncClientYawWithGameYaw();
+        }
+
 
         static qboolean binocularstate = qfalse;
         qboolean binocularsactive = (vr.hasbinoculars && vr.backpackitemactive == 3 &&
