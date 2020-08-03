@@ -695,8 +695,8 @@ float G_GetWeaponSpread( int weapon ) {
 		if ( g_userAim.integer ) {
 			// these should be higher since they become erratic if aiming is out
 			switch ( weapon ) {
-			case WP_LUGER:      return 400;
-			case WP_SILENCER:   return 900;
+			case WP_LUGER:      return 200;
+			case WP_SILENCER:   return 100;//900; // make silencer very accurate
 			case WP_COLT:       return 600;
 			case WP_AKIMBO:     return 700; //----(SA)	added
 			case WP_VENOM:      return 1000;

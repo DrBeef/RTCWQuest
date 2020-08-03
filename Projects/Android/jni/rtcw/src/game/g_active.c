@@ -914,16 +914,17 @@ void ClientThink_real( gentity_t *ent ) {
 	}
 
 	// NOTE: -------------- SP uses now too
-// JPW NERVE do some time-based muzzle flip -- this never gets touched in single player (see g_weapon.c)
-// #define RIFLE_SHAKE_TIME 150 // JPW NERVE this one goes with the commented out old damped "realistic" behavior below
-#define RIFLE_SHAKE_TIME 300 // per Id request, longer recoil time
+	// JPW NERVE do some time-based muzzle flip -- this never gets touched in single player (see g_weapon.c)
+	// #define RIFLE_SHAKE_TIME 150 // JPW NERVE this one goes with the commented out old damped "realistic" behavior below
+	#define RIFLE_SHAKE_TIME 300 // per Id request, longer recoil time
+
 	if ( client->sniperRifleFiredTime ) {
 		if ( level.time - client->sniperRifleFiredTime > RIFLE_SHAKE_TIME ) {
 			client->sniperRifleFiredTime = 0;
 		} else {
 			VectorCopy( client->ps.viewangles,muzzlebounce );
 
-// JPW old damped behavior -- feels more like a real rifle (modeled on Remington 700 7.62x51mm w/ 14x scope)
+			// JPW old damped behavior -- feels more like a real rifle (modeled on Remington 700 7.62x51mm w/ 14x scope)
 /*
 			muzzlebounce[PITCH] -= 2*cos(1.0-(level.time - client->sniperRifleFiredTime)*3/RIFLE_SHAKE_TIME);
 			muzzlebounce[YAW] += client->sniperRifleMuzzleYaw*cos(1.0-(level.time - client->sniperRifleFiredTime)*3/RIFLE_SHAKE_TIME);

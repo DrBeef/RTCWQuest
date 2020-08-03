@@ -29,9 +29,20 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
 
 {
 	//always right handed for this
+	vr.right_handed = true;
 
     static qboolean dominantGripPushed = false;
-	static float dominantGripPushTime = 0.0f;
+
+	/*
+    char cvar_name[64];
+    Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", vr.weaponid);
+    char weapon_adjustment[256];
+    Cvar_VariableStringBuffer(cvar_name, weapon_adjustment, 256);
+    sscanf(weapon_adjustment, "%f,%f,%f,%f,%f,%f,%f", &vr.test_scale,
+           &(vr.test_offset[0]), &(vr.test_offset[1]), &(vr.test_offset[2]),
+           &(vr.test_angles[PITCH]), &(vr.test_angles[YAW]), &(vr.test_angles[ROLL]));
+    VectorScale(vr.test_offset, vr.test_scale, vr.test_offset);
+    */
 
     //Need this for the touch screen
     {
@@ -105,6 +116,8 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
               positional_movementSideways,
               positional_movementForward);
 
+        dominantGripPushed = (pDominantTrackedRemoteNew->Buttons &
+                              ovrButton_GripTrigger) != 0;
 
         //We need to record if we have started firing primary so that releasing trigger will stop firing, if user has pushed grip
         //in meantime, then it wouldn't stop the gun firing and it would get stuck

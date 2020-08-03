@@ -168,7 +168,7 @@ import static android.system.Os.setenv;
 		//copy_asset("/sdcard/RTCWQuest/Main", "pak0.pk3");
 
 		//and the vr weapons
-		copy_asset("/sdcard/RTCWQuest/Main", "vr_sp_pak_weapons.pk3", false);
+		copy_asset("/sdcard/RTCWQuest/Main", "z_zvr_weapons.pk3", false);
 
 		//and the vr menu pk3
 		copy_asset("/sdcard/RTCWQuest/Main", "z_rtcwquest_vrmenu.pk3", true);

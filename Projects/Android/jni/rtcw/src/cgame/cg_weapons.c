@@ -2228,6 +2228,7 @@ static void CG_FlamethrowerFlame( centity_t *cent, vec3_t origin ) {
         CG_FireFlameChunks(cent, origin, angles, 1.0, qtrue, 1);
 
         trap_Vibrate(-1, cgVR->right_handed ? 1 : 0, 0.6);
+        trap_Vibrate(-1, cgVR->right_handed ? 1 : 0, 0.6);
         if (cgVR->weapon_stabilised)
         {
             trap_Vibrate(-1, cgVR->right_handed ? 0 : 1, 0.5);
@@ -3559,15 +3560,15 @@ void CG_AddViewWeapon( playerState_t *ps ) {
         vec3_t forward, right, up;
         AngleVectors(angles, forward, right, up);
 
-        VectorMA(origin, 24, forward, endForward);
+        VectorMA(origin, 40, forward, endForward);
         VectorSet(ci.color, 1, 0, 0); // Forward is red
         CG_RailTrail2(&ci, origin, endForward);
 
-        VectorMA(origin, 24, right, endRight);
+        VectorMA(origin, 20, right, endRight);
         VectorSet(ci.color, 0, 1, 0); // right is green
         CG_RailTrail2(&ci, origin, endRight);
 
-        VectorMA(origin, 24, up, endUp);
+        VectorMA(origin, 20, up, endUp);
         VectorSet(ci.color, 0, 0, 1); // up is blue
         CG_RailTrail2(&ci, origin, endUp);
     }
@@ -5217,7 +5218,7 @@ void CG_WeaponFireRecoil( int weapon ) {
 		break;
 	case WP_SNIPERRIFLE:
 	case WP_SNOOPERSCOPE:
-		pitchAdd = 0.6;
+		pitchAdd = 2.0;
 		break;
 	case WP_FG42SCOPE:
 	case WP_FG42:
