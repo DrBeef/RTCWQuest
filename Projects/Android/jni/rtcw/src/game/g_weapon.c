@@ -696,7 +696,7 @@ float G_GetWeaponSpread( int weapon ) {
 			// these should be higher since they become erratic if aiming is out
 			switch ( weapon ) {
 			case WP_LUGER:      return 200;
-			case WP_SILENCER:   return 100;//900; // make silencer very accurate
+			case WP_SILENCER:   return 200;//900; // make silencer as accurate as luger
 			case WP_COLT:       return 600;
 			case WP_AKIMBO:     return 700; //----(SA)	added
 			case WP_VENOM:      return 1000;
@@ -1964,13 +1964,10 @@ void FireWeapon( gentity_t *ent ) {
 		aimSpreadScale = 1.0;
 	}
 
-	//Let VR user be the bad shot
-	aimSpreadScale /= 1.2;
-
 	if (gVR->weapon_stabilised)
 	{
 		//Stabilised weapon is even more accurate
-		aimSpreadScale /= 2.0;
+		aimSpreadScale /= 2.5f;
 	}
 
 
