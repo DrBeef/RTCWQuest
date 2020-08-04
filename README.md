@@ -67,8 +67,8 @@ Alt-Fire
 Press and hold the grip button then pull the trigger to select the alternative weapon mode.
 
 
-*Weapon Specific Controls*
-
+Weapon Specific Controls
+========================
 
 Sniper Scopes
 -------------
@@ -85,7 +85,7 @@ The FG42 and the Mauser can have their scopes toggled on and off by using the we
 Knife
 -----
 
-There is no fire button, stab or swing to use it like a knife
+There is no fire button, simply stab with it or swing it to use it like a knife.
 
 
 Grenades / Pineapples / Dynamite
