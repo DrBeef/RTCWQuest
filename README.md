@@ -41,6 +41,11 @@ There are plenty of options available in the controls configuration menu. Be sur
 
 To enable smooth turning, simply set the snap turn value to very low, try a few values out to find one that suits you.
 
+*Teleport*
+
+Once teleport has been enabled in the config menu, you can press the off-hand trigger to activate the teleport, aim with the offhand controller to the desired location and release the trigger to teleport, normal locomotion is still available too, though if you wish to turn that off then you can reduce the movement speed to zero in the configuration menu.
+**NOTE: There is nothing to stop you cheating with the teleport**
+
 
 Controls
 ========
@@ -107,7 +112,8 @@ Mounted guns are aimed using gaze direction, pull trigger to fire, press "activa
 Backpack
 --------
 
-There is a handy backpack feature which acts as a quick access to certain weapons/pickups. To access the backpack move your dominant controller out of sight over your right shoulder. The press and hold the following buttons to access the following items:
+There is a handy backpack feature which acts as a quick access to certain weapons/pickups. To access the backpack move the controller out of sight over your shoulder. 
+Press and hold one of the following buttons to access the associated items:
 
 *Dominant Hand Controller*
 
@@ -126,7 +132,7 @@ Release the button to return to the previously active weapon
 Things to note / FAQs:
 ----------------------
 
-* Mods and Texture packs do work
+* Mods and Texture packs that work:...
 
 
 Credits:
