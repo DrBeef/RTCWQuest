@@ -133,7 +133,7 @@ I would like to thank the following teams and individual for making this possibl
 
 
 * Emile Belanger - For once again providing the android port upon which this is based. See his other Android ports [here](http://www.beloko.com/)
-* Baggyg - My long-time VR friend whose roles in this have been varied and all helpful, also the creator of excellent websites/artwork/assets for this mod as well as heavy  model alterations to be more VR friendly (removing hands, tweaking iron sights, alignment etc)
+* Baggyg - My long-time VR friend whose roles in this have been varied and all helpful, also the creator of excellent websites/artwork/assets for this mod as well as various  model alterations to be more VR friendly (removing hands, tweaking iron sights, alignment etc)
 * VR_Bummser - PR person extraordinaire, play tester and all round helpful and good guy. Hoping I can buy him a beer in person one day!
 * The [SideQuest](https://sidequestvr.com/#/news) team - For making it easy for people to install this
 * **Weapon Pack Credits**
