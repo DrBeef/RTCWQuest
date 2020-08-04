@@ -67,8 +67,8 @@ Alt-Fire
 Press and hold the grip button then pull the trigger to select the alternative weapon mode.
 
 
-*Weapon Specific Controls*
-
+Weapon Specific Controls
+========================
 
 Sniper Scopes
 -------------
@@ -85,7 +85,7 @@ The FG42 and the Mauser can have their scopes toggled on and off by using the we
 Knife
 -----
 
-There is no fire button, stab or swing to use it like a knife
+There is no fire button, simply stab with it or swing it to use it like a knife.
 
 
 Grenades / Pineapples / Dynamite
@@ -125,18 +125,19 @@ Things to note / FAQs:
 
 * Mods and Texture packs do work
 
+
 Credits:
 --------
 
-The game includes Hi Res textures, skins and items previously collected by the user Realistic. We could not find the original author of these weapons, nor does the pack include any licensing at all. If you are the author of these textures please feel free to contact us and we would be happy to credit you or remove.
-
 I would like to thank the following teams and individual for making this possible:
 
+
 * Emile Belanger - For once again providing the android port upon which this is based. See his other Android ports [here](http://www.beloko.com/)
-* Baggyg - My long-time VR friend whose roles in this have been varied and all helpful, also the creator of excellent websites/artwork/assets for this mod as well as heavy  model alterations to be more VR friendly (removing hands, tweaking iron sights, alignment etc)
+* Baggyg - My long-time VR friend whose roles in this have been varied and all helpful, also the creator of excellent websites/artwork/assets for this mod as well as various  model alterations to be more VR friendly (removing hands, tweaking iron sights, alignment etc)
 * VR_Bummser - PR person extraordinaire, play tester and all round helpful and good guy. Hoping I can buy him a beer in person one day!
 * The [SideQuest](https://sidequestvr.com/#/news) team - For making it easy for people to install this
-* GLE4ES for the OpenGL -> OpenGLES2 translation: without which this project wouldn't have worked at all: https://github.com/ptitSeb/gl4es
+* **Weapon Pack Credits**
+* [ptitSeb](https://github.com/ptitSeb/gl4es) for GLE4ES for the OpenGL -> OpenGLES2 translation: without which this project wouldn't have worked at all
 
 
 Building:
