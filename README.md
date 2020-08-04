@@ -1,7 +1,7 @@
 RTCWQuest
 ==========
 
-Welcome to the one and only fully wireless 6DoF implementation of Return to Castle Wolfenstein in VR.
+Welcome to the one and only fully wireless 6DoF implementation of _Return to Castle Wolfenstein_ in VR.
 
 This is built solely for the Oculus Quest VR HMD and will *not* run on any other device.
 
@@ -24,11 +24,19 @@ Copying the Full Game PAK files to your Oculus Quest
 Copy the PAK files from the installed RTCW game folder on your PC to the /RTCWQuest/Main folder on your Oculus Quest when it is connected to the PC. You have to have run RTCWQuest at least once for the folder to be created and if you don't see it when you connect your Quest to the PC you might have to restart the Quest.
 
 
-
 Caveats
 -------
 
 WARNING:  There is a good chance that unless you have your VR-legs this will probably make you feel a bit sick. The moment you start to feel under the weather YOU MUST STOP PLAYING for a good period of time before you try again. I will not be held responsible for anyone making themselves ill.
+
+Configuration
+-------------
+
+There are plenty of options available in the controls configuration menu. Be sure to check them out.
+
+*Smooth Turning*
+
+To enable smooth turning, simply set the snap turn value to very low, try a few values out to find one that suits you.
 
 
 Controls
@@ -41,18 +49,19 @@ The controls are reversed for left handed players
 * B Button - Jump
 * Y Button - Bring up the notebook
 * X Button - Show / Hide the HUD
-* Dominant-Hand Controller - Weapon orientation
-* Dominant-Hand Thumbstick - left/right Snap or Smooth turn, up/down weapon change
-* Dominant-Hand Thumbstick click - "activate" button (open doors, pull levers, pickup chairs etc)
-* Dominant-Hand Trigger - Fire
-* Dominant Grip Button - short click = reload, long press and trigger to switch weapon to alt-fire (more on this shortly)
-* Off-Hand Controller - Direction of movement (or HMD direction if configured)
-* Off-Hand Thumbstick - locomotion
-* Off-Hand Trigger - Run / Teleport
-* Off-Hand Grip Button - Two handed Weapon Stabilisation - will increase accuracy of weapons
-* Off-Hand Thumbstick click - Kick
+* Right-Hand Controller - Weapon orientation
+* Right-Hand Thumbstick - left/right Snap or Smooth turn, up/down weapon change
+* Right-Hand Thumbstick click - "activate" button (open doors, pull levers, pickup chairs etc)
+* Right-Hand Trigger - Fire
+* Right Grip Button - short click = reload, long press and trigger to switch weapon to alt-fire (more on this shortly)
+* Left-Hand Controller - Direction of movement (or HMD direction if configured)
+* Left-Hand Thumbstick - locomotion
+* Left-Hand Trigger - Run / Teleport
+* Left-Hand Grip Button - Two handed Weapon Stabilisation - will increase accuracy of weapons
+* Left-Hand Thumbstick click - Kick
 
-Alt Fire
+
+Alt-Fire
 --------
 
 Press and hold the grip button then pull the trigger to select the alternative weapon mode.
@@ -60,10 +69,18 @@ Press and hold the grip button then pull the trigger to select the alternative w
 
 *Weapon Specific Controls*
 
+
 Sniper Scopes
 -------------
 
-The FG42 and the Mauser can have their scopes toggled on and off by using the weapon alt mode (note the scoped Mauser is only available once the scope has been picked up in the game). When the scope is attached, to trigger the scoped view, ensure you are holding the weapon in two hands (use off-hand grip button) and then look through the scope on the weapon, this will switch you to scope mode. Move the controllers like you would when looking through the scope to aim.
+The FG42 and the Mauser can have their scopes toggled on and off by using the weapon alt mode (note the scoped Mauser is only available once the scope has been picked up in the game). When the scope is attached, to trigger the scoped view, ensure you are holding the weapon in two hands (use off-hand grip button) and then look through the scope on the weapon, this will switch you to scope mode:
+
+* Move the controllers like you would when looking through the scope to aim by moving the weapon
+* Use the dominant thumb stick forward / back to zoom in / out
+* When using the scope you will move at 1/3 normal speed
+* Thumbstick Turning is disabled when the scope is active
+* Release the off hand grip or move the dominant controller away from your face to exit scoped mode
+
 
 Knife
 -----
@@ -75,6 +92,13 @@ Grenades / Pineapples / Dynamite
 --------------------------------
 
 These are all throwable. Hold the trigger and then throw the item, releasing the trigger at the apex of the throw.
+
+
+Mounted Guns (MG42)
+-------------------
+
+Mounted guns are aimed using gaze direction, pull trigger to fire, press "activate" to enter/exit mounted gun mode.
+
 
 
 Backpack
