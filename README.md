@@ -4,7 +4,7 @@
 RTCWQuest
 ==========
 
-Welcome to the one and only fully wireless 6DoF implementation of _Return to Castle Wolfenstein_ in VR.
+Welcome to the one and only fully wireless 6DoF implementation of the _Return to Castle Wolfenstein_ single player campaign in VR.
 
 This is built solely for the Oculus Quest VR HMD and will *not* run on any other device.
 
@@ -46,11 +46,19 @@ To enable smooth turning, simply set the snap turn value to very low, try a few 
 Once teleport has been enabled in the config menu, you can press the off-hand trigger to activate the teleport, aim with the offhand controller to the desired location and release the trigger to teleport, normal locomotion is still available too, though if you wish to turn that off then you can reduce the movement speed to zero in the configuration menu.
 **NOTE: There is nothing to stop you cheating with the teleport**
 
+*Laser Sight*
+
+If you really want to, you can enable a laser sight in the controls menu.
+
+*Height Adjust*
+
+Player height can be adjusted for those that wish to play seated.
+
 
 Controls
 ========
 
-The controls are reversed for left handed players
+Note: the controls should be reversed for left handed players
 
 * Open the in-game menu with the left-controller menu button (same irrespective of right/left handed control)
 * A Button - Crouch
