@@ -3586,6 +3586,12 @@ void CG_AddViewWeapon( playerState_t *ps ) {
         case WP_DYNAMITE:
         case WP_GRENADE_LAUNCHER:
         case WP_GRENADE_PINEAPPLE:
+        case WP_TESLA:
+        case WP_FLAMETHROWER:
+        //Not sure about these
+        //case WP_FG42:
+        //case WP_GARAND:
+        //case WP_MAUSER:
             break;
         default:
             {
