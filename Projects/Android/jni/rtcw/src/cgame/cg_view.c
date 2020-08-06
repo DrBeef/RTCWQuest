@@ -1661,6 +1661,12 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		CG_Printf( "cg.clientFrame:%i\n", cg.clientFrame );
 	}
 
+	//Don't allow long running haptics to continue once dead
+	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
+		trap_Vibrate(0, 0, 0.0);
+		trap_Vibrate(0, 1, 0.0);
+	}
+
 	DEBUGTIME
 }
 

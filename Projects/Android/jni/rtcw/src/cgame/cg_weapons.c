@@ -2228,7 +2228,6 @@ static void CG_FlamethrowerFlame( centity_t *cent, vec3_t origin ) {
         CG_FireFlameChunks(cent, origin, angles, 1.0, qtrue, 1);
 
         trap_Vibrate(-1, cgVR->right_handed ? 1 : 0, 0.6);
-        trap_Vibrate(-1, cgVR->right_handed ? 1 : 0, 0.6);
         if (cgVR->weapon_stabilised)
         {
             trap_Vibrate(-1, cgVR->right_handed ? 0 : 1, 0.5);
@@ -3560,9 +3559,11 @@ void CG_AddViewWeapon( playerState_t *ps ) {
         vec3_t forward, right, up;
         AngleVectors(angles, forward, right, up);
 
-        VectorMA(origin, 40, forward, endForward);
+		trace_t trace;
+		VectorMA(origin, 8192, forward, endForward);
+		trap_CM_BoxTrace(&trace, origin, endForward, NULL, NULL, 0, MASK_SOLID);
         VectorSet(ci.color, 1, 0, 0); // Forward is red
-        CG_RailTrail2(&ci, origin, endForward);
+        CG_RailTrail2(&ci, origin, trace.endpos);
 
         VectorMA(origin, 20, right, endRight);
         VectorSet(ci.color, 0, 1, 0); // right is green
