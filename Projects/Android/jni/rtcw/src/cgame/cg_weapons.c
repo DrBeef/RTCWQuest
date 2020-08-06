@@ -3560,7 +3560,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
         vec3_t forward, right, up;
         AngleVectors(angles, forward, right, up);
 
-        VectorMA(origin, 40, forward, endForward);
+        VectorMA(origin, 8192, forward, endForward);
         VectorSet(ci.color, 1, 0, 0); // Forward is red
         CG_RailTrail2(&ci, origin, endForward);
 
