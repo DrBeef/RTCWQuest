@@ -1,4 +1,4 @@
-![RTCW Banner](https://github.com/DrBeef/RTCWQuest/blob/master/assets/RTCW.PNG)
+![RTCW Banner](https://github.com/DrBeef/RTCWQuest/blob/master/assets/banner.jpg)
 ====
 
 RTCWQuest
