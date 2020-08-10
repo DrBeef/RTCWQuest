@@ -492,6 +492,13 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                   remote_movementForward);
 
 
+            static qboolean stopUseItemNextFrame = false;
+            if (stopUseItemNextFrame)
+            {
+                Cbuf_AddText("-useitem\n");
+                stopUseItemNextFrame = false;
+            }
+
             if (!canUseQuickSave) {
                 if (((pOffTrackedRemoteNew->Buttons & offButton1) !=
                      (pOffTrackedRemoteOld->Buttons & offButton1)) &&
@@ -499,19 +506,27 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
                     if (dominantGripPushed) {
                         //If cheats enabled, give all weapons/pickups to player
-                        Cbuf_AddText("give all\n");
+                        //Cbuf_AddText("give all\n");
+
+                        Cbuf_AddText("+useitem\n");
+                        stopUseItemNextFrame = qtrue;
                     } else {
                         vr.visible_hud = !vr.visible_hud;
                     }
                 }
             }
 
-            //notebook
+            //notebook or select "item"
             if (!canUseQuickSave) {
                 if (((pOffTrackedRemoteNew->Buttons & offButton2) !=
                      (pOffTrackedRemoteOld->Buttons & offButton2)) &&
                     (pOffTrackedRemoteNew->Buttons & offButton2)) {
-                    sendButtonActionSimple("notebook");
+
+                    if (dominantGripPushed) {
+                        sendButtonActionSimple("itemprev");
+                    } else {
+                        sendButtonActionSimple("notebook");
+                    }
                 }
             }
 

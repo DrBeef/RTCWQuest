@@ -2061,6 +2061,8 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
                 vec3_t adjust;
                 vec3_t temp_offset;
                 VectorClear(temp_offset);
+                VectorClear(adjust);
+
                 sscanf(weapon_adjustment, "%f,%f,%f,%f,%f,%f,%f", &scale,
                        &(temp_offset[0]), &(temp_offset[1]), &(temp_offset[2]),
                        &(adjust[PITCH]), &(adjust[YAW]), &(adjust[ROLL]));
@@ -3175,7 +3177,18 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	angles[ROLL]    = crandom() * 10;
 	AnglesToAxis( angles, flash.axis );
 
-	CG_PositionRotatedEntityOnTag( &flash, &gun, "tag_flash" );
+	if (weaponNum != WP_TESLA) {
+		CG_PositionRotatedEntityOnTag(&flash, &gun, "tag_flash");
+	}
+	else
+	{
+		//For the Tesla, set the origin of the flash to be a short distance forward of the controller
+		vec3_t origin, angles;
+		CG_CalculateVRWeaponPosition( 0,       flash.origin,        angles );
+		vec3_t forward, right, up;
+		AngleVectors(angles, forward, right, up);
+		VectorMA( flash.origin, 10, forward, flash.origin );
+	}
 
 	// store this position for other cgame elements to access
 	cent->pe.gunRefEnt = gun;

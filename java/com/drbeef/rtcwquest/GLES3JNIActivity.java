@@ -164,8 +164,8 @@ import static android.system.Os.setenv;
 		//Copy the weapon adjustment config
 		copy_asset("/sdcard/RTCWQuest/Main", "weapons_vr.cfg", false);
 
-		//and the demo version
-		//copy_asset("/sdcard/RTCWQuest/Main", "pak0.pk3");
+		//and the demo version - if required
+		copy_asset("/sdcard/RTCWQuest/Main", "pak0.pk3", false);
 
 		//and the vr weapons
 		copy_asset("/sdcard/RTCWQuest/Main", "z_zvr_weapons.pk3", false);
