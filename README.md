@@ -58,6 +58,8 @@ Player height can be adjusted for those that wish to play seated.
 Controls
 ========
 
+![RTCW Controller Diagram](https://github.com/DrBeef/RTCWQuest/blob/master/assets/Controller_diagram_alt.jpg)
+
 Note: the controls should be reversed for left handed players
 
 * Open the in-game menu with the left-controller menu button (same irrespective of right/left handed control)
