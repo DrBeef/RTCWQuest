@@ -2540,7 +2540,7 @@ void R_SetColorMappings( void ) {
 
 
 	if ( r_intensity->value <= 1 ) {
-		ri.Cvar_Set( "r_intensity", "1" );
+		ri.Cvar_Set( "r_intensity", "1.25" );
 	}
 
 	if ( r_gamma->value < 0.5f ) {
