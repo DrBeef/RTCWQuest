@@ -3390,45 +3390,51 @@ void CG_AddPlayerFoot( refEntity_t *parent, playerState_t *ps, centity_t *cent )
 }
 
 void CG_LaserSight(const playerState_t *ps) {
+
 	if (trap_Cvar_VariableIntegerValue("vr_lasersight") != 0 &&
 	    cgVR->backpackitemactive == 0 &&
 	    cg.predictedPlayerState.stats[STAT_HEALTH] > 0 &&
 		!cgVR->screen &&
 		!cgVR->scopeengaged)
 	{
-	    switch (ps->weapon)
-        {
-        case WP_KNIFE:
-        case WP_DYNAMITE:
-        case WP_GRENADE_LAUNCHER:
-        case WP_GRENADE_PINEAPPLE:
-        case WP_TESLA:
-        case WP_FLAMETHROWER:
-        case WP_FG42:
-        case WP_GARAND:
-        case WP_MAUSER:
-            break;
-        default:
-            {
-                vec3_t origin;
-                vec3_t endForward;
-                vec3_t angles;
-                clientInfo_t ci;
-                CG_CalculateVRWeaponPosition(0, origin, angles);
+		qboolean drawLaserSight = qfalse;
 
-                vec3_t forward, right, up;
-                AngleVectors(angles, forward, right, up);
+	    switch (ps->weapon) {
+			case WP_KNIFE:
+			case WP_DYNAMITE:
+			case WP_GRENADE_LAUNCHER:
+			case WP_GRENADE_PINEAPPLE:
+			case WP_TESLA:
+			case WP_FLAMETHROWER:
+			case WP_GARAND:
+				break;
+			case WP_FG42:
+			case WP_MAUSER:
+                drawLaserSight = cgVR->scopedetached; // Only user laser sight on scoped weapons if the scope isn't attached
+				break;
+			default:
+                drawLaserSight = qtrue;
+		}
 
-                trace_t trace;
-                VectorMA(origin, 8192, forward, endForward);
-                trap_CM_BoxTrace(&trace, origin, endForward, NULL, NULL, 0, MASK_SOLID);
+		if (drawLaserSight) {
+			vec3_t origin;
+			vec3_t endForward;
+			vec3_t angles;
+			clientInfo_t ci;
+			CG_CalculateVRWeaponPosition(0, origin, angles);
 
-                ci.health = 1;
-                ci.handicap = 128; // value out of 255 for  alpha channel
-                VectorSet(ci.color, 1, 0, 0);
-                CG_RailTrail2(&ci, origin, trace.endpos);
-            }
-        }
+			vec3_t forward, right, up;
+			AngleVectors(angles, forward, right, up);
+
+			trace_t trace;
+			VectorMA(origin, 8192, forward, endForward);
+			trap_CM_BoxTrace(&trace, origin, endForward, NULL, NULL, 0, MASK_SOLID);
+
+			ci.health = 1;
+			ci.handicap = 96; // value out of 255 for  alpha channel
+			VectorSet(ci.color, 1, 0, 0);
+			CG_RailTrail2(&ci, origin, trace.endpos);
+		}
 	}
 }
 
