@@ -188,9 +188,10 @@ itemDef
 	itemDef {
 		name vr
 		group grpControls
-		type ITEM_TYPE_SLIDER
-		text "Turn Angle ( <= 10 for smooth turn):"
-		cvarfloat "vr_snapturn_angle" .0 1 90
+		text "Turning Mode:"
+        type ITEM_TYPE_MULTI
+        cvar "vr_turn_mode"
+        cvarFloatList {"Snap Turn" 0 "Smooth Turn" 1  }
 		rect 82 90 290 12
       	textalign ITEM_ALIGN_RIGHT
       	textalignx 142
@@ -198,6 +199,24 @@ itemDef
 		textscale .23
 		style WINDOW_STYLE_FILLED
 		backcolor 1 1 1 .07        
+      	forecolor 1 1 1 1
+      	visible 1
+    		}
+
+
+	itemDef {
+		name vr
+		group grpControls
+		type ITEM_TYPE_SLIDER
+		text "Turn Angle:"
+		cvarfloat "vr_turn_angle" .0 1 90
+		rect 82 105 290 12
+      	textalign ITEM_ALIGN_RIGHT
+      	textalignx 142
+      	textaligny 10
+		textscale .23
+		style WINDOW_STYLE_FILLED
+		backcolor 1 1 1 .07
       	forecolor 1 1 1 1
       	visible 1
     		}
@@ -209,7 +228,7 @@ itemDef
 		type ITEM_TYPE_YESNO
 		text "Gaze Movement Direction:  "
 		cvar "vr_walkdirection"
-		rect 82 105 290 12
+		rect 82 120 290 12
 		textalign ITEM_ALIGN_RIGHT
 		textalignx 142
 		textaligny 10
@@ -226,7 +245,7 @@ itemDef
 		type ITEM_TYPE_SLIDER
 		text "Movement Speed:"
 		cvarfloat "vr_movement_multiplier" .0 0.05 1.0
-		rect 82 120 290 12
+		rect 82 135 290 12
       	textalign ITEM_ALIGN_RIGHT
       	textalignx 142
       	textaligny 10

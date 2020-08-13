@@ -572,8 +572,10 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             if (!vr.mountedgun && !vr.scopeengaged) {
                 if (pDominantTrackedRemoteNew->Joystick.x > 0.7f) {
                     if (increaseSnap) {
-                        snapTurn -= vr_snapturn_angle->value;
-                        if (vr_snapturn_angle->value > 10.0f) {
+                        float turnAngle = vr_turn_mode->integer ? (vr_turn_angle->value / 9.0f) : vr_turn_angle->value;
+                        snapTurn -= turnAngle;
+
+                        if (vr_turn_mode->integer == 0) {
                             increaseSnap = false;
                         }
 
@@ -590,10 +592,12 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 static int decreaseSnap = true;
                 if (pDominantTrackedRemoteNew->Joystick.x < -0.7f) {
                     if (decreaseSnap) {
-                        snapTurn += vr_snapturn_angle->value;
+
+                        float turnAngle = vr_turn_mode->integer ? (vr_turn_angle->value / 9.0f) : vr_turn_angle->value;
+                        snapTurn += turnAngle;
 
                         //If snap turn configured for less than 10 degrees
-                        if (vr_snapturn_angle->value > 10.0f) {
+                        if (vr_turn_mode->integer == 0) {
                             decreaseSnap = false;
                         }
 
