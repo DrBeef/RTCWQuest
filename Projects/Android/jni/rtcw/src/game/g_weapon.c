@@ -697,14 +697,14 @@ float G_GetWeaponSpread( int weapon ) {
 			switch ( weapon ) {
 			case WP_LUGER:      return 200;
 			case WP_SILENCER:   return 200;//900; // make silencer as accurate as luger
-			case WP_COLT:       return 600;
+			case WP_COLT:       return 200;//600; // make colt as accurate as luger for VR
 			case WP_AKIMBO:     return 700; //----(SA)	added
 			case WP_VENOM:      return 1000;
 			case WP_MP40:       return 1000;
 			case WP_FG42SCOPE:  return 100;
 			case WP_FG42:       return 800;
-			case WP_THOMPSON:   return 1200;
-			case WP_STEN:       return 1200;
+			case WP_THOMPSON:   return 1000;
+			case WP_STEN:       return 800;//1200; Improve accuracy of Sten for more fun on stealth missions
 			case WP_MAUSER:     return 400;
 			case WP_GARAND:     return 500;
 			case WP_SNIPERRIFLE:    return 100;
