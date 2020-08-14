@@ -976,40 +976,6 @@ void Bullet_Fire( gentity_t *ent, float spread, int damage ) {
 	    }
     }
 
-	//If we have an autoaim target and player shooting..
-	if (g_autoAimEntity && !(ent->r.svFlags& SVF_CASTAI))
-	{
-		//Do a trace to see what the current aim will hit
-		trace_t tr;
-		trap_Trace( &tr, muzzleTrace, NULL, NULL, end, ent->s.number, MASK_SHOT );
-		gentity_t   *traceEnt =  &g_entities[ tr.entityNum ];
-
-		//Now check if thing going to hit is NOT an enemy, if not, move the muzzle to the autoaim enemy
-		//We do this so if we are good aim anyway the autoaim wont kick in
-		if (!(traceEnt->r.svFlags& SVF_CASTAI))
-		{
-			VectorCopy( g_autoAimEntity->r.currentOrigin, end );
-/*
-			//Draw box arond current target
-			if (g_autoAimEntity)
-			{
-				gentity_t *bboxEnt;
-				vec3_t b1, b2;
-				VectorCopy( g_autoAimEntity->r.currentOrigin, b1 );
-				VectorCopy( g_autoAimEntity->r.currentOrigin, b2 );
-				VectorAdd( b1, g_autoAimEntity->r.mins, b1 );
-				VectorAdd( b2, g_autoAimEntity->r.maxs, b2 );
-				bboxEnt = G_TempEntity( b1, EV_RAILTRAIL );
-				VectorCopy( b2, bboxEnt->s.origin2 );
-				bboxEnt->s.dmgFlags = 1;    // ("type")
-			}
-*/
-		}
-		//reset this, will get set again if sucessful shot
-		g_autoAimEntity = NULL;
-	}
-
-
 	Bullet_Fire_Extended( ent, ent, muzzleTrace, end, spread, damage, 0 );
 }
 

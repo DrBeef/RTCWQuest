@@ -930,21 +930,6 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		}
 	}
 
-	//If player shoots target
-	if (attacker && !(attacker->r.svFlags& SVF_CASTAI) && (targ->r.svFlags & SVF_CASTAI))
-	{
-		if (targ->health > 0) //if target is already dead then ignore
-		{
-			LOGI("Got autoaim target");
-			g_autoAimEntity = targ;
-		}
-		else
-		{
-			LOGI("Target dead");
-			g_autoAimEntity = NULL;
-		}
-	}
-
 	if ( ( g_gametype.integer == GT_SINGLE_PLAYER ) && !( targ->r.svFlags & SVF_CASTAI ) ) { // the player
 		switch ( mod )
 		{
