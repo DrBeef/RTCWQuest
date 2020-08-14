@@ -2826,6 +2826,48 @@ qboolean CG_MonsterUsingWeapon( centity_t *cent, int aiChar, int weaponNum ) {
 
 
 
+/*
+======================
+CG_CalcMuzzlePoint
+======================
+*/
+static qboolean CG_CalcMuzzlePoint( int entityNum, int dist, vec3_t muzzle ) {
+    vec3_t forward, right, up;
+    centity_t   *cent;
+    int anim;
+    cent = &cg_entities[entityNum];
+    if ( entityNum == cg.snap->ps.clientNum ) {
+        vec3_t angles;
+        CG_CalculateVRWeaponPosition(cent->currentState.weapon, muzzle, angles);
+
+        AngleVectors( angles, forward, NULL, NULL );
+        VectorMA( muzzle, dist, forward, muzzle );
+        return qtrue;
+    }
+
+
+//----(SA)	removed check.  is this still necessary?  (this way works for ai's firing mg42)  should I check for mg42?
+//	if ( !cent->currentValid ) {
+//		return qfalse;
+//	}
+//----(SA)	end
+
+    VectorCopy( cent->currentState.pos.trBase, muzzle );
+
+    AngleVectors( cent->currentState.apos.trBase, forward, right, up );
+    anim = cent->currentState.legsAnim & ~ANIM_TOGGLEBIT;
+// RF, this is all broken by scripting system
+//	if ( anim == LEGS_WALKCR || anim == LEGS_IDLECR || anim  == LEGS_IDLE_ALT ) {
+//		muzzle[2] += CROUCH_VIEWHEIGHT;
+//	} else {
+    muzzle[2] += DEFAULT_VIEWHEIGHT;
+//	}
+
+    VectorMA( muzzle, 14, forward, muzzle );
+
+    return qtrue;
+
+}
 
 /*
 =============
@@ -3042,6 +3084,9 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		// has fired and the fire seq has switched over
 		if ( weaponNum == WP_AKIMBO && akimboFire ) {
 			CG_PositionRotatedEntityOnTag( &brass, &gun, "tag_brass2" );
+		} else if ( weaponNum == WP_STEN) {
+		    //Correct bad tag on STEN model
+            CG_CalcMuzzlePoint(cent->currentState.clientNum, 6, brass.origin);
 		} else {
 			CG_PositionRotatedEntityOnTag( &brass, &gun, "tag_brass" );
 		}
@@ -3177,17 +3222,14 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	angles[ROLL]    = crandom() * 10;
 	AnglesToAxis( angles, flash.axis );
 
-	if (weaponNum != WP_TESLA) {
+	if (weaponNum != WP_TESLA && weaponNum != WP_STEN) {
 		CG_PositionRotatedEntityOnTag(&flash, &gun, "tag_flash");
 	}
 	else
 	{
-		//For the Tesla, set the origin of the flash to be a short distance forward of the controller
-		vec3_t origin, angles;
-		CG_CalculateVRWeaponPosition( 0,       flash.origin,        angles );
-		vec3_t forward, right, up;
-		AngleVectors(angles, forward, right, up);
-		VectorMA( flash.origin, 10, forward, flash.origin );
+		//For the Tesla/ Sten, set the origin of the flash to be a distance forward of the controller
+		//Corrects the confused tag in the altered models
+        CG_CalcMuzzlePoint(cent->currentState.clientNum, weaponNum == WP_TESLA ? 11 : 24, flash.origin);
 	}
 
 	// store this position for other cgame elements to access
@@ -6583,49 +6625,6 @@ void CG_Tracer( vec3_t source, vec3_t dest, int sparks ) {
 
 /*
 ======================
-CG_CalcMuzzlePoint
-======================
-*/
-static qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
-	vec3_t forward, right, up;
-	centity_t   *cent;
-	int anim;
-	cent = &cg_entities[entityNum];
-	if ( entityNum == cg.snap->ps.clientNum ) {
-        vec3_t angles;
-        CG_CalculateVRWeaponPosition(cent->currentState.weapon, muzzle, angles);
-
-		AngleVectors( angles, forward, NULL, NULL );
-		VectorMA( muzzle, 14, forward, muzzle );
-		return qtrue;
-	}
-
-
-//----(SA)	removed check.  is this still necessary?  (this way works for ai's firing mg42)  should I check for mg42?
-//	if ( !cent->currentValid ) {
-//		return qfalse;
-//	}
-//----(SA)	end
-
-	VectorCopy( cent->currentState.pos.trBase, muzzle );
-
-	AngleVectors( cent->currentState.apos.trBase, forward, right, up );
-	anim = cent->currentState.legsAnim & ~ANIM_TOGGLEBIT;
-// RF, this is all broken by scripting system
-//	if ( anim == LEGS_WALKCR || anim == LEGS_IDLECR || anim  == LEGS_IDLE_ALT ) {
-//		muzzle[2] += CROUCH_VIEWHEIGHT;
-//	} else {
-	muzzle[2] += DEFAULT_VIEWHEIGHT;
-//	}
-
-	VectorMA( muzzle, 14, forward, muzzle );
-
-	return qtrue;
-
-}
-
-/*
-======================
 CG_Bullet
 
 Renders bullet effects.
@@ -6644,7 +6643,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 	// if the shooter is currently valid, calc a source point and possibly
 	// do trail effects
 	if ( sourceEntityNum >= 0 && cg_tracerChance.value > 0 ) {
-		if ( CG_CalcMuzzlePoint( sourceEntityNum, start ) ) {
+		if ( CG_CalcMuzzlePoint( sourceEntityNum, 14, start ) ) {
 			sourceContentType = trap_CM_PointContents( start, 0 );
 			destContentType = trap_CM_PointContents( end, 0 );
 
@@ -6736,7 +6735,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 
 		// if we haven't dropped a blood spat in a while, check if this is a good scenario
 		if ( lastBloodSpat > cg.time || lastBloodSpat < cg.time - 500 ) {
-			if ( CG_CalcMuzzlePoint( sourceEntityNum, start ) ) {
+			if ( CG_CalcMuzzlePoint( sourceEntityNum, 14, start ) ) {
 				VectorSubtract( end, start, dir );
 				VectorNormalize( dir );
 				VectorMA( end, 128, dir, trend );
@@ -6783,7 +6782,7 @@ void CG_Bullet( vec3_t end, int sourceEntityNum, vec3_t normal, qboolean flesh, 
 //				CG_SpawnTracer( sourceEntityNum, start, end );
 //		}
 
-		if ( CG_CalcMuzzlePoint( sourceEntityNum, start )
+		if ( CG_CalcMuzzlePoint( sourceEntityNum, 14, start )
 			 || cg.snap->ps.persistant[PERS_HWEAPON_USE] ) {
 			vec3_t start2;
 			VectorSubtract( end, start, dir );
