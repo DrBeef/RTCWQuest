@@ -135,9 +135,9 @@ itemDef
 	itemDef {
 		name vr
 		group grpControls
-		text "Teleport:  "
+		text "Switch Thumbsticks:  "
 		type ITEM_TYPE_YESNO	
-		cvar "vr_teleport"
+		cvar "vr_switch_sticks"
 		rect 82 45 290 12
 		textalign ITEM_ALIGN_RIGHT
 		textalignx 142
@@ -149,13 +149,31 @@ itemDef
 		visible 1 
     		}
 
+
+	itemDef {
+		name vr
+		group grpControls
+		text "Teleport:  "
+		type ITEM_TYPE_YESNO
+		cvar "vr_teleport"
+		rect 82 60 290 12
+		textalign ITEM_ALIGN_RIGHT
+		textalignx 142
+		textaligny 10
+		textscale .22
+		style WINDOW_STYLE_FILLED
+		backcolor 1 1 1 .07
+		forecolor 1 1 1 1
+		visible 1
+    		}
+
 	itemDef {
 		name vr
 		group grpControls
 		type ITEM_TYPE_YESNO
 		text "Laser Sight:  "
 		cvar "vr_lasersight"
-		rect 82 60 290 12
+		rect 82 75 290 12
 		textalign ITEM_ALIGN_RIGHT
 		textalignx 142
 		textaligny 10
@@ -173,7 +191,7 @@ itemDef
 		type ITEM_TYPE_SLIDER
 		text "Height Adjust:"
 		cvarfloat "cg_heightAdjust" .0 .01 1
-		rect 82 75 290 12
+		rect 82 90 290 12
       	textalign ITEM_ALIGN_RIGHT
       	textalignx 142
       	textaligny 10
@@ -192,7 +210,7 @@ itemDef
         type ITEM_TYPE_MULTI
         cvar "vr_turn_mode"
         cvarFloatList {"Snap Turn" 0 "Smooth Turn" 1  }
-		rect 82 90 290 12
+		rect 82 105 290 12
       	textalign ITEM_ALIGN_RIGHT
       	textalignx 142
       	textaligny 10
@@ -210,7 +228,7 @@ itemDef
 		type ITEM_TYPE_SLIDER
 		text "Turn Angle:"
 		cvarfloat "vr_turn_angle" .0 1 90
-		rect 82 105 290 12
+		rect 82 120 290 12
       	textalign ITEM_ALIGN_RIGHT
       	textalignx 142
       	textaligny 10
@@ -228,7 +246,7 @@ itemDef
 		type ITEM_TYPE_YESNO
 		text "Gaze Movement Direction:  "
 		cvar "vr_walkdirection"
-		rect 82 120 290 12
+		rect 82 135 290 12
 		textalign ITEM_ALIGN_RIGHT
 		textalignx 142
 		textaligny 10
@@ -245,7 +263,7 @@ itemDef
 		type ITEM_TYPE_SLIDER
 		text "Movement Speed:"
 		cvarfloat "vr_movement_multiplier" .0 0.05 1.0
-		rect 82 135 290 12
+		rect 82 150 290 12
       	textalign ITEM_ALIGN_RIGHT
       	textalignx 142
       	textaligny 10

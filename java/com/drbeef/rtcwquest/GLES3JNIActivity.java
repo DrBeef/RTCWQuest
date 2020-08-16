@@ -173,6 +173,9 @@ import static android.system.Os.setenv;
 		//and the vr menu pk3
 		copy_asset("/sdcard/RTCWQuest/Main", "z_rtcwquest_vrmenu.pk3", true);
 
+		//and the venom scripting improvements pak (thank-you _HELLBARON_ !!)
+		copy_asset("/sdcard/RTCWQuest/Main", "sp_vpak8.pk3", false);
+
 		//Read these from a file and pass through
 		commandLineParams = new String("rtcw");
 

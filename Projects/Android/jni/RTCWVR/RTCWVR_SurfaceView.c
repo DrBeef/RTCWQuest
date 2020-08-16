@@ -1302,6 +1302,7 @@ void RTCWVR_Init()
 
     //Defaults
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
+	vr_switch_sticks = Cvar_Get( "vr_switch_sticks", "0", CVAR_ARCHIVE);
 
     //Set up vr client info
 	vr.backpackitemactive = 0;

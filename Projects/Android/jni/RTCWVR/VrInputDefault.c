@@ -18,6 +18,7 @@ Authors		:	Simon Brown
 #include "VrCvars.h"
 
 #include "../rtcw/src/client/client.h"
+#include "../../../../../../VrApi/Include/VrApi_Input.h"
 
 #define WP_AKIMBO           20
 
@@ -50,6 +51,21 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         pWeapon = pOffTracking;
         pOff = pDominantTracking;
     }
+
+    ovrVector2f *pPrimaryJoystick;
+    ovrVector2f *pSecondaryJoystick;
+    if (vr_switch_sticks->integer)
+    {
+        pSecondaryJoystick = &pDominantTrackedRemoteNew->Joystick;
+        pPrimaryJoystick = &pOffTrackedRemoteNew->Joystick;
+    }
+    else
+    {
+        pPrimaryJoystick = &pDominantTrackedRemoteNew->Joystick;
+        pSecondaryJoystick = &pOffTrackedRemoteNew->Joystick;
+    }
+
+
 
     {
         //Set gun angles - We need to calculate all those we might need (including adjustments) for the client to then take its pick
@@ -442,12 +458,12 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
 			//Weapon/Inventory Chooser
 			static qboolean itemSwitched = false;
-			if (between(-0.2f, pDominantTrackedRemoteNew->Joystick.x, 0.2f) &&
-				(between(0.8f, pDominantTrackedRemoteNew->Joystick.y, 1.0f) ||
-				 between(-1.0f, pDominantTrackedRemoteNew->Joystick.y, -0.8f)))
+			if (between(-0.2f, pPrimaryJoystick->x, 0.2f) &&
+				(between(0.8f, pPrimaryJoystick->y, 1.0f) ||
+				 between(-1.0f, pPrimaryJoystick->y, -0.8f)))
 			{
 				if (!itemSwitched) {
-					if (between(0.8f, pDominantTrackedRemoteNew->Joystick.y, 1.0f))
+					if (between(0.8f, pPrimaryJoystick->y, 1.0f))
 					{
                         sendButtonActionSimple("weapprev");
 					}
@@ -473,10 +489,10 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             }
 
             //Apply a filter and quadratic scaler so small movements are easier to make
-            float dist = length(pOffTrackedRemoteNew->Joystick.x, pOffTrackedRemoteNew->Joystick.y);
+            float dist = length(pSecondaryJoystick->x, pSecondaryJoystick->y);
             float nlf = nonLinearFilter(dist);
-            float x = nlf * pOffTrackedRemoteNew->Joystick.x;
-            float y = nlf * pOffTrackedRemoteNew->Joystick.y;
+            float x = nlf * pSecondaryJoystick->x;
+            float y = nlf * pSecondaryJoystick->y;
 
             vr.player_moving = (fabs(x) + fabs(y)) > 0.05f;
 
@@ -570,7 +586,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             //No snap turn when using mounted gun
             static int increaseSnap = true;
             if (!vr.mountedgun && !vr.scopeengaged) {
-                if (pDominantTrackedRemoteNew->Joystick.x > 0.7f) {
+                if (pPrimaryJoystick->x > 0.7f) {
                     if (increaseSnap) {
                         float turnAngle = vr_turn_mode->integer ? (vr_turn_angle->value / 9.0f) : vr_turn_angle->value;
                         snapTurn -= turnAngle;
@@ -585,12 +601,12 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
                         RTCWVR_ResyncClientYawWithGameYaw();
                     }
-                } else if (pDominantTrackedRemoteNew->Joystick.x < 0.3f) {
+                } else if (pPrimaryJoystick->x < 0.3f) {
                     increaseSnap = true;
                 }
 
                 static int decreaseSnap = true;
-                if (pDominantTrackedRemoteNew->Joystick.x < -0.7f) {
+                if (pPrimaryJoystick->x < -0.7f) {
                     if (decreaseSnap) {
 
                         float turnAngle = vr_turn_mode->integer ? (vr_turn_angle->value / 9.0f) : vr_turn_angle->value;
@@ -607,12 +623,12 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
                         RTCWVR_ResyncClientYawWithGameYaw();
                     }
-                } else if (pDominantTrackedRemoteNew->Joystick.x > -0.3f) {
+                } else if (pPrimaryJoystick->x > -0.3f) {
                     decreaseSnap = true;
                 }
             }
             else {
-                if (fabs(pDominantTrackedRemoteNew->Joystick.x) > 0.5f) {
+                if (fabs(pPrimaryJoystick->x) > 0.5f) {
                     if (increaseSnap)
                     {
                         RTCWVR_ResyncClientYawWithGameYaw();
