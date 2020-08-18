@@ -700,12 +700,12 @@ float G_GetWeaponSpread( int weapon ) {
 			case WP_COLT:       return 200;//600; // make colt as accurate as luger for VR
 			case WP_AKIMBO:     return 700; //----(SA)	added
 			case WP_VENOM:      return 1000;
-			case WP_MP40:       return 1000;
+			case WP_MP40:       return 800;
 			case WP_FG42SCOPE:  return 100;
-			case WP_FG42:       return 800;
+			case WP_FG42:       return 200;
 			case WP_THOMPSON:   return 1000;
 			case WP_STEN:       return 800;//1200; Improve accuracy of Sten for more fun on stealth missions
-			case WP_MAUSER:     return 400;
+			case WP_MAUSER:     return 200;
 			case WP_GARAND:     return 500;
 			case WP_SNIPERRIFLE:    return 100;
 			case WP_SNOOPERSCOPE:   return 100;
@@ -1933,7 +1933,7 @@ void FireWeapon( gentity_t *ent ) {
 	if (gVR->weapon_stabilised)
 	{
 		//Stabilised weapon is even more accurate
-		aimSpreadScale /= 2.5f;
+		aimSpreadScale /= 3.0f;
 	}
 
 

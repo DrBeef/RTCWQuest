@@ -3080,13 +3080,23 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	if ( isPlayer ) {
 		refEntity_t brass;
 
+		int brassOffset[WP_NUM_WEAPONS];
+		memset (brassOffset, 0, sizeof brassOffset);
+		brassOffset[WP_LUGER] = 1;
+		brassOffset[WP_COLT] = 1;
+		brassOffset[WP_FG42] = 1;
+		brassOffset[WP_MP40] = 2;
+		brassOffset[WP_THOMPSON] = 2;
+		brassOffset[WP_STEN] = 6;
+		brassOffset[WP_VENOM] = 5;
+
 		// opposite tag in akimbo, since at this point the weapon
 		// has fired and the fire seq has switched over
 		if ( weaponNum == WP_AKIMBO && akimboFire ) {
 			CG_PositionRotatedEntityOnTag( &brass, &gun, "tag_brass2" );
-		} else if ( weaponNum == WP_STEN) {
-		    //Correct bad tag on STEN model
-            CG_CalcMuzzlePoint(cent->currentState.clientNum, 6, brass.origin);
+		} else if ( brassOffset[weaponNum] != 0) {
+		    //Correct bad tag on certain models
+            CG_CalcMuzzlePoint(cent->currentState.clientNum, brassOffset[weaponNum], brass.origin);
 		} else {
 			CG_PositionRotatedEntityOnTag( &brass, &gun, "tag_brass" );
 		}
@@ -3222,15 +3232,24 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	angles[ROLL]    = crandom() * 10;
 	AnglesToAxis( angles, flash.axis );
 
-	if (weaponNum != WP_TESLA && weaponNum != WP_STEN) {
+	int flashOffset[WP_NUM_WEAPONS];
+	memset (flashOffset, 0, sizeof flashOffset);
+	flashOffset[WP_TESLA] = 11;
+	flashOffset[WP_STEN] = 24;
+	flashOffset[WP_VENOM] = 18;
+	flashOffset[WP_GARAND] = 30;
+
+	if (flashOffset[weaponNum] == 0) {
 		CG_PositionRotatedEntityOnTag(&flash, &gun, "tag_flash");
 	}
 	else
 	{
-		//For the Tesla/ Sten, set the origin of the flash to be a distance forward of the controller
+		//Set the origin of the flash to be a distance forward of the controller
 		//Corrects the confused tag in the altered models
-        CG_CalcMuzzlePoint(cent->currentState.clientNum, weaponNum == WP_TESLA ? 11 : 24, flash.origin);
-	}
+        CG_CalcMuzzlePoint(cent->currentState.clientNum, flashOffset[weaponNum], flash.origin);
+        MatrixMultiply( flash.axis, gun.axis, flash.axis );
+
+    }
 
 	// store this position for other cgame elements to access
 	cent->pe.gunRefEnt = gun;
