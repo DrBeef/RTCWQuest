@@ -155,7 +155,9 @@ I would like to thank the following teams and individual for making this possibl
 * Baggyg - My long-time VR friend whose roles in this have been varied and all helpful, also the creator of excellent websites/artwork/assets for this mod as well as various  model alterations to be more VR friendly (removing hands, tweaking iron sights, alignment etc)
 * VR_Bummser - PR person extraordinaire, play tester and all round helpful and good guy. Hoping I can buy him a beer in person one day!
 * The [SideQuest](https://sidequestvr.com/#/news) team - For making it easy for people to install this
-* **Weapon Pack Credits**
+* Dark Matter Productions and William Faure - for allowing us to include their excellent remastered weapons with the install. Check out their work here
+* _HellBaron_ - for allowing us to provide a custom version of his excellent Venom Mod for RTCW
+* Johannes Tripolt (Eigenlaut) - For additional fixes and enhancements to weapons
 * [ptitSeb](https://github.com/ptitSeb/gl4es) for GLE4ES for the OpenGL -> OpenGLES2 translation: without which this project wouldn't have worked at all
 
 
