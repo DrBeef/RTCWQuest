@@ -1044,6 +1044,10 @@ done:
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	}
 
+	int aniso = r_ext_texture_filter_anisotropic->integer;
+	if(aniso > 1 && aniso <= 16)
+		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+
 	GL_CheckErrors();
 
 	//if ( scaledBuffer != 0 )
