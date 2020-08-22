@@ -31,7 +31,7 @@ Copyright	:	Copyright 2015 Oculus VR, LLC. All Rights reserved.
 #include <EGL/eglext.h>
 #include <GLES3/gl3.h>
 #include <GLES3/gl3ext.h>
-
+#include <GLES/gl2ext.h>
 
 #include "VrApi.h"
 #include "VrApi_Helpers.h"
@@ -94,6 +94,7 @@ float degrees(float rad) {
 struct arg_dbl *ss;
 struct arg_int *cpu;
 struct arg_int *gpu;
+struct arg_int *msaa;
 struct arg_end *end;
 
 char **argv;
@@ -515,6 +516,11 @@ static bool ovrFramebuffer_Create( ovrFramebuffer * frameBuffer, const GLenum co
 	frameBuffer->DepthBuffers = (GLuint *)malloc( frameBuffer->TextureSwapChainLength * sizeof( GLuint ) );
 	frameBuffer->FrameBuffers = (GLuint *)malloc( frameBuffer->TextureSwapChainLength * sizeof( GLuint ) );
 
+	PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC glRenderbufferStorageMultisampleEXT =
+		(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC)eglGetProcAddress("glRenderbufferStorageMultisampleEXT");
+	PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT =
+		(PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC)eglGetProcAddress("glFramebufferTexture2DMultisampleEXT");
+
 	for ( int i = 0; i < frameBuffer->TextureSwapChainLength; i++ )
 	{
 		// Create the color buffer texture.
@@ -530,6 +536,28 @@ static bool ovrFramebuffer_Create( ovrFramebuffer * frameBuffer, const GLenum co
 		GL( gles_glTexParameteri( colorTextureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR ) );
 		GL( gles_glBindTexture( colorTextureTarget, 0 ) );
 
+		if (multisamples > 1 && glRenderbufferStorageMultisampleEXT != NULL && glFramebufferTexture2DMultisampleEXT != NULL)
+		{
+			// Create multisampled depth buffer.
+			GL(glGenRenderbuffers(1, &frameBuffer->DepthBuffers[i]));
+			GL(glBindRenderbuffer(GL_RENDERBUFFER, frameBuffer->DepthBuffers[i]));
+			GL(glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, multisamples, GL_DEPTH_COMPONENT24, width, height));
+			GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+
+			// Create the frame buffer.
+			GL(glGenFramebuffers(1, &frameBuffer->FrameBuffers[i]));
+			GL(glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer->FrameBuffers[i]));
+			GL(glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0, multisamples));
+			GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, frameBuffer->DepthBuffers[i]));
+			GL(GLenum renderFramebufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER));
+			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+			if (renderFramebufferStatus != GL_FRAMEBUFFER_COMPLETE)
+			{
+				ALOGE("OVRHelper::Incomplete frame buffer object: %s", GlFrameBufferStatusString(renderFramebufferStatus));
+				return false;
+			}
+		}
+		else
 		{
 			{
 				// Create depth buffer.
@@ -1779,10 +1807,11 @@ JNIEXPORT jlong JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onCreate( JNIEnv *
 
 	/* the global arg_xxx structs are initialised within the argtable */
 	void *argtable[] = {
-			ss   = arg_dbl0("s", "supersampling", "<double>", "super sampling value (e.g. 1.0)"),
+			ss    = arg_dbl0("s", "supersampling", "<double>", "super sampling value (e.g. 1.0)"),
             cpu   = arg_int0("c", "cpu", "<int>", "CPU perf index 1-4 (default: 2)"),
             gpu   = arg_int0("g", "gpu", "<int>", "GPU perf index 1-4 (default: 3)"),
-			end     = arg_end(20)
+            msaa  = arg_int0("m", "msaa", "<int>", "MSAA (default: 1)"),
+            end   = arg_end(20)
 	};
 
 	jboolean iscopy;
@@ -1818,6 +1847,11 @@ JNIEXPORT jlong JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onCreate( JNIEnv *
         if (gpu->count > 0 && gpu->ival[0] > 0 && gpu->ival[0] < 10)
         {
             GPU_LEVEL = gpu->ival[0];
+        }
+
+        if (msaa->count > 0 && msaa->ival[0] > 0 && msaa->ival[0] < 10)
+        {
+            NUM_MULTI_SAMPLES = msaa->ival[0];
         }
 	}
 
