@@ -1745,7 +1745,7 @@ void CalcMuzzlePoint( gentity_t *ent, int weapon, vec3_t forward, vec3_t right, 
         float heightAdjust = 0;
         trap_Cvar_VariableValue("cg_heightAdjust", &heightAdjust);
 		convertFromVR(worldscale, ent, gVR->weaponoffset, ent->r.currentOrigin, muzzlePoint);
-        muzzlePoint[2] -=  24; // mmmmmmm magic number (
+        muzzlePoint[2] += (ent->client->ps.viewheight - 64);
 		muzzlePoint[2] += (gVR->hmdposition[1] + heightAdjust) * worldscale;
 		return;
 	}
@@ -1806,7 +1806,7 @@ void CalcMuzzlePointForActivate( gentity_t *ent, vec3_t forward, vec3_t right, v
 		float heightAdjust = 0;
 		trap_Cvar_VariableValue("cg_heightAdjust", &heightAdjust);
         convertFromVR(worldscale, ent, gVR->weaponoffset, ent->r.currentOrigin, muzzlePoint);
-        muzzlePoint[2] -=  24; // mmmmmmm magic number
+        muzzlePoint[2] += (ent->client->ps.viewheight - 64);
         muzzlePoint[2] += (gVR->hmdposition[1] + heightAdjust) * worldscale;
         return;
     }
