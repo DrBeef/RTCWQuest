@@ -389,12 +389,13 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 #endif
 
 	//
-	// texturemode stuff
+	// texturemode / anisotropy stuff
 	//
-	if ( r_textureMode->modified ) {
+	if ( r_textureMode->modified  ||  r_ext_texture_filter_anisotropic->modified ) {
 		R_SyncRenderThread();
 		GL_TextureMode( r_textureMode->string );
 		r_textureMode->modified = qfalse;
+		r_ext_texture_filter_anisotropic->modified = qfalse;
 	}
 
 	//
