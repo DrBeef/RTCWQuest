@@ -327,6 +327,15 @@ static cmd_function_t  *cmd_functions;      // possible commands to execute
 
 /*
 ============
+Cmd_ClearArgc
+============
+*/
+void     Cmd_ClearArgc( void ) {
+	cmd_argc = 0;
+}
+
+/*
+============
 Cmd_Argc
 ============
 */

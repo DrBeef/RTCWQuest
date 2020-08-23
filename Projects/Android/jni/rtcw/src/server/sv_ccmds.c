@@ -308,7 +308,7 @@ static void SV_MapRestart_f( void ) {
 	client_t    *client;
 	char        *denied;
 	qboolean isBot;
-	int delay;
+	float delay;
 
 	// make sure we aren't restarting twice in the same frame
 	if ( com_frameTime == sv.serverId ) {
@@ -336,8 +336,9 @@ static void SV_MapRestart_f( void ) {
 			delay = 5;
 		}
 	}
+
 	if ( delay && !Cvar_VariableValue( "g_doWarmup" ) ) {
-		sv.restartTime = svs.time + delay * 1000;
+		sv.restartTime = svs.time + (int)(delay * 1000);
 		SV_SetConfigstring( CS_WARMUP, va( "%i", sv.restartTime ) );
 		return;
 	}
@@ -509,6 +510,9 @@ void    SV_LoadGame_f( void ) {
 			Cvar_Set( "savegame_loading", "2" );  // 2 means it's a restart, so stop rendering until we are loaded
 			// set the filename
 			Cvar_Set( "savegame_filename", filename );
+
+            Cmd_ClearArgc();
+
 			// quick-restart the server
 			SV_MapRestart_f();  // savegame will be loaded after restart
 

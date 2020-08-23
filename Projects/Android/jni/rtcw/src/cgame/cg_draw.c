@@ -3611,10 +3611,15 @@ void CG_Teleport() {
 		VectorMA(origin, 256, forward, endForward);
 		trap_CM_BoxTrace(&trace, origin, endForward, NULL, NULL, 0, MASK_SHOT);
 
+		//If there anything between the controller position and the HMD
+		trace_t trace_test;
+		trap_CM_BoxTrace(&trace_test, cg.refdef.vieworg, origin, NULL, NULL, 0, MASK_SHOT);
+
 		ci.health = 1;
 		ci.handicap = 128; // value out of 255 for  alpha channel
-		if (trace.fraction < 1.0f && (trace.plane.normal[2] > trace.plane.normal[1] &&
-		    trace.plane.normal[2] > trace.plane.normal[0])) {
+		if (trace.fraction < 1.0f &&
+			trace_test.fraction == 1.0f && //can't teleport if user has poked controller through something solid
+			(trace.plane.normal[2] > trace.plane.normal[1] && trace.plane.normal[2] > trace.plane.normal[0])) {
 			cgVR->teleportready = qtrue;
 			VectorSet(ci.color, 0, 1, 0);
 			VectorCopy(trace.endpos, cgVR->teleportdest);
