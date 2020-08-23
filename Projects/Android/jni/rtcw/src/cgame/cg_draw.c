@@ -3633,6 +3633,7 @@ void CG_Teleport() {
 	}
 }
 
+
 /*
 =====================
 CG_DrawActive
@@ -3680,7 +3681,9 @@ void CG_DrawActive( int stereoView ) {
 	// offset vieworg appropriately if we're doing stereo separation
 	VectorCopy( cg.refdef.vieworg, baseOrg );
 
-	if ( !cgVR->scopeengaged ) {
+	int vr_cinematic_stereo = trap_Cvar_VariableIntegerValue( "vr_cinematic_stereo");
+	if ( !cgVR->scopeengaged &&
+		(!cg.cameraMode || (cg.cameraMode && vr_cinematic_stereo))) {
 		VectorMA( cg.refdef.vieworg, -separation, cg.refdef.viewaxis[1], cg.refdef.vieworg );
 	}
 

@@ -1332,6 +1332,9 @@ void RTCWVR_Init()
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
 	vr_switch_sticks = Cvar_Get( "vr_switch_sticks", "0", CVAR_ARCHIVE);
 
+	vr_cinematic_stereo = Cvar_Get( "vr_cinematic_stereo", "1", CVAR_ARCHIVE);
+	vr_screen_dist = Cvar_Get( "vr_screen_dist", "3.5", CVAR_ARCHIVE);
+
     //Set up vr client info
 	vr.backpackitemactive = 0;
 	vr.visible_hud = qtrue;
@@ -1471,6 +1474,7 @@ void * AppThreadFunction(void * parm ) {
 	prctl(PR_SET_NAME, (long) "OVR::Main", 0, 0, 0);
 
 	rtcw_initialised = false;
+	vr_screen_dist = NULL;
 
 	const ovrInitParms initParms = vrapi_DefaultInitParms(&java);
 	int32_t initResult = vrapi_Initialize(&initParms);

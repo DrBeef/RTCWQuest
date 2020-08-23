@@ -1645,7 +1645,7 @@ void GLimp_Init( void ) {
 			}
 			// Savage3D and Savage4 should always have trilinear enabled
 			else if ( Q_stristr( buf, "savage3d" ) || Q_stristr( buf, "s3 savage4" ) ) {
-				ri.Cvar_Set( "r_texturemode", "GL_LINEAR_MIPMAP_LINEAR" );
+				ri.Cvar_Set( "r_textureMode", "GL_LINEAR_MIPMAP_LINEAR" );
 			}
 		}
 	}

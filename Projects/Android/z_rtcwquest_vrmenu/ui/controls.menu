@@ -273,6 +273,42 @@ itemDef
       	forecolor 1 1 1 1
       	visible 1
     	}
+
+	itemDef {
+		name vr
+		group grpControls
+		type ITEM_TYPE_SLIDER
+		text "Screen Distance:"
+		cvarfloat "vr_screen_dist" 2.0 0.5 8.0
+		rect 82 165 290 12
+      	textalign ITEM_ALIGN_RIGHT
+      	textalignx 142
+      	textaligny 10
+		textscale .23
+		style WINDOW_STYLE_FILLED
+		backcolor 1 1 1 .07
+      	forecolor 1 1 1 1
+      	visible 1
+    	}
+
+
+	itemDef {
+		name vr
+		group grpControls
+		text "Cinematic:"
+        type ITEM_TYPE_MULTI
+        cvar "vr_cinematic_stereo"
+        cvarFloatList {"2D" 0 "3D" 1  }
+		rect 82 180 290 12
+      	textalign ITEM_ALIGN_RIGHT
+      	textalignx 142
+      	textaligny 10
+		textscale .23
+		style WINDOW_STYLE_FILLED
+		backcolor 1 1 1 .07
+      	forecolor 1 1 1 1
+      	visible 1
+    		}
 	
 
 //	TOOLS 	MESSAGE	//

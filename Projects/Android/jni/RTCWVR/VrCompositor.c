@@ -131,6 +131,8 @@ static ovrMatrix4f CylinderModelMatrix( const int texWidth, const int texHeight,
 	return m2;
 }
 
+extern cvar_t	*vr_screen_dist;
+
 ovrLayerCylinder2 BuildCylinderLayer( ovrRenderer * cylinderRenderer,
 	const int textureWidth, const int textureHeight,
 	const ovrTracking2 * tracking, float rotatePitch )
@@ -152,7 +154,9 @@ ovrLayerCylinder2 BuildCylinderLayer( ovrRenderer * cylinderRenderer,
 	const float density = 4500.0f;
 	const float rotateYaw = 0.0f;
 	const float radius = 4.0f;
-	const ovrVector3f translation = { 0.0f, playerHeight/2, -3.5f };
+	const float distance = vr_screen_dist ? -vr_screen_dist->value : -3.5f;
+
+	const ovrVector3f translation = { 0.0f, playerHeight/2, distance };
 
 	ovrMatrix4f cylinderTransform = 
 		CylinderModelMatrix( textureWidth, textureHeight, translation,

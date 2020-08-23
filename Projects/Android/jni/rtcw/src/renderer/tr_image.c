@@ -186,16 +186,19 @@ void GL_TextureMode( const char *string ) {
 
 	gl_filter_min = modes[i].minimize;
 	gl_filter_max = modes[i].maximize;
+	int aniso = r_ext_texture_filter_anisotropic->integer;
 
 	// change all the existing mipmap texture objects
 	for ( i = 0 ; i < tr.numImages ; i++ ) {
 		glt = tr.images[ i ];
 		if ( glt->mipmap ) {
 			GL_Bind( glt );
+			qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, aniso);
 			qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min );
 			qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max );
 		}
 	}
+
 }
 
 /*

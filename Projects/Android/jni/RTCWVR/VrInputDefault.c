@@ -17,7 +17,9 @@ Authors		:	Simon Brown
 #include "VrInput.h"
 #include "VrCvars.h"
 
-#include "../rtcw/src/client/client.h"
+#include <src/qcommon/qcommon.h>
+#include <src/client/client.h>
+
 #include "../../../../../../VrApi/Include/VrApi_Input.h"
 
 #define WP_AKIMBO           20
@@ -52,17 +54,45 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         pOff = pDominantTracking;
     }
 
+    //All this to allow stick and button switching!
     ovrVector2f *pPrimaryJoystick;
     ovrVector2f *pSecondaryJoystick;
+    uint32_t primaryButtonsNew;
+    uint32_t primaryButtonsOld;
+    uint32_t secondaryButtonsNew;
+    uint32_t secondaryButtonsOld;
+    int primaryButton1;
+    int primaryButton2;
+    int secondaryButton1;
+    int secondaryButton2;
     if (vr_switch_sticks->integer)
     {
+        //
+        // This will switch the joystick and A/B/X/Y button functions only
+        // Move, Strafe, Turn, Jump, Crouch, Notepad, HUD mode, Weapon Switch
         pSecondaryJoystick = &pDominantTrackedRemoteNew->Joystick;
         pPrimaryJoystick = &pOffTrackedRemoteNew->Joystick;
+        secondaryButtonsNew = pDominantTrackedRemoteNew->Buttons;
+        secondaryButtonsOld = pDominantTrackedRemoteOld->Buttons;
+        primaryButtonsNew = pOffTrackedRemoteNew->Buttons;
+        primaryButtonsOld = pOffTrackedRemoteOld->Buttons;
+        primaryButton1 = offButton1;
+        primaryButton2 = offButton2;
+        secondaryButton1 = domButton1;
+        secondaryButton2 = domButton2;
     }
     else
     {
         pPrimaryJoystick = &pDominantTrackedRemoteNew->Joystick;
         pSecondaryJoystick = &pOffTrackedRemoteNew->Joystick;
+        primaryButtonsNew = pDominantTrackedRemoteNew->Buttons;
+        primaryButtonsOld = pDominantTrackedRemoteOld->Buttons;
+        secondaryButtonsNew = pOffTrackedRemoteNew->Buttons;
+        secondaryButtonsOld = pOffTrackedRemoteOld->Buttons;
+        primaryButton1 = domButton1;
+        primaryButton2 = domButton2;
+        secondaryButton1 = offButton1;
+        secondaryButton2 = offButton2;
     }
 
 
@@ -378,8 +408,11 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             //Jump (B Button)
             if (vr.backpackitemactive != 2 && !canUseBackpack) {
-                handleTrackedControllerButton(pDominantTrackedRemoteNew,
-                                              pDominantTrackedRemoteOld, domButton2, K_SPACE);
+
+                if ((primaryButtonsNew & primaryButton2) != (primaryButtonsOld & primaryButton2))
+                {
+                    Sys_QueEvent( 0, SE_KEY, K_SPACE, (primaryButtonsNew & primaryButton2) != 0, 0, NULL );
+                }
             }
 
 
@@ -445,18 +478,16 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 }
             }
 
-            //Duck with A
+            //Duck
             if (vr.backpackitemactive != 2 &&
                 !canUseBackpack &&
-                (pDominantTrackedRemoteNew->Buttons & domButton1) !=
-                (pDominantTrackedRemoteOld->Buttons & domButton1) &&
-                ducked != DUCK_CROUCHED) {
-                ducked = (pDominantTrackedRemoteNew->Buttons & domButton1) ? DUCK_BUTTON
-                                                                           : DUCK_NOTDUCKED;
-                sendButtonAction("+movedown", (pDominantTrackedRemoteNew->Buttons & domButton1));
+                (primaryButtonsNew & primaryButton1) !=
+                (primaryButtonsOld & primaryButton1)) {
+
+                sendButtonAction("+movedown", (primaryButtonsNew & primaryButton1));
             }
 
-			//Weapon/Inventory Chooser
+			//Weapon Chooser
 			static qboolean itemSwitched = false;
 			if (between(-0.2f, pPrimaryJoystick->x, 0.2f) &&
 				(between(0.8f, pPrimaryJoystick->y, 1.0f) ||
@@ -478,7 +509,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 			}
         }
 
-        //Left-hand specific stuff
         {
             //"Use" (open doors etc)
             if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Joystick) !=
@@ -516,14 +546,11 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             }
 
             if (!canUseQuickSave) {
-                if (((pOffTrackedRemoteNew->Buttons & offButton1) !=
-                     (pOffTrackedRemoteOld->Buttons & offButton1)) &&
-                    (pOffTrackedRemoteNew->Buttons & offButton1)) {
+                if (((secondaryButtonsNew & secondaryButton1) !=
+                     (secondaryButtonsOld & secondaryButton1)) &&
+                    (secondaryButtonsNew & secondaryButton1)) {
 
                     if (dominantGripPushed) {
-                        //If cheats enabled, give all weapons/pickups to player
-                        //Cbuf_AddText("give all\n");
-
                         Cbuf_AddText("+useitem\n");
                         stopUseItemNextFrame = qtrue;
                     } else {
@@ -534,9 +561,9 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             //notebook or select "item"
             if (!canUseQuickSave) {
-                if (((pOffTrackedRemoteNew->Buttons & offButton2) !=
-                     (pOffTrackedRemoteOld->Buttons & offButton2)) &&
-                    (pOffTrackedRemoteNew->Buttons & offButton2)) {
+                if (((secondaryButtonsNew & secondaryButton2) !=
+                     (secondaryButtonsOld & secondaryButton2)) &&
+                    (secondaryButtonsNew & secondaryButton2)) {
 
                     if (dominantGripPushed) {
                         sendButtonActionSimple("itemprev");
