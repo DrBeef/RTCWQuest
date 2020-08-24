@@ -274,6 +274,29 @@ int weapBanksMultiPlayer[MAX_WEAP_BANKS_MP][MAX_WEAPS_IN_BANK_MP] = {
 
 //----(SA)	end
 
+//These are in real world units (metres)
+float virtualStockOffsets[WP_SILENCER][3] = {
+    //Right                 Up          Forward
+	{0,						0,			0}  ,//WP_NONE,
+	{0,						0,			0}  ,//WP_KNIFE,
+	{0,						0,			0}  ,//WP_LUGER,
+	{0,						0,			0}  ,//WP_MP40,
+	{0.03f,				-0.08f,	   -0.35f}  ,//WP_MAUSER,
+	{0.03f,				-0.12f,	   -0.25f}  ,//WP_FG42,
+	{0,						0,			0}  ,//WP_GRENADE_LAUNCHER,
+	{0,						0,			0}  ,//WP_PANZERFAUST,
+	{0,						0,			0}  ,//WP_VENOM,
+	{0,						0,			0}  ,//WP_FLAMETHROWER,
+	{0,						0,			0}  ,//WP_TESLA,
+	{0,						0,			0}  ,//WP_COLT,
+	{0.03f,				-0.108f,      -0.3f} ,//WP_THOMPSON,
+	{0,						0,			0}  ,//WP_GARAND,
+	{0,						0,			0}  ,//WP_GRENADE_PINEAPPLE,
+	{0,						0,			0}  ,//WP_SNIPERRIFLE,
+	{0,						0,			0}  ,//WP_SNOOPERSCOPE,
+	{0,						0,			0}  ,//WP_FG42SCOPE,
+	{0.0325f,				-0.06f,      -0.24f}//WP_STEN,
+};
 
 /*
 ==============
@@ -3638,12 +3661,20 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 			case WP_KNIFE:
 				cgVR->velocitytriggered = qtrue;
 				cgVR->scopedweapon = qfalse;
+                cgVR->vstock_weapon = qfalse;
 				break;
             case WP_FG42:
 			case WP_MAUSER:
 				cgVR->velocitytriggered = qfalse;
 				cgVR->scopedweapon = qtrue;
                 cgVR->detachablescope = qtrue;
+				cgVR->vstock_weapon = cgVR->scopedetached; // only available when not scoped
+				break;
+			case WP_THOMPSON:
+			case WP_STEN:
+				cgVR->velocitytriggered = qfalse;
+				cgVR->scopedweapon = qfalse;
+				cgVR->vstock_weapon = qtrue; // only available when not scoped
 				break;
 			case WP_GARAND:
 			case WP_SNOOPERSCOPE:
@@ -3653,13 +3684,35 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 				cgVR->scopedweapon = qtrue;
                 cgVR->scopedetached = qfalse;
                 cgVR->detachablescope = qfalse;
+                cgVR->vstock_weapon = qfalse;
 				break;
 			default:
 				cgVR->velocitytriggered = qfalse;
 				cgVR->scopedweapon = qfalse;
+				cgVR->vstock_weapon = qfalse;
 				break;
 		}
 
+		int vStock = trap_Cvar_VariableIntegerValue("vr_virtual_stock");
+		if (vStock) {
+			float multiplier = (vStock == 1 ? -1.0f : 1.0f);
+
+			vec3_t offset;
+			VectorClear(offset);
+
+            vec3_t orientation;
+            VectorCopy(cgVR->hmdorientation, orientation);
+            orientation[PITCH] *= -1.0f;
+            orientation[ROLL] = 0;
+
+            vec3_t forward, right, up;
+            AngleVectors(orientation, forward, right, up);
+            VectorMA(offset, virtualStockOffsets[ps->weapon][0] * multiplier, right, offset);
+            VectorMA(offset, virtualStockOffsets[ps->weapon][1], up, offset);
+            VectorMA(offset, virtualStockOffsets[ps->weapon][2], forward, offset);
+
+            VectorCopy(offset, cgVR->vstock_weapon_offset);
+		}
 
 		// add everything onto the hand
 		CG_AddPlayerWeapon(&hand, ps, &cg.predictedPlayerEntity);

@@ -129,10 +129,20 @@ void updateScopeAngles()
     //Bit of a hack, but use weapon orientation / position for view when scope is engaged
     static vec3_t currentScopeAngles;
     static vec3_t lastScopeAngles;
-    if (vr.scopeengaged)
+    if (vr.scopeengaged || vr.vstock_engaged)
     {
-        //Clear weapon offset
-        VectorSet(vr.weaponoffset, 0, 0, 0);
+        if (vr.vstock_engaged)
+        {
+            //Copy weapon offset X
+            vr.weaponoffset[0] = vr.vstock_weapon_offset[1];
+            vr.weaponoffset[1] = vr.vstock_weapon_offset[2];
+            vr.weaponoffset[2] = vr.vstock_weapon_offset[0];
+        }
+        else
+        {
+            //Clear weapon offset
+            VectorSet(vr.weaponoffset, 0, 0, 0);
+        }
 
         VectorSet(currentScopeAngles, vr.weaponangles[PITCH], vr.weaponangles[YAW], vr.hmdorientation[ROLL]);
 

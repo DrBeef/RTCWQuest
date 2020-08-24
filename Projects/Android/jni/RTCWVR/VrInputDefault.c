@@ -7,11 +7,11 @@ Authors		:	Simon Brown
 
 *************************************************************************************/
 
-#include <VrApi.h>
-#include <VrApi_Helpers.h>
-#include <VrApi_SystemUtils.h>
-#include <VrApi_Input.h>
-#include <VrApi_Types.h>
+#include "../../../../../../VrApi/Include/VrApi.h"
+#include "../../../../../../VrApi/Include/VrApi_Helpers.h"
+#include "../../../../../../VrApi/Include/VrApi_SystemUtils.h"
+#include "../../../../../../VrApi/Include/VrApi_Input.h"
+#include "../../../../../../VrApi/Include/VrApi_Types.h"
 #include <android/keycodes.h>
 
 #include "VrInput.h"
@@ -20,7 +20,7 @@ Authors		:	Simon Brown
 #include <src/qcommon/qcommon.h>
 #include <src/client/client.h>
 
-#include "../../../../../../VrApi/Include/VrApi_Input.h"
+
 
 #define WP_AKIMBO           20
 
@@ -182,10 +182,10 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             }
         }
 
-        //Engage scope if conditions are right
+        //Engage scope / virtual stock if conditions are right
         qboolean scopeready = vr.weapon_stabilised && (distanceToHMD < SCOPE_ENGAGE_DISTANCE);
-        static qboolean lastScopeready = qfalse;
-        if (scopeready != lastScopeready) {
+        static qboolean lastScopeReady = qfalse;
+        if (scopeready != lastScopeReady) {
             if (vr.scopedweapon && !vr.scopedetached) {
                 if (!vr.scopeengaged && scopeready) {
                     ALOGV("**WEAPON EVENT**  trigger scope mode");
@@ -195,9 +195,20 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                     ALOGV("**WEAPON EVENT**  disable scope mode");
                     sendButtonActionSimple("weapalt");
                 }
-                lastScopeready = scopeready;
+                lastScopeReady = scopeready;
             }
         }
+
+        //Engage scope / virtual stock if conditions are right
+        qboolean vstockReady = vr.weapon_stabilised && (distanceToHMD < VSTOCK_ENGAGE_DISTANCE) &&
+                (vr.vstock_weapon && vr_virtual_stock->integer > 0);
+        if (vstockReady != vr.vstock_engaged) {
+            vr.vstock_engaged = vstockReady;
+
+            //Resync on either transition
+            RTCWVR_ResyncClientYawWithGameYaw();
+        }
+
 
         static qboolean scopeEngaged = qfalse;
         if (scopeEngaged != vr.scopeengaged)
@@ -264,21 +275,34 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             if (vr.weapon_stabilised || vr.dualwield)
             {
-                float z = pOff->HeadPose.Pose.Position.z - pWeapon->HeadPose.Pose.Position.z;
-                float x = pOff->HeadPose.Pose.Position.x - pWeapon->HeadPose.Pose.Position.x;
-                float y = pOff->HeadPose.Pose.Position.y - pWeapon->HeadPose.Pose.Position.y;
-                float zxDist = length(x, z);
+                if (vr.scopeengaged || vr.vstock_engaged)
+                {
+                    float x = pOff->HeadPose.Pose.Position.x - vr.hmdposition[0];
+                    float y = pOff->HeadPose.Pose.Position.y - vr.hmdposition[1];
+                    float z = pOff->HeadPose.Pose.Position.z - vr.hmdposition[2];
+                    float zxDist = length(x, z);
 
-                if (zxDist != 0.0f && z != 0.0f) {
-                    if (vr.dualwield) {
-                        //SUPER FUDGE
-                        VectorSet(vr.weaponangles, vr.weaponangles[PITCH],
-                                  -90.0f-degrees(atan2f(x, -z)), degrees(atanf(y / zxDist)));
-                    }
-                    else
-                    {
+                    if (zxDist != 0.0f && z != 0.0f) {
                         VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)),
-                                  -degrees(atan2f(x, -z)), vr.weaponangles[ROLL]);
+                                  -degrees(atan2f(x, -z)), 0);
+                    }
+                } else {
+                    float x = pOff->HeadPose.Pose.Position.x - pWeapon->HeadPose.Pose.Position.x;
+                    float y = pOff->HeadPose.Pose.Position.y - pWeapon->HeadPose.Pose.Position.y;
+                    float z = pOff->HeadPose.Pose.Position.z - pWeapon->HeadPose.Pose.Position.z;
+                    float zxDist = length(x, z);
+
+                    if (zxDist != 0.0f && z != 0.0f) {
+                        if (vr.dualwield) {
+                            //SUPER FUDGE
+                            VectorSet(vr.weaponangles, vr.weaponangles[PITCH],
+                                      -90.0f-degrees(atan2f(x, -z)), degrees(atanf(y / zxDist)));
+                        }
+                        else
+                        {
+                            VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)),
+                                      -degrees(atan2f(x, -z)), vr.weaponangles[ROLL]);
+                        }
                     }
                 }
             }

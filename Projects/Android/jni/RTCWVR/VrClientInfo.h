@@ -39,6 +39,12 @@ typedef struct {
     qboolean scopedweapon;          // Weapon scope is available
     qboolean scopedetached;         // Scope has been detached from weapon
     qboolean detachablescope;       // Scope can be detached from weapon
+
+    //Virtual Stock stuff
+    qboolean vstock_weapon;          // Weapon has a stock that can be used "vitually"
+    qboolean vstock_engaged;         // Virtual Stock is engaged
+    vec3_t   vstock_weapon_offset;      // The offset of the fixed primary hand when Virtual Stock is engaged (set by cgame Weapon code)
+
     qboolean hasbinoculars;
 
     qboolean velocitytriggered; // Weapon attack triggered by velocity (knife)

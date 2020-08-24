@@ -1327,18 +1327,21 @@ void RTCWVR_Init()
 	vr_weapon_pitchadjust = Cvar_Get( "vr_weapon_pitchadjust", "-20.0", CVAR_ARCHIVE);
 	vr_lasersight = Cvar_Get( "vr_lasersight", "0", CVAR_ARCHIVE);
 	vr_teleport = Cvar_Get( "vr_teleport", "0", CVAR_ARCHIVE);
+    vr_virtual_stock = Cvar_Get( "vr_virtual_stock", "0", CVAR_ARCHIVE);
 
     //Defaults
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
 	vr_switch_sticks = Cvar_Get( "vr_switch_sticks", "0", CVAR_ARCHIVE);
 
-	vr_cinematic_stereo = Cvar_Get( "vr_cinematic_stereo", "1", CVAR_ARCHIVE);
+	vr_cinematic_stereo = Cvar_Get( "vr_cinematic_stereo", "0", CVAR_ARCHIVE); // Default to 2D
 	vr_screen_dist = Cvar_Get( "vr_screen_dist", "3.5", CVAR_ARCHIVE);
 
     //Set up vr client info
 	vr.backpackitemactive = 0;
 	vr.visible_hud = qtrue;
 	vr.dualwield = qfalse;
+	vr.vstock_weapon = qfalse;
+	vr.vstock_engaged = qfalse;
 
 	//Clear teleport stuff
 	vr.teleportexecute = qfalse;
