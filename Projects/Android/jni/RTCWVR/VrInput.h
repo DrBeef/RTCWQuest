@@ -7,6 +7,7 @@
 //New control scheme definitions to be defined L1VR_SurfaceView.c enumeration
 enum control_scheme;
 
+#define STABILISATION_DISTANCE   0.5
 #define SCOPE_ENGAGE_DISTANCE   0.25
 #define VSTOCK_ENGAGE_DISTANCE   0.25
 #define BINOCULAR_ENGAGE_DISTANCE   0.25

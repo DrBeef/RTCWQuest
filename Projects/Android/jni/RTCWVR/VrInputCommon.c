@@ -134,14 +134,14 @@ void updateScopeAngles()
         if (vr.vstock_engaged)
         {
             //Copy weapon offset X
-            vr.weaponoffset[0] = vr.vstock_weapon_offset[1];
-            vr.weaponoffset[1] = vr.vstock_weapon_offset[2];
-            vr.weaponoffset[2] = vr.vstock_weapon_offset[0];
+            vr.calculated_weaponoffset[0] = vr.vstock_weapon_offset[1];
+            vr.calculated_weaponoffset[1] = vr.vstock_weapon_offset[2];
+            vr.calculated_weaponoffset[2] = vr.vstock_weapon_offset[0];
         }
         else
         {
             //Clear weapon offset
-            VectorSet(vr.weaponoffset, 0, 0, 0);
+            VectorSet(vr.calculated_weaponoffset, 0, 0, 0);
         }
 
         VectorSet(currentScopeAngles, vr.weaponangles[PITCH], vr.weaponangles[YAW], vr.hmdorientation[ROLL]);

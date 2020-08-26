@@ -276,26 +276,26 @@ int weapBanksMultiPlayer[MAX_WEAP_BANKS_MP][MAX_WEAPS_IN_BANK_MP] = {
 
 //These are in real world units (metres)
 float virtualStockOffsets[WP_SILENCER][3] = {
-    //Right                 Up          Forward
+    //Yaw Adjust           Up          Forward
 	{0,						0,			0}  ,//WP_NONE,
 	{0,						0,			0}  ,//WP_KNIFE,
 	{0,						0,			0}  ,//WP_LUGER,
 	{0,						0,			0}  ,//WP_MP40,
-	{0.03f,				-0.08f,	   -0.35f}  ,//WP_MAUSER,
-	{0.03f,				-0.12f,	   -0.25f}  ,//WP_FG42,
+	{0, 					-0.08f,	   -0.35f}  ,//WP_MAUSER,
+	{0.4f,					-0.12f,	   -0.25f}  ,//WP_FG42, - needs a slight yaw tweak
 	{0,						0,			0}  ,//WP_GRENADE_LAUNCHER,
 	{0,						0,			0}  ,//WP_PANZERFAUST,
 	{0,						0,			0}  ,//WP_VENOM,
 	{0,						0,			0}  ,//WP_FLAMETHROWER,
 	{0,						0,			0}  ,//WP_TESLA,
 	{0,						0,			0}  ,//WP_COLT,
-	{0.03f,				-0.108f,      -0.3f} ,//WP_THOMPSON,
+	{0,				        -0.108f,      -0.3f} ,//WP_THOMPSON,
 	{0,						0,			0}  ,//WP_GARAND,
 	{0,						0,			0}  ,//WP_GRENADE_PINEAPPLE,
 	{0,						0,			0}  ,//WP_SNIPERRIFLE,
 	{0,						0,			0}  ,//WP_SNOOPERSCOPE,
 	{0,						0,			0}  ,//WP_FG42SCOPE,
-	{0.0325f,				-0.06f,      -0.24f}//WP_STEN,
+	{0,				        -0.06f,      -0.24f}//WP_STEN,
 };
 
 /*
@@ -2003,7 +2003,7 @@ void CG_CalculateVRWeaponPosition( int weaponNum, vec3_t origin, vec3_t angles )
 
 	if (weaponNum != WP_AKIMBO || BG_AkimboFireSequence(weaponNum, cg.predictedPlayerState.ammoclip[WP_AKIMBO], cg.predictedPlayerState.ammoclip[WP_COLT] ))
 	{
-		convertFromVR(cgVR->weaponoffset, cg.refdef.vieworg, origin);
+		convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, origin);
 	} else{
 		convertFromVR(cgVR->offhandoffset, cg.refdef.vieworg, origin);
 	}
@@ -2090,6 +2090,10 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
                        &(temp_offset[0]), &(temp_offset[1]), &(temp_offset[2]),
                        &(adjust[PITCH]), &(adjust[YAW]), &(adjust[ROLL]));
                 VectorScale(temp_offset, scale, offset);
+
+                if (cgVR->vstock_engaged) {
+					adjust[YAW] += virtualStockOffsets[ps->weapon][0];
+				}
 
                 if (!cgVR->right_handed)
                 {
@@ -3657,11 +3661,20 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 		//Set some important flags based on the current weapon
         cgVR->mountedgun = qfalse;
+		cgVR->pistol = qfalse;
 		switch ( ps->weapon ) {
 			case WP_KNIFE:
 				cgVR->velocitytriggered = qtrue;
 				cgVR->scopedweapon = qfalse;
                 cgVR->vstock_weapon = qfalse;
+				break;
+			case WP_LUGER:
+			case WP_SILENCER:
+			case WP_COLT:
+				cgVR->velocitytriggered = qfalse;
+				cgVR->scopedweapon = qfalse;
+                cgVR->vstock_weapon = qfalse;
+                cgVR->pistol = qtrue;
 				break;
             case WP_FG42:
 			case WP_MAUSER:
@@ -3707,7 +3720,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
             vec3_t forward, right, up;
             AngleVectors(orientation, forward, right, up);
-            VectorMA(offset, virtualStockOffsets[ps->weapon][0] * multiplier, right, offset);
+            //VectorMA(offset, (cg_stereoSeparation.value / 2.0f) * multiplier, right, offset);
             VectorMA(offset, virtualStockOffsets[ps->weapon][1], up, offset);
             VectorMA(offset, virtualStockOffsets[ps->weapon][2], forward, offset);
 

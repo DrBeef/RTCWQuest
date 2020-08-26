@@ -29,10 +29,13 @@ typedef struct {
     vec3_t weaponangles_last; // Don't use this, it is just for calculating delta!
     vec3_t weaponangles_delta;
 
-    vec3_t weaponoffset;
-    float weaponoffset_timestamp;
+    vec3_t current_weaponoffset;
+    vec3_t calculated_weaponoffset;
+    float current_weaponoffset_timestamp;
     vec3_t weaponoffset_history[NUM_WEAPON_SAMPLES];
     float weaponoffset_history_timestamp[NUM_WEAPON_SAMPLES];
+
+    qboolean pistol;                // True if the weapon is a pistol
 
     //Lots of scope weapon stuff
     qboolean scopeengaged;          // Scope has been engaged on a scoped weapon

@@ -166,21 +166,20 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                                     powf(vr.hmdposition[2] - pWeapon->HeadPose.Pose.Position.z, 2));
 
         //Turn on weapon stabilisation?
-        if ((pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger) !=
-            (pOffTrackedRemoteOld->Buttons & ovrButton_GripTrigger)) {
-
-            if (pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger)
+        qboolean stabilised = qfalse;
+        if (vr.pistol)
+        {
+            //For pistols, it is simply a case of holding the two controllers close together
+            if (distance < (STABILISATION_DISTANCE / 2.0f))
             {
-                if (distance < 0.50f)
-                {
-                    vr.weapon_stabilised = qtrue;
-                }
-            }
-            else
-            {
-                vr.weapon_stabilised = qfalse;
+                stabilised = qtrue;
             }
         }
+        else if ((pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger) && (distance < STABILISATION_DISTANCE))
+        {
+            stabilised = qtrue;
+        }
+        vr.weapon_stabilised = stabilised;
 
         //Engage scope / virtual stock if conditions are right
         qboolean scopeready = vr.weapon_stabilised && (distanceToHMD < SCOPE_ENGAGE_DISTANCE);
@@ -239,14 +238,17 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 VectorCopy(vr.weaponoffset_history[i-1], vr.weaponoffset_history[i]);
                 vr.weaponoffset_history_timestamp[i] = vr.weaponoffset_history_timestamp[i-1];
             }
-            VectorCopy(vr.weaponoffset, vr.weaponoffset_history[0]);
-            vr.weaponoffset_history_timestamp[0] = vr.weaponoffset_timestamp;
+            VectorCopy(vr.current_weaponoffset, vr.weaponoffset_history[0]);
+            vr.weaponoffset_history_timestamp[0] = vr.current_weaponoffset_timestamp;
 
 			///Weapon location relative to view
-            vr.weaponoffset[0] = pWeapon->HeadPose.Pose.Position.x - vr.hmdposition[0];
-            vr.weaponoffset[1] = pWeapon->HeadPose.Pose.Position.y - vr.hmdposition[1];
-            vr.weaponoffset[2] = pWeapon->HeadPose.Pose.Position.z - vr.hmdposition[2];
-            vr.weaponoffset_timestamp = Sys_Milliseconds( );
+            vr.current_weaponoffset[0] = pWeapon->HeadPose.Pose.Position.x - vr.hmdposition[0];
+            vr.current_weaponoffset[1] = pWeapon->HeadPose.Pose.Position.y - vr.hmdposition[1];
+            vr.current_weaponoffset[2] = pWeapon->HeadPose.Pose.Position.z - vr.hmdposition[2];
+            vr.current_weaponoffset_timestamp = Sys_Milliseconds( );
+
+            //Lerp (stabilises pistol) - Won't have any effect on any other weapons
+            VectorLerp(vr.weaponoffset_history[1], (vr.pistol && vr.weapon_stabilised) ? 0.25f : 1.0f, vr.current_weaponoffset, vr.calculated_weaponoffset);
 
             //Does weapon velocity trigger attack (knife) and is it fast enough
             static qboolean velocityTriggeredAttack = false;
@@ -273,12 +275,13 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 sendButtonAction("+attack", velocityTriggeredAttack);
             }
 
-            if (vr.weapon_stabilised || vr.dualwield)
+            //Don't do this for pistols
+            if (!vr.pistol && (vr.weapon_stabilised || vr.dualwield))
             {
                 if (vr.scopeengaged || vr.vstock_engaged)
                 {
                     float x = pOff->HeadPose.Pose.Position.x - vr.hmdposition[0];
-                    float y = pOff->HeadPose.Pose.Position.y - vr.hmdposition[1];
+                    float y = pOff->HeadPose.Pose.Position.y - (vr.hmdposition[1] - 0.1f); // Use a point lower
                     float z = pOff->HeadPose.Pose.Position.z - vr.hmdposition[2];
                     float zxDist = length(x, z);
 
@@ -301,10 +304,15 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                         else
                         {
                             VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)),
-                                      -degrees(atan2f(x, -z)), vr.weaponangles[ROLL]);
+                                      -degrees(atan2f(x, -z)), vr.weaponangles[ROLL] / 2.0f); //Dampen roll on stabilised weapon
                         }
                     }
                 }
+            }
+            else if (vr.pistol && vr.weapon_stabilised)
+            {
+                //No roll if pistol is being stabilised with off-hand
+                vr.weaponangles[ROLL] = 0;
             }
 
             static bool finishReloadNextFrame = false;

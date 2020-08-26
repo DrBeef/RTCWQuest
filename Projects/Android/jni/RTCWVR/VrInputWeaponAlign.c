@@ -81,10 +81,10 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
         //dominant hand stuff first
         {
 			///Weapon location relative to view
-            vr.weaponoffset[0] = pDominantTracking->HeadPose.Pose.Position.x - vr.hmdposition[0];
-            vr.weaponoffset[1] = pDominantTracking->HeadPose.Pose.Position.y - vr.hmdposition[1];
-            vr.weaponoffset[2] = pDominantTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
-            vr.weaponoffset_timestamp = Sys_Milliseconds( );
+            vr.current_weaponoffset[0] = pDominantTracking->HeadPose.Pose.Position.x - vr.hmdposition[0];
+            vr.current_weaponoffset[1] = pDominantTracking->HeadPose.Pose.Position.y - vr.hmdposition[1];
+            vr.current_weaponoffset[2] = pDominantTracking->HeadPose.Pose.Position.z - vr.hmdposition[2];
+            vr.current_weaponoffset_timestamp = Sys_Milliseconds( );
         }
 
         float controllerYawHeading = 0.0f;

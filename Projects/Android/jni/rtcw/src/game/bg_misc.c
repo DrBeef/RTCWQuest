@@ -59,7 +59,7 @@ extern vmCvar_t g_gametype;
 // these defines are matched with the character torso animations
 #define DELAY_LOW       100 // machineguns, tesla, spear, flame
 #define DELAY_HIGH      100 // mauser, garand
-#define DELAY_PISTOL    100 // colt, luger, sp5, cross
+#define DELAY_PISTOL    75 // colt, luger, sp5, cross
 #define DELAY_SHOULDER  50  // rl
 #define DELAY_THROW     250 // grenades, dynamite
 #define DELAY_THROW_VR  15 // grenades, dynamite
@@ -92,7 +92,7 @@ ammotable_t ammoTable[] = {
 
 	{   999,            0,      999,    0,      50,             200,    0,      0,      MOD_KNIFE               },  //	WP_KNIFE				// 1
 
-	{   MAX_AMMO_9MM,   1,      8,      1500,   DELAY_PISTOL,   400,    0,      0,      MOD_LUGER               },  //	WP_LUGER				// 2	// NOTE: also 32 round 'snail' magazine
+	{   MAX_AMMO_9MM,   1,      8,      1500,   DELAY_PISTOL,   250,    0,      0,      MOD_LUGER               },  //	WP_LUGER				// 2	// NOTE: also 32 round 'snail' magazine
 	{   MAX_AMMO_9MM,   1,      32,     2600,   DELAY_LOW,      100,    0,      0,      MOD_MP40                },  //	WP_MP40					// 3
 	{   MAX_AMMO_MAUSER,1,      10,     2500,   DELAY_HIGH,     1200,   0,      0,      MOD_MAUSER              },  //	WP_MAUSER				// 4	// NOTE: authentic clips are 5/10/25 rounds
 	{   MAX_AMMO_FG42,  1,      20,     2000,   DELAY_LOW,      200,    0,      0,      MOD_FG42                },  //	WP_FG42					// 5
@@ -105,7 +105,7 @@ ammotable_t ammoTable[] = {
 //	{	50,				1,		50,		1000,	DELAY_LOW,		1200,	0,		0,		MOD_SPEARGUN			},	//	WP_SPEARGUN				// 11
 
 //	{	999,			0,		999,	0,		50,				200,	0,		0,		MOD_KNIFE2				},	//	WP_KNIFE2				// 12
-	{   MAX_AMMO_45,    1,      8,      1500,   DELAY_PISTOL,   400,    0,      0,      MOD_COLT                },  //	WP_COLT					// 13
+	{   MAX_AMMO_45,    1,      8,      1500,   DELAY_PISTOL,   250,    0,      0,      MOD_COLT                },  //	WP_COLT					// 13
 	{   MAX_AMMO_45,    1,      30,     2400,   DELAY_LOW,      120,    0,      0,      MOD_THOMPSON            },  //	WP_THOMPSON				// 14	// NOTE: also 50 round drum magazine
 	{   MAX_AMMO_GARAND,1,      5,      2500,   DELAY_HIGH,     1200,   0,      0,      MOD_GARAND              },  //	WP_GARAND				// 15	// NOTE: always 5 round clips
 //	{	MAX_AMMO_BAR,	1,		20,		2000,	DELAY_LOW,		200,	0,		0,		MOD_BAR					},	//	WP_BAR					// 16
@@ -121,8 +121,8 @@ ammotable_t ammoTable[] = {
 	{   MAX_AMMO_FG42,  1,      20,     2000,   DELAY_LOW,      200,    0,      0,      MOD_FG42SCOPE           },  //	WP_FG42SCOPE			// 23
 //	{	MAX_AMMO_BAR,	1,		20,		2000,	DELAY_LOW,		90,		0,		0,		MOD_BAR					},	//	WP_BAR2					// 24
 	{   MAX_AMMO_9MM,   1,      32,     3100,   DELAY_LOW,      110,    700,    300,    MOD_STEN                },  //	WP_STEN					// 25
-	{   MAX_AMMO_9MM,   1,      8,      1500,   DELAY_PISTOL,   400,    0,      0,      MOD_SILENCER            },  //	WP_SILENCER				// 26
-	{   MAX_AMMO_45,    1,      8,      2700,   DELAY_PISTOL,   200,    0,      0,      MOD_AKIMBO              },  //	WP_AKIMBO				// 27
+	{   MAX_AMMO_9MM,   1,      8,      1500,   DELAY_PISTOL,   250,    0,      0,      MOD_SILENCER            },  //	WP_SILENCER				// 26
+	{   MAX_AMMO_45,    1,      8,      2700,   DELAY_PISTOL,   125,    0,      0,      MOD_AKIMBO              },  //	WP_AKIMBO				// 27
 
 	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_CLASS_SPECIAL		// 28	//	class_special
 //	{	100,			1,		100,	1000,	DELAY_PISTOL,	900,	0,		0,		MOD_CROSS				},	//	WP_CROSS				// 29

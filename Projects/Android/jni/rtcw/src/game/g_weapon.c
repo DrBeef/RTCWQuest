@@ -1744,7 +1744,7 @@ void CalcMuzzlePoint( gentity_t *ent, int weapon, vec3_t forward, vec3_t right, 
 		float worldscale = trap_Cvar_VariableIntegerValue("cg_worldScale");
         float heightAdjust = 0;
         trap_Cvar_VariableValue("cg_heightAdjust", &heightAdjust);
-		convertFromVR(worldscale, ent, gVR->weaponoffset, ent->r.currentOrigin, muzzlePoint);
+		convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);
         muzzlePoint[2] += (ent->client->ps.viewheight - 64);
 		muzzlePoint[2] += (gVR->hmdposition[1] + heightAdjust) * worldscale;
 		return;
@@ -1805,7 +1805,7 @@ void CalcMuzzlePointForActivate( gentity_t *ent, vec3_t forward, vec3_t right, v
         float worldscale = trap_Cvar_VariableIntegerValue("cg_worldScale");
 		float heightAdjust = 0;
 		trap_Cvar_VariableValue("cg_heightAdjust", &heightAdjust);
-        convertFromVR(worldscale, ent, gVR->weaponoffset, ent->r.currentOrigin, muzzlePoint);
+        convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);
         muzzlePoint[2] += (ent->client->ps.viewheight - 64);
         muzzlePoint[2] += (gVR->hmdposition[1] + heightAdjust) * worldscale;
         return;
@@ -1934,8 +1934,13 @@ void FireWeapon( gentity_t *ent ) {
 	{
 		//Stabilised weapon is even more accurate
 		aimSpreadScale /= 3.0f;
-	}
 
+		if (gVR->pistol)
+		{
+			//Stabilised pistol is even more accurate
+			aimSpreadScale /= 2.0f;
+		}
+	}
 
 	// fire the specific weapon
 	switch ( ent->s.weapon ) {
