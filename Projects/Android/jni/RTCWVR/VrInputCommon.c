@@ -126,15 +126,13 @@ void CalculateShoulderPosition()
 {
     VectorCopy(vr.hmdposition, vr.vstock_shoulder);
     //Adjust to shoulder location for when vstock was engaged
-    vr.vstock_shoulder[1] -= 0.25f;
+    vr.vstock_shoulder[1] -= 0.12f;
 
-    //This bit might be overkill
-    /*
+    //offset to the appropriate shoulder a little bit
     vec2_t xy;
-    rotateAboutOrigin(0.25f, 0.0f, - vr.hmdorientation[YAW], xy);
+    rotateAboutOrigin(0.07f, 0.0f, -vr.hmdorientation[YAW], xy);
     vr.vstock_shoulder[0] += xy[0];
-    vr.vstock_shoulder[1] += xy[1];
-    */
+    vr.vstock_shoulder[2] += xy[1];
 }
 
 //YAW:  Left increase, Right decrease

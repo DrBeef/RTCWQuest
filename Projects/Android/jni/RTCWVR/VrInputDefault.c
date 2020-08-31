@@ -170,14 +170,15 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         if (vr.pistol)
         {
             //For pistols, it is simply a case of holding the two controllers close together
-            if (distance < (STABILISATION_DISTANCE / 2.0f))
+            if (distance < (STABILISATION_DISTANCE / 3.0f))
             {
                 stabilised = qtrue;
-                if (vr.weapon_stabilised != stabilised) {
-                    // blip to let user know they are stabilised
-                    RTCWVR_Vibrate(100, 0, 0.4);
-                    RTCWVR_Vibrate(100, 1, 0.4);
-                }
+            }
+
+            if (vr.weapon_stabilised != stabilised) {
+                // blip to let user know they are stabilised
+                RTCWVR_Vibrate(100, 0, 0.4);
+                RTCWVR_Vibrate(100, 1, 0.4);
             }
         }
         else if ((pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger) && (distance < STABILISATION_DISTANCE))
@@ -185,13 +186,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             stabilised = qtrue;
         }
 
-        //Recalculate shoulder position if required
-        if (vr.weapon_stabilised != stabilised &&
-                vr_virtual_stock->integer == 1 &&
-                (pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger))
-        {
-            CalculateShoulderPosition();
-        }
+        CalculateShoulderPosition();
 
         vr.weapon_stabilised = stabilised;
 
@@ -268,6 +263,10 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 VectorLerp(vr.offhandoffset,  0.5f, vr.current_weaponoffset, vr.current_weaponoffset);
                 //Now lerp with previous position to smooth it out
                 VectorLerp(vr.weaponoffset_history[0], 0.5f, vr.current_weaponoffset, vr.calculated_weaponoffset);
+            }
+            else
+            {
+                VectorCopy(vr.current_weaponoffset, vr.calculated_weaponoffset);
             }
 
             //Does weapon velocity trigger attack (knife) and is it fast enough
@@ -693,7 +692,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                         }
 
                         RTCWVR_ResyncClientYawWithGameYaw();
-                        CalculateShoulderPosition();
                     }
                 } else if (pPrimaryJoystick->x < 0.3f) {
                     increaseSnap = true;
@@ -716,7 +714,6 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                         }
 
                         RTCWVR_ResyncClientYawWithGameYaw();
-                        CalculateShoulderPosition();
                     }
                 } else if (pPrimaryJoystick->x > -0.3f) {
                     decreaseSnap = true;
