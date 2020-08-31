@@ -1340,8 +1340,8 @@ void RTCWVR_Init()
 	vr.backpackitemactive = 0;
 	vr.visible_hud = qtrue;
 	vr.dualwield = qfalse;
-	vr.vstock_weapon = qfalse;
-	vr.vstock_engaged = qfalse;
+	vr.ironsight_lock_weapon = qfalse;
+	vr.ironsight_lock_engaged = qfalse;
 
 	//Clear teleport stuff
 	vr.teleportexecute = qfalse;

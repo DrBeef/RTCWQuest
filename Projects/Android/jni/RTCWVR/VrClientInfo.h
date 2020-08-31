@@ -44,9 +44,10 @@ typedef struct {
     qboolean detachablescope;       // Scope can be detached from weapon
 
     //Virtual Stock stuff
-    qboolean vstock_weapon;          // Weapon has a stock that can be used "vitually"
-    qboolean vstock_engaged;         // Virtual Stock is engaged
-    vec3_t   vstock_weapon_offset;      // The offset of the fixed primary hand when Virtual Stock is engaged (set by cgame Weapon code)
+    qboolean ironsight_lock_weapon;          // Weapon can be used with ironsight lock mode
+    qboolean ironsight_lock_engaged;         // Ironsight Lock is engaged
+    vec3_t   ironsight_lock_offset;      // The weapon offset location when iron sight lock is engaged (set by cgame Weapon code)
+    vec3_t   vstock_shoulder;      // The pivot point (shoulder) when classic virtual stock is used (instead of the dominant controller)
 
     qboolean hasbinoculars;
 

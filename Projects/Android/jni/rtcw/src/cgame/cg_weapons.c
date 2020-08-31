@@ -2091,7 +2091,7 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
                        &(adjust[PITCH]), &(adjust[YAW]), &(adjust[ROLL]));
                 VectorScale(temp_offset, scale, offset);
 
-                if (cgVR->vstock_engaged) {
+                if (cgVR->ironsight_lock_engaged) {
 					adjust[YAW] += virtualStockOffsets[ps->weapon][0];
 				}
 
@@ -3666,14 +3666,14 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 			case WP_KNIFE:
 				cgVR->velocitytriggered = qtrue;
 				cgVR->scopedweapon = qfalse;
-                cgVR->vstock_weapon = qfalse;
+                cgVR->ironsight_lock_weapon = qfalse;
 				break;
 			case WP_LUGER:
 			case WP_SILENCER:
 			case WP_COLT:
 				cgVR->velocitytriggered = qfalse;
 				cgVR->scopedweapon = qfalse;
-                cgVR->vstock_weapon = qfalse;
+                cgVR->ironsight_lock_weapon = qfalse;
                 cgVR->pistol = qtrue;
 				break;
             case WP_FG42:
@@ -3681,13 +3681,14 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 				cgVR->velocitytriggered = qfalse;
 				cgVR->scopedweapon = qtrue;
                 cgVR->detachablescope = qtrue;
-				cgVR->vstock_weapon = cgVR->scopedetached; // only available when not scoped
+				cgVR->ironsight_lock_weapon = cgVR->scopedetached; // only available when not scoped
 				break;
 			case WP_THOMPSON:
 			case WP_STEN:
+			case WP_MP40:
 				cgVR->velocitytriggered = qfalse;
 				cgVR->scopedweapon = qfalse;
-				cgVR->vstock_weapon = qtrue; // only available when not scoped
+				cgVR->ironsight_lock_weapon = qtrue; // only available when not scoped
 				break;
 			case WP_GARAND:
 			case WP_SNOOPERSCOPE:
@@ -3697,18 +3698,19 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 				cgVR->scopedweapon = qtrue;
                 cgVR->scopedetached = qfalse;
                 cgVR->detachablescope = qfalse;
-                cgVR->vstock_weapon = qfalse;
+                cgVR->ironsight_lock_weapon = qfalse;
 				break;
 			default:
 				cgVR->velocitytriggered = qfalse;
 				cgVR->scopedweapon = qfalse;
-				cgVR->vstock_weapon = qfalse;
+				cgVR->ironsight_lock_weapon = qfalse;
 				break;
 		}
 
+		int controlScheme = trap_Cvar_VariableIntegerValue("vr_control_scheme");
 		int vStock = trap_Cvar_VariableIntegerValue("vr_virtual_stock");
-		if (vStock) {
-			float multiplier = (vStock == 1 ? -1.0f : 1.0f);
+		if (vStock >= 2) {
+			float multiplier = (controlScheme == 0 ? -1.0f : 1.0f);
 
 			vec3_t offset;
 			VectorClear(offset);
@@ -3720,11 +3722,12 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
             vec3_t forward, right, up;
             AngleVectors(orientation, forward, right, up);
-            //VectorMA(offset, (cg_stereoSeparation.value / 2.0f) * multiplier, right, offset);
+            if (vStock == 3)
+            	VectorMA(offset, (cg_stereoSeparation.value / 2.0f) * multiplier, right, offset);
             VectorMA(offset, virtualStockOffsets[ps->weapon][1], up, offset);
             VectorMA(offset, virtualStockOffsets[ps->weapon][2], forward, offset);
 
-            VectorCopy(offset, cgVR->vstock_weapon_offset);
+            VectorCopy(offset, cgVR->ironsight_lock_offset);
 		}
 
 		// add everything onto the hand

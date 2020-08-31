@@ -3685,7 +3685,8 @@ void CG_DrawActive( int stereoView ) {
 	int vr_cinematic_stereo = trap_Cvar_VariableIntegerValue( "vr_cinematic_stereo");
 	if ( !cgVR->scopeengaged &&
 		(!cg.cameraMode || (cg.cameraMode && vr_cinematic_stereo)) &&
-        !cgVR->vstock_engaged) {
+        !(cgVR->ironsight_lock_engaged && vStock == 2))
+	{
 		VectorMA( cg.refdef.vieworg, -separation, cg.refdef.viewaxis[1], cg.refdef.vieworg );
 	}
 

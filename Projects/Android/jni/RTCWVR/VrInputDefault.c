@@ -173,12 +173,26 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             if (distance < (STABILISATION_DISTANCE / 2.0f))
             {
                 stabilised = qtrue;
+                if (vr.weapon_stabilised != stabilised) {
+                    // blip to let user know they are stabilised
+                    RTCWVR_Vibrate(100, 0, 0.4);
+                    RTCWVR_Vibrate(100, 1, 0.4);
+                }
             }
         }
         else if ((pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger) && (distance < STABILISATION_DISTANCE))
         {
             stabilised = qtrue;
         }
+
+        //Recalculate shoulder position if required
+        if (vr.weapon_stabilised != stabilised &&
+                vr_virtual_stock->integer == 1 &&
+                (pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger))
+        {
+            CalculateShoulderPosition();
+        }
+
         vr.weapon_stabilised = stabilised;
 
         //Engage scope / virtual stock if conditions are right
@@ -198,11 +212,11 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             }
         }
 
-        //Engage scope / virtual stock if conditions are right
+        //Engage scope / virtual stock (iron sight lock) if conditions are right
         qboolean vstockReady = vr.weapon_stabilised && (distanceToHMD < VSTOCK_ENGAGE_DISTANCE) &&
-                (vr.vstock_weapon && vr_virtual_stock->integer > 0);
-        if (vstockReady != vr.vstock_engaged) {
-            vr.vstock_engaged = vstockReady;
+                (vr.ironsight_lock_weapon && vr_virtual_stock->integer >= 2);
+        if (vstockReady != vr.ironsight_lock_engaged) {
+            vr.ironsight_lock_engaged = vstockReady;
 
             //Resync on either transition
             RTCWVR_ResyncClientYawWithGameYaw();
@@ -247,8 +261,14 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             vr.current_weaponoffset[2] = pWeapon->HeadPose.Pose.Position.z - vr.hmdposition[2];
             vr.current_weaponoffset_timestamp = Sys_Milliseconds( );
 
-            //Lerp (stabilises pistol) - Won't have any effect on any other weapons
-            VectorLerp(vr.weaponoffset_history[1], (vr.pistol && vr.weapon_stabilised) ? 0.25f : 1.0f, vr.current_weaponoffset, vr.calculated_weaponoffset);
+            //Lerp (stabilises pistol)
+            if (vr.pistol && vr.weapon_stabilised)
+            {
+                //First update current weapon offset with average of the two controller positions
+                VectorLerp(vr.offhandoffset,  0.5f, vr.current_weaponoffset, vr.current_weaponoffset);
+                //Now lerp with previous position to smooth it out
+                VectorLerp(vr.weaponoffset_history[0], 0.5f, vr.current_weaponoffset, vr.calculated_weaponoffset);
+            }
 
             //Does weapon velocity trigger attack (knife) and is it fast enough
             static qboolean velocityTriggeredAttack = false;
@@ -278,7 +298,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             //Don't do this for pistols
             if (!vr.pistol && (vr.weapon_stabilised || vr.dualwield))
             {
-                if (vr.scopeengaged || vr.vstock_engaged)
+                if (vr.scopeengaged || vr.ironsight_lock_engaged)
                 {
                     float x = pOff->HeadPose.Pose.Position.x - vr.hmdposition[0];
                     float y = pOff->HeadPose.Pose.Position.y - (vr.hmdposition[1] - 0.1f); // Use a point lower
@@ -289,7 +309,21 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                         VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)),
                                   -degrees(atan2f(x, -z)), 0);
                     }
-                } else {
+                }
+                else if (vr_virtual_stock->integer == 1) // Classic Virtual Stock
+                {
+                    float x = pOff->HeadPose.Pose.Position.x - vr.vstock_shoulder[0];
+                    float y = pOff->HeadPose.Pose.Position.y - vr.vstock_shoulder[1];
+                    float z = pOff->HeadPose.Pose.Position.z - vr.vstock_shoulder[2];
+                    float zxDist = length(x, z);
+
+                    if (zxDist != 0.0f && z != 0.0f) {
+                        VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)),
+                                  -degrees(atan2f(x, -z)), 0); // No roll on virtual stock
+                    }
+                }
+                else
+                {
                     float x = pOff->HeadPose.Pose.Position.x - pWeapon->HeadPose.Pose.Position.x;
                     float y = pOff->HeadPose.Pose.Position.y - pWeapon->HeadPose.Pose.Position.y;
                     float z = pOff->HeadPose.Pose.Position.z - pWeapon->HeadPose.Pose.Position.z;
@@ -659,6 +693,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                         }
 
                         RTCWVR_ResyncClientYawWithGameYaw();
+                        CalculateShoulderPosition();
                     }
                 } else if (pPrimaryJoystick->x < 0.3f) {
                     increaseSnap = true;
@@ -681,6 +716,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                         }
 
                         RTCWVR_ResyncClientYawWithGameYaw();
+                        CalculateShoulderPosition();
                     }
                 } else if (pPrimaryJoystick->x > -0.3f) {
                     decreaseSnap = true;

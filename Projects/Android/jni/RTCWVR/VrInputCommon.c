@@ -122,6 +122,20 @@ void acquireTrackedRemotesData(const ovrMobile *Ovr, double displayTime) {//The 
     }
 }
 
+void CalculateShoulderPosition()
+{
+    VectorCopy(vr.hmdposition, vr.vstock_shoulder);
+    //Adjust to shoulder location for when vstock was engaged
+    vr.vstock_shoulder[1] -= 0.25f;
+
+    //This bit might be overkill
+    /*
+    vec2_t xy;
+    rotateAboutOrigin(0.25f, 0.0f, - vr.hmdorientation[YAW], xy);
+    vr.vstock_shoulder[0] += xy[0];
+    vr.vstock_shoulder[1] += xy[1];
+    */
+}
 
 //YAW:  Left increase, Right decrease
 void updateScopeAngles()
@@ -129,14 +143,14 @@ void updateScopeAngles()
     //Bit of a hack, but use weapon orientation / position for view when scope is engaged
     static vec3_t currentScopeAngles;
     static vec3_t lastScopeAngles;
-    if (vr.scopeengaged || vr.vstock_engaged)
+    if (vr.scopeengaged || vr.ironsight_lock_engaged)
     {
-        if (vr.vstock_engaged)
+        if (vr.ironsight_lock_engaged)
         {
             //Copy weapon offset X
-            vr.calculated_weaponoffset[0] = vr.vstock_weapon_offset[1];
-            vr.calculated_weaponoffset[1] = vr.vstock_weapon_offset[2];
-            vr.calculated_weaponoffset[2] = vr.vstock_weapon_offset[0];
+            vr.calculated_weaponoffset[0] = vr.ironsight_lock_offset[1];
+            vr.calculated_weaponoffset[1] = vr.ironsight_lock_offset[2];
+            vr.calculated_weaponoffset[2] = vr.ironsight_lock_offset[0];
         }
         else
         {

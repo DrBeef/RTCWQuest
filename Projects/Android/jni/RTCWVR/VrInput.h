@@ -44,7 +44,7 @@ void HandleInput_WeaponAlign( ovrInputStateTrackedRemote *pDominantTrackedRemote
                           int domButton1, int domButton2, int offButton1, int offButton2 );
 
 
-
+void CalculateShoulderPosition();
 void updateScopeAngles();
 
 #endif //vrinput_h
