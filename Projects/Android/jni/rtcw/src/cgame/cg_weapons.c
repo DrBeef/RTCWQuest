@@ -280,7 +280,7 @@ float virtualStockOffsets[WP_SILENCER][3] = {
 	{0,						0,			0}  ,//WP_NONE,
 	{0,						0,			0}  ,//WP_KNIFE,
 	{0,						0,			0}  ,//WP_LUGER,
-	{0,						0,			0}  ,//WP_MP40,
+	{0,						-0.108f,      -0.3f}  ,//WP_MP40,
 	{0, 					-0.08f,	   -0.35f}  ,//WP_MAUSER,
 	{0.4f,					-0.12f,	   -0.25f}  ,//WP_FG42, - needs a slight yaw tweak
 	{0,						0,			0}  ,//WP_GRENADE_LAUNCHER,
