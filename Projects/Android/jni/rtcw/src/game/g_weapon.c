@@ -623,9 +623,9 @@ int G_GetWeaponDamage( int weapon ) {
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
 		switch ( weapon ) {
 		case WP_LUGER:
-		case WP_SILENCER: return 6;
-		case WP_COLT: return 8;
-		case WP_AKIMBO: return 8;       //----(SA)	added
+		case WP_SILENCER:
+		case WP_COLT:
+		case WP_AKIMBO: return 10;       //---- Make pistols a little more powerful for VR
 		case WP_VENOM: return 12;       // 15  ----(SA)	slight modify for DM
 		case WP_MP40: return 6;
 		case WP_THOMPSON: return 8;
@@ -637,7 +637,7 @@ int G_GetWeaponDamage( int weapon ) {
 		case WP_SNIPERRIFLE: return 55;
 		case WP_SNOOPERSCOPE: return 25;
 		case WP_NONE: return 0;
-		case WP_KNIFE: return 5;
+		case WP_KNIFE: return 8; // Increase knife as it is harder to stab in VR
 		case WP_GRENADE_LAUNCHER: return 100;
 		case WP_GRENADE_PINEAPPLE: return 80;
 		case WP_DYNAMITE: return 400;
@@ -695,10 +695,10 @@ float G_GetWeaponSpread( int weapon ) {
 		if ( g_userAim.integer ) {
 			// these should be higher since they become erratic if aiming is out
 			switch ( weapon ) {
-			case WP_LUGER:      return 200;
-			case WP_SILENCER:   return 200;//900; // make silencer as accurate as luger
-			case WP_COLT:       return 200;//600; // make colt as accurate as luger for VR
-			case WP_AKIMBO:     return 700; //----(SA)	added
+			case WP_LUGER:      return 10; // Make pistols aim-accuracy up to user
+			case WP_SILENCER:   return 10;
+			case WP_COLT:       return 10;
+			case WP_AKIMBO:     return 10;
 			case WP_VENOM:      return 1000;
 			case WP_MP40:       return 800;
 			case WP_FG42SCOPE:  return 100;

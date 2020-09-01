@@ -1340,8 +1340,6 @@ void RTCWVR_Init()
 	vr.backpackitemactive = 0;
 	vr.visible_hud = qtrue;
 	vr.dualwield = qfalse;
-	vr.ironsight_lock_weapon = qfalse;
-	vr.ironsight_lock_engaged = qfalse;
 
 	//Clear teleport stuff
 	vr.teleportexecute = qfalse;
@@ -1613,7 +1611,7 @@ void RTCWVR_getHMDOrientation() {//Get orientation
 	// to allow "additional" yaw manipulation with mouse/controller.
 	const ovrQuatf quatHmd = tracking.HeadPose.Pose.Orientation;
 	const ovrVector3f positionHmd = tracking.HeadPose.Pose.Position;
-	vec3_t rotation = {0};
+	vec3_t rotation = {0, 0, 0};
 	QuatToYawPitchRoll(quatHmd, rotation, vr.hmdorientation);
 	setHMDPosition(positionHmd.x, positionHmd.y, positionHmd.z);
 

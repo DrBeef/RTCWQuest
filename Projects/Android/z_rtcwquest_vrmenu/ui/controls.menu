@@ -280,7 +280,7 @@ itemDef
 		text "Virtual Stock:"
         type ITEM_TYPE_MULTI
         cvar "vr_virtual_stock"
-        cvarFloatList {"Off" 0 "Classic" 1 "Ironsight Lock (Mono)" 2 "Ironsight Lock (Stereo)" 3  }
+        cvarFloatList {"Off" 0 "Classic" 1  }
 		rect 82 165 290 12
       	textalign ITEM_ALIGN_RIGHT
       	textalignx 142
