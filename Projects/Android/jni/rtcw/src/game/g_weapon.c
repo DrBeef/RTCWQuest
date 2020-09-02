@@ -1955,6 +1955,8 @@ void FireWeapon( gentity_t *ent ) {
 		break;
 	case WP_LUGER:
 		Bullet_Fire( ent, LUGER_SPREAD * aimSpreadScale, LUGER_DAMAGE );
+		if (gVR)
+		    gVR->pistol_recoil = 15.0f;
 		break;
 	case WP_SILENCER:
 		Bullet_Fire( ent, SILENCER_SPREAD * aimSpreadScale, LUGER_DAMAGE );
@@ -1962,6 +1964,8 @@ void FireWeapon( gentity_t *ent ) {
 	case WP_AKIMBO: //----(SA)	added
 	case WP_COLT:
 		Bullet_Fire( ent, COLT_SPREAD * aimSpreadScale, COLT_DAMAGE );
+        if (gVR)
+            gVR->pistol_recoil = 15.0f;
 		break;
 	case WP_VENOM:
 		weapon_venom_fire( ent, qfalse, aimSpreadScale );

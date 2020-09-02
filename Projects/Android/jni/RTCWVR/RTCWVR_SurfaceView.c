@@ -1340,6 +1340,7 @@ void RTCWVR_Init()
 	vr.backpackitemactive = 0;
 	vr.visible_hud = qtrue;
 	vr.dualwield = qfalse;
+    vr.pistol_recoil = 0.0f;
 
 	//Clear teleport stuff
 	vr.teleportexecute = qfalse;

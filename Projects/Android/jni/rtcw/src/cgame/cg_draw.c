@@ -3681,7 +3681,6 @@ void CG_DrawActive( int stereoView ) {
 	// offset vieworg appropriately if we're doing stereo separation
 	VectorCopy( cg.refdef.vieworg, baseOrg );
 
-    int vStock = trap_Cvar_VariableIntegerValue("vr_virtual_stock");
 	int vr_cinematic_stereo = trap_Cvar_VariableIntegerValue( "vr_cinematic_stereo");
 	if ( !cgVR->scopeengaged &&
 		(!cg.cameraMode || (cg.cameraMode && vr_cinematic_stereo)))

@@ -36,6 +36,7 @@ typedef struct {
     float weaponoffset_history_timestamp[NUM_WEAPON_SAMPLES];
 
     qboolean pistol;                // True if the weapon is a pistol
+    float pistol_recoil;            // hacky recoil effect to improve the default
 
     //Lots of scope weapon stuff
     qboolean scopeengaged;          // Scope has been engaged on a scoped weapon
