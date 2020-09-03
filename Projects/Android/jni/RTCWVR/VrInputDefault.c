@@ -102,8 +102,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         rotation[PITCH] = 30;
         QuatToYawPitchRoll(pWeapon->HeadPose.Pose.Orientation, rotation, vr.weaponangles_knife);
         rotation[PITCH] = vr_weapon_pitchadjust->value +
-                (vr.pistol ? vr.pistol_recoil : 0.0f); // Our hacked recoil effect
-        vr.pistol_recoil *= 0.8f; // quick reduction on synthetic recoil
+                (vr.pistol ? vr.weapon_recoil : 0.0f); // Our hacked recoil effect
+        vr.weapon_recoil *= 0.8f; // quick reduction on synthetic recoil
         QuatToYawPitchRoll(pWeapon->HeadPose.Pose.Orientation, rotation, vr.weaponangles);
 
         VectorSubtract(vr.weaponangles_last, vr.weaponangles, vr.weaponangles_delta);
