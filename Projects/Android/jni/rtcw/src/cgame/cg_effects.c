@@ -411,7 +411,11 @@ void CG_Bleed( vec3_t origin, int entityNum ) {
 							   0.1 );   // rand scale
 		}
 
-	}
+        {
+            //Make a hit blood cloud
+            CG_ParticleBloodCloud( cent, bOrigin, vec3_origin );
+        }
+    }
 	// done.
 }
 

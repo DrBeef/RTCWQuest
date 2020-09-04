@@ -2635,6 +2635,7 @@ void CG_AddPacketEntities( void ) {
 									// no entities should be marked as interpolating
 	}
 
+	VectorClear(cg.cameraShakeAngles);
 	cg.rumbleScale = 0.0;   // RF, default to 0 each frame
 
 	// the auto-rotating items will all have the same axis
