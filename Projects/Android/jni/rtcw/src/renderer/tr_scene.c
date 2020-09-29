@@ -561,15 +561,24 @@ void RE_RenderScene( const refdef_t *fd ) {
 	static float yaw = 0;
 	static long long lastFrameIndex = 0;
 	long long frameIndex = RTCWVR_getFrameIndex();
-	if ((RTCWVR_useScreenLayer() || resyncClientYawWithGameYaw > 0 || vr.scopeengaged))
-	{
-		//Resyncing with known game yaw
+    if (RTCWVR_useScreenLayer())
+    {
+        //Resyncing with known game yaw, use game pitch/roll
         yaw = fd->viewangles[YAW];
-		VectorCopy( fd->viewaxis[0], parms.or.axis[0] );
-		VectorCopy( fd->viewaxis[1], parms.or.axis[1] );
-		VectorCopy( fd->viewaxis[2], parms.or.axis[2] );
+        VectorCopy( fd->viewaxis[0], parms.or.axis[0] );
+        VectorCopy( fd->viewaxis[1], parms.or.axis[1] );
+        VectorCopy( fd->viewaxis[2], parms.or.axis[2] );
         if (fd->stereoView == 1 && resyncClientYawWithGameYaw > 0) resyncClientYawWithGameYaw--;
-	}
+    }
+    else if (resyncClientYawWithGameYaw > 0 || vr.scopeengaged)
+    {
+        //Resyncing with known game yaw, but use HMD pitch/roll
+        vec3_t viewAngles;
+        VectorCopy(vr.hmdorientation, viewAngles);
+        viewAngles[YAW] = yaw = fd->viewangles[YAW];
+        AnglesToAxis( viewAngles, parms.or.axis );
+        if (fd->stereoView == 1 && resyncClientYawWithGameYaw > 0) resyncClientYawWithGameYaw--;
+    }
 	else
 	{
 		//Normal "in-game" behaviour, use pitch and roll from HMD but use

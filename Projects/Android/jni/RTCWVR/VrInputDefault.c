@@ -413,9 +413,16 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         {
             //This section corrects for the fact that the controller actually controls direction of movement, but we want to move relative to the direction the
             //player is facing for positional tracking
+
+            //Positional movement speed correction for when we are not hitting target framerate
+            static double lastframetime = 0;
+            double newframetime = GetTimeInMilliSeconds();
+            float multiplier = (float)((1000.0 / 72.0) / (newframetime - lastframetime));
+            lastframetime = newframetime;
+
             vec2_t v;
-            rotateAboutOrigin(-vr.hmdposition_delta[0] * vr_positional_factor->value,
-                              vr.hmdposition_delta[2] * vr_positional_factor->value, - vr.hmdorientation[YAW], v);
+            rotateAboutOrigin(-vr.hmdposition_delta[0] * vr_positional_factor->value * multiplier,
+                              vr.hmdposition_delta[2] * vr_positional_factor->value * multiplier, - vr.hmdorientation[YAW], v);
             positional_movementSideways = v[0];
             positional_movementForward = v[1];
 
@@ -628,6 +635,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             }
 
             //No snap turn when using mounted gun
+            static int syncCount = 0;
             static int increaseSnap = true;
             if (!vr.mountedgun && !vr.scopeengaged) {
                 if (pPrimaryJoystick->x > 0.7f) {
