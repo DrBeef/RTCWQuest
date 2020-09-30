@@ -4712,7 +4712,7 @@ void Menu_HandleMouseMove( menuDef_t *menu, float x, float y ) {
 		//LOGI("clostest %f   %f",dist,closestDist);
 	}
 
-	if (closestItem)
+/*	if (closestItem)
 	{
 		if ((closestDist != 0) && (closestDist < 20))
 		{
@@ -4723,7 +4723,7 @@ void Menu_HandleMouseMove( menuDef_t *menu, float x, float y ) {
 			DC->cursorx = x;
 			DC->cursory = y;
 		}
-	}
+	}*/
 
 	// FIXME: this is the whole issue of focus vs. mouse over..
 	// need a better overall solution as i don't like going through everything twice
