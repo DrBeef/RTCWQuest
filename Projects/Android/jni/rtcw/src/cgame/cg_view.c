@@ -29,6 +29,9 @@ If you have questions concerning this license or the applicable additional terms
 // cg_view.c -- setup all the parameters (position, angle, etc)
 // for a 3D rendering
 #include "cg_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
+
+extern vr_client_info_t *cgVR;
 
 //========================
 extern int notebookModel;
@@ -831,10 +834,10 @@ static int CG_CalcFov( void ) {
 	} else {
 		// user selectable
 		if ( cgs.dmflags & DF_FIXED_FOV ) {
-			// dmflag to prevent wide fov for all clients
+			// dmflag to prevent wide fov for all clientscg_
 			fov_x = 90;
 		} else {
-			fov_x = cg_fov.value;
+			fov_x = cgVR ? cgVR->fov : 90.0f;
 			if ( fov_x < 1 ) {
 				fov_x = 1;
 			} else if ( fov_x > 160 ) {
@@ -1347,7 +1350,7 @@ void CG_DrawSkyBoxPortal( void ) {
 				// dmflag to prevent wide fov for all clients
 				fov_x = 90;
 			} else {
-				fov_x = cg_fov.value;
+				fov_x = cgVR ? cgVR->fov : 90.0f;
 				if ( fov_x < 1 ) {
 					fov_x = 1;
 				} else if ( fov_x > 160 ) {
