@@ -62,7 +62,6 @@ cvar_t  *com_timescale;
 cvar_t  *com_fixedtime;
 cvar_t  *com_dropsim;       // 0.0 to 1.0, simulated packet drops
 cvar_t  *com_journal;
-cvar_t  *com_maxfps;
 cvar_t  *com_timedemo;
 cvar_t  *com_sv_running;
 cvar_t  *com_cl_running;
@@ -2034,7 +2033,6 @@ void Com_Init( char *commandLine ) {
 	//
 	// init commands and vars
 	//
-	com_maxfps = Cvar_Get( "com_maxfps", "85", CVAR_ARCHIVE );
 	com_blood = Cvar_Get( "com_blood", "1", CVAR_ARCHIVE );
 
 	com_developer = Cvar_Get( "developer", "0", CVAR_TEMP );
@@ -2276,6 +2274,7 @@ int Com_ModifyMsec( int msec ) {
 Com_Frame
 =================
 */
+int GetRefresh();
 void Com_Frame( void ) {
 
 	int msec, minMsec;
@@ -2327,8 +2326,8 @@ void Com_Frame( void ) {
 	}
 
 	// we may want to spin here if things are going too fast
-	if ( !com_dedicated->integer && com_maxfps->integer > 0 && !com_timedemo->integer ) {
-		minMsec = 1000 / com_maxfps->integer;
+	if ( !com_dedicated->integer && GetRefresh() > 0 && !com_timedemo->integer ) {
+		minMsec = 1000 / GetRefresh();
 	} else {
 		minMsec = 1;
 	}

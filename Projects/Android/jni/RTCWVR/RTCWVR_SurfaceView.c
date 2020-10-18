@@ -702,7 +702,7 @@ void ovrRenderer_Create( int width, int height, ovrRenderer * renderer, const ov
 	renderer->NumBuffers = VRAPI_FRAME_LAYER_EYE_MAX;
 
 	//Now using a symmetrical render target, based on the horizontal FOV
-    vr.fov = vrapi_GetSystemPropertyInt( java, VRAPI_SYS_PROP_SUGGESTED_EYE_FOV_DEGREES_X);
+    vr.fov = vrapi_GetSystemPropertyInt( java, VRAPI_SYS_PROP_SUGGESTED_EYE_FOV_DEGREES_Y);
 
 	// Create the render Textures.
 	for ( int eye = 0; eye < VRAPI_FRAME_LAYER_EYE_MAX; eye++ )
@@ -1462,6 +1462,11 @@ void jni_shutdown();
 void RTCWVR_incrementFrameIndex();
 void shutdownVR();
 int VR_main( int argc, char* argv[] );
+
+int GetRefresh()
+{
+    return vrapi_GetSystemPropertyInt(&java, VRAPI_SYS_PROP_DISPLAY_REFRESH_RATE);
+}
 
 void * AppThreadFunction(void * parm ) {
 	gAppThread = (ovrAppThread *) parm;

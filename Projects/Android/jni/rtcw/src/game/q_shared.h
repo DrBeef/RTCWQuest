@@ -42,7 +42,7 @@ If you have questions concerning this license or the applicable additional terms
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#define Q3_VERSION      "RTCWQuest 1.1.4 (Wolf 1.41)"
+#define Q3_VERSION      "RTCWQuest 1.1.5 (Wolf 1.41)"
 // ver 1.0.0	- release
 // ver 1.0.1	- post-release work
 // ver 1.1.0	- patch 1 (12/12/01)
