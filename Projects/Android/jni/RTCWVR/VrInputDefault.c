@@ -417,7 +417,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             //Positional movement speed correction for when we are not hitting target framerate
             static double lastframetime = 0;
             double newframetime = GetTimeInMilliSeconds();
-            float multiplier = (float)((1000.0 / 72.0) / (newframetime - lastframetime));
+            float multiplier = (float)((1000.0 / GetRefresh()) / (newframetime - lastframetime));
             lastframetime = newframetime;
 
             vec2_t v;

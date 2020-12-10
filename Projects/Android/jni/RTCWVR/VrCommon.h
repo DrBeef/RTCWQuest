@@ -54,7 +54,7 @@ void rotateAboutOrigin(float v1, float v2, float rotation, vec2_t out);
 void QuatToYawPitchRoll(ovrQuatf q, vec3_t rotation, vec3_t out);
 void handleTrackedControllerButton(ovrInputStateTrackedRemote * trackedRemoteState, ovrInputStateTrackedRemote * prevTrackedRemoteState, uint32_t button, int key);
 void interactWithTouchScreen(qboolean reset, ovrInputStateTrackedRemote *newState, ovrInputStateTrackedRemote *oldState);
-
+int GetRefresh();
 
 //Called from engine code
 qboolean RTCWVR_useScreenLayer();

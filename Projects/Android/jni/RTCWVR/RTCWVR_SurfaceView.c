@@ -80,6 +80,8 @@ int GPU_LEVEL			= 4;
 int NUM_MULTI_SAMPLES	= 1;
 float SS_MULTIPLIER    = 1.25f;
 
+float maximumSupportedFramerate=60.0; //The lowest default framerate
+
 jclass clazz;
 
 float radians(float deg) {
@@ -1033,7 +1035,12 @@ static void ovrApp_HandleVrModeChanges( ovrApp * app )
 			// Set performance parameters once we have entered VR mode and have a valid ovrMobile.
 			if ( app->Ovr != NULL )
 			{
-				vrapi_SetClockLevels( app->Ovr, app->CpuLevel, app->GpuLevel );
+                //AmmarkoV : Set our refresh rate..!
+                ovrResult result = vrapi_SetDisplayRefreshRate(app->Ovr,maximumSupportedFramerate);
+                if (result == ovrSuccess) { ALOGV("Changed refresh rate. %f Hz",maximumSupportedFramerate); } else
+                { ALOGV("Failed to change refresh rate to 90Hz Result=%d",result); }
+
+                vrapi_SetClockLevels( app->Ovr, app->CpuLevel, app->GpuLevel );
 
 				ALOGV( "		vrapi_SetClockLevels( %d, %d )", app->CpuLevel, app->GpuLevel );
 
@@ -1531,7 +1538,29 @@ void * AppThreadFunction(void * parm ) {
 		showLoadingIcon();
 	}
 
-	//start
+
+    //AmmarkoV : Query Refresh rates and select maximum..!
+    //-----------------------------------------------------------------------------------------------------------
+    int numberOfRefreshRates = vrapi_GetSystemPropertyInt(&java,VRAPI_SYS_PROP_NUM_SUPPORTED_DISPLAY_REFRESH_RATES);
+    float refreshRatesArray[16]; //Refresh rates are currently (12/2020) the following 4 : 60.0 / 72.0 / 80.0 / 90.0
+    if (numberOfRefreshRates > 16 ) { numberOfRefreshRates = 16; }
+    vrapi_GetSystemPropertyFloatArray(&java, VRAPI_SYS_PROP_SUPPORTED_DISPLAY_REFRESH_RATES,&refreshRatesArray[0], numberOfRefreshRates);
+    for (int i = 0; i < numberOfRefreshRates; i++) {
+        ALOGV("Supported refresh rate : %s Hz", refreshRatesArray[i]);
+        if (maximumSupportedFramerate<refreshRatesArray[i])
+        {
+            maximumSupportedFramerate=refreshRatesArray[i];
+        }
+    }
+    if (maximumSupportedFramerate>90.0)
+    {
+        ALOGV("Soft limiting to 90.0 Hz as per John carmack's request ( https://www.onlinepeeps.org/oculus-quest-2-according-to-carmack-in-the-future-also-at-120-hz/ );P");
+        maximumSupportedFramerate=90.0;
+    }
+    //-----------------------------------------------------------------------------------------------------------
+
+
+    //start
 	VR_main(argc, argv);
 
 	//We are done, shutdown cleanly
