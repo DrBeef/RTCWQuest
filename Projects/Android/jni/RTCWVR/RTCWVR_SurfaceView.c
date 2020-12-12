@@ -1577,6 +1577,9 @@ void RTCWVR_FrameSetup()
 {
 	//Use floor based tracking space
 	vrapi_SetTrackingSpace(gAppState.Ovr, VRAPI_TRACKING_SPACE_LOCAL_FLOOR);
+
+	//Set framerate so VrApi doesn't change it on us..
+    vrapi_SetDisplayRefreshRate(gAppState.Ovr,maximumSupportedFramerate);
 }
 
 void RTCWVR_processHaptics() {
