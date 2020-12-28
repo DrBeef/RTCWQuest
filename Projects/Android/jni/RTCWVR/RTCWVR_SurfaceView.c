@@ -78,9 +78,8 @@ PFNEGLGETSYNCATTRIBKHRPROC		eglGetSyncAttribKHR;
 int CPU_LEVEL			= 4;
 int GPU_LEVEL			= 4;
 int NUM_MULTI_SAMPLES	= 1;
-float SS_MULTIPLIER    = 1.25f;
-
-float maximumSupportedFramerate=60.0; //The lowest default framerate
+int REFRESH	            = 0;
+float SS_MULTIPLIER    = 0.0f;
 
 jclass clazz;
 
@@ -97,6 +96,7 @@ struct arg_dbl *ss;
 struct arg_int *cpu;
 struct arg_int *gpu;
 struct arg_int *msaa;
+struct arg_int *refresh;
 struct arg_end *end;
 
 char **argv;
@@ -1036,8 +1036,8 @@ static void ovrApp_HandleVrModeChanges( ovrApp * app )
 			if ( app->Ovr != NULL )
 			{
                 //AmmarkoV : Set our refresh rate..!
-                ovrResult result = vrapi_SetDisplayRefreshRate(app->Ovr,maximumSupportedFramerate);
-                if (result == ovrSuccess) { ALOGV("Changed refresh rate. %f Hz",maximumSupportedFramerate); } else
+                ovrResult result = vrapi_SetDisplayRefreshRate(app->Ovr, REFRESH);
+                if (result == ovrSuccess) { ALOGV("Changed refresh rate. %f Hz", REFRESH); } else
                 { ALOGV("Failed to change refresh rate to 90Hz Result=%d",result); }
 
                 vrapi_SetClockLevels( app->Ovr, app->CpuLevel, app->GpuLevel );
@@ -1503,6 +1503,26 @@ void * AppThreadFunction(void * parm ) {
 	// This app will handle android gamepad events itself.
 	vrapi_SetPropertyInt(&gAppState.Java, VRAPI_EAT_NATIVE_GAMEPAD_EVENTS, 0);
 
+    //Set device defaults
+    if (vrapi_GetSystemPropertyInt(&java, VRAPI_SYS_PROP_DEVICE_TYPE) == VRAPI_DEVICE_TYPE_OCULUSQUEST)
+    {
+        if (SS_MULTIPLIER == 0.0f)
+        {
+            SS_MULTIPLIER = 1.25f;
+        }
+    }
+    else if (vrapi_GetSystemPropertyInt(&java, VRAPI_SYS_PROP_DEVICE_TYPE) == VRAPI_DEVICE_TYPE_OCULUSQUEST2)
+    {
+        if (SS_MULTIPLIER == 0.0f)
+        {
+            //SLightly lower to allow 90hz to work nicely
+            SS_MULTIPLIER = 1.1f;
+        }
+    } else {
+        //Don't know what headset this is!? abort
+        return NULL;
+    }
+
 	//Using a symmetrical render target
 	m_height = m_width = (int)(vrapi_GetSystemPropertyInt(&java, VRAPI_SYS_PROP_SUGGESTED_EYE_TEXTURE_WIDTH) *  SS_MULTIPLIER);
 
@@ -1538,24 +1558,30 @@ void * AppThreadFunction(void * parm ) {
 		showLoadingIcon();
 	}
 
-
+    int maximumSupportRefresh = 0;
     //AmmarkoV : Query Refresh rates and select maximum..!
     //-----------------------------------------------------------------------------------------------------------
-    int numberOfRefreshRates = vrapi_GetSystemPropertyInt(&java,VRAPI_SYS_PROP_NUM_SUPPORTED_DISPLAY_REFRESH_RATES);
+    int numberOfRefreshRates = vrapi_GetSystemPropertyInt(&java,
+                                                          VRAPI_SYS_PROP_NUM_SUPPORTED_DISPLAY_REFRESH_RATES);
     float refreshRatesArray[16]; //Refresh rates are currently (12/2020) the following 4 : 60.0 / 72.0 / 80.0 / 90.0
-    if (numberOfRefreshRates > 16 ) { numberOfRefreshRates = 16; }
-    vrapi_GetSystemPropertyFloatArray(&java, VRAPI_SYS_PROP_SUPPORTED_DISPLAY_REFRESH_RATES,&refreshRatesArray[0], numberOfRefreshRates);
+    if (numberOfRefreshRates > 16) { numberOfRefreshRates = 16; }
+    vrapi_GetSystemPropertyFloatArray(&java, VRAPI_SYS_PROP_SUPPORTED_DISPLAY_REFRESH_RATES,
+                                      &refreshRatesArray[0], numberOfRefreshRates);
     for (int i = 0; i < numberOfRefreshRates; i++) {
         ALOGV("Supported refresh rate : %s Hz", refreshRatesArray[i]);
-        if (maximumSupportedFramerate<refreshRatesArray[i])
-        {
-            maximumSupportedFramerate=refreshRatesArray[i];
+        if (maximumSupportRefresh < refreshRatesArray[i]) {
+            maximumSupportRefresh = refreshRatesArray[i];
         }
     }
-    if (maximumSupportedFramerate>90.0)
-    {
+
+    if (maximumSupportRefresh > 90.0) {
         ALOGV("Soft limiting to 90.0 Hz as per John carmack's request ( https://www.onlinepeeps.org/oculus-quest-2-according-to-carmack-in-the-future-also-at-120-hz/ );P");
-        maximumSupportedFramerate=90.0;
+        maximumSupportRefresh = 90.0;
+    }
+
+    if (REFRESH == 0 || REFRESH > maximumSupportRefresh)
+    {
+        REFRESH = maximumSupportRefresh;
     }
     //-----------------------------------------------------------------------------------------------------------
 
@@ -1579,7 +1605,7 @@ void RTCWVR_FrameSetup()
 	vrapi_SetTrackingSpace(gAppState.Ovr, VRAPI_TRACKING_SPACE_LOCAL_FLOOR);
 
 	//Set framerate so VrApi doesn't change it on us..
-    vrapi_SetDisplayRefreshRate(gAppState.Ovr,maximumSupportedFramerate);
+    vrapi_SetDisplayRefreshRate(gAppState.Ovr, REFRESH);
 }
 
 void RTCWVR_processHaptics() {
@@ -1854,6 +1880,7 @@ JNIEXPORT jlong JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onCreate( JNIEnv *
             cpu   = arg_int0("c", "cpu", "<int>", "CPU perf index 1-4 (default: 2)"),
             gpu   = arg_int0("g", "gpu", "<int>", "GPU perf index 1-4 (default: 3)"),
             msaa  = arg_int0("m", "msaa", "<int>", "MSAA (default: 1)"),
+            refresh  = arg_int0("r", "refresh", "<int>", "Refresh Rate (default: Q1: 72, Q2: 90)"),
             end   = arg_end(20)
 	};
 
@@ -1895,6 +1922,11 @@ JNIEXPORT jlong JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onCreate( JNIEnv *
         if (msaa->count > 0 && msaa->ival[0] > 0 && msaa->ival[0] < 10)
         {
             NUM_MULTI_SAMPLES = msaa->ival[0];
+        }
+
+        if (refresh->count > 0 && refresh->ival[0] > 0 && refresh->ival[0] <= 120)
+        {
+            REFRESH = refresh->ival[0];
         }
 	}
 

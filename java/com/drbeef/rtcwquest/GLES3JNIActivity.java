@@ -161,6 +161,9 @@ import static android.system.Os.setenv;
 		//Make the directories
 		new File("/sdcard/RTCWQuest/Main").mkdirs();
 
+		//Copy the command line params file
+		copy_asset("/sdcard/RTCWQuest", "commandline.txt", false);
+
 		//Copy the weapon adjustment config
 		copy_asset("/sdcard/RTCWQuest/Main", "weapons_vr.cfg", false);
 
