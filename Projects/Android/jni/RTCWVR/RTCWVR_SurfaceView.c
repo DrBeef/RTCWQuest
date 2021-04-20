@@ -1508,16 +1508,20 @@ void * AppThreadFunction(void * parm ) {
     {
         if (SS_MULTIPLIER == 0.0f)
         {
-            SS_MULTIPLIER = 1.25f;
+            SS_MULTIPLIER = 1.2f;
         }
     }
     else if (vrapi_GetSystemPropertyInt(&java, VRAPI_SYS_PROP_DEVICE_TYPE) == VRAPI_DEVICE_TYPE_OCULUSQUEST2)
     {
         if (SS_MULTIPLIER == 0.0f)
         {
-            //SLightly lower to allow 90hz to work nicely
-            SS_MULTIPLIER = 1.1f;
+            //Lower to allow 90hz to work nicely
+            SS_MULTIPLIER = 1.0f;
         }
+        else if (SS_MULTIPLIER > 1.2F)
+		{
+			SS_MULTIPLIER = 1.2f;
+		}
     } else {
         //Don't know what headset this is!? abort
         return NULL;

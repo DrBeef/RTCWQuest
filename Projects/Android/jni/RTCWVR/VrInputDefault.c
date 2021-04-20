@@ -416,13 +416,15 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
 
             //Positional movement speed correction for when we are not hitting target framerate
             static double lastframetime = 0;
+            int refresh = GetRefresh();
             double newframetime = GetTimeInMilliSeconds();
-            float multiplier = (float)((1000.0 / GetRefresh()) / (newframetime - lastframetime));
+            float multiplier = (float)((1000.0 / refresh) / (newframetime - lastframetime));
             lastframetime = newframetime;
 
             vec2_t v;
-            rotateAboutOrigin(-vr.hmdposition_delta[0] * vr_positional_factor->value * multiplier,
-                              vr.hmdposition_delta[2] * vr_positional_factor->value * multiplier, - vr.hmdorientation[YAW], v);
+            float factor = (refresh / 72.0F) * vr_positional_factor->value; // adjust positional factor based on refresh rate
+            rotateAboutOrigin(-vr.hmdposition_delta[0] * factor * multiplier,
+                              vr.hmdposition_delta[2] * factor * multiplier, - vr.hmdorientation[YAW], v);
             positional_movementSideways = v[0];
             positional_movementForward = v[1];
 
