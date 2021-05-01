@@ -25,6 +25,8 @@ Authors		:	Simon Brown
 
 void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, int capsule );
 
+void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight );
+
 void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew, ovrInputStateTrackedRemote *pDominantTrackedRemoteOld, ovrTracking* pDominantTracking,
                           ovrInputStateTrackedRemote *pOffTrackedRemoteNew, ovrInputStateTrackedRemote *pOffTrackedRemoteOld, ovrTracking* pOffTracking,
                           int domButton1, int domButton2, int offButton1, int offButton2 )

@@ -14,16 +14,23 @@ import java.io.OutputStream;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+
+import com.drbeef.hapticsservice.IHapticsService;
 
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -37,6 +44,9 @@ import static android.system.Os.setenv;
 	{
 		System.loadLibrary( "rtcw_client" );
 	}
+
+	private boolean hasHapticService = false;
+	private IHapticsService hapticsService = null;
 
 	private static final String TAG = "RTCWQuest";
 
@@ -67,6 +77,72 @@ import static android.system.Os.setenv;
 
 	public void shutdown() {
 		System.exit(0);
+	}
+
+	public void haptic_event(String event, int position, int flags, int intensity, float angle, float yHeight)  {
+
+		if (hasHapticService) {
+			try {
+				hapticsService.hapticEvent(APPLICATION, event, position, flags, intensity, angle, yHeight);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void haptic_updateevent(String event, int intensity, float angle) {
+
+		if (hasHapticService) {
+			try {
+				hapticsService.hapticUpdateEvent(APPLICATION, event, intensity, angle);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void haptic_stopevent(String event) {
+
+		if (hasHapticService) {
+			try {
+				hapticsService.hapticStopEvent(APPLICATION, event);
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void haptic_endframe() {
+
+		if (hasHapticService) {
+			try {
+				hapticsService.hapticFrameTick();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void haptic_enable() {
+
+		if (hasHapticService) {
+			try {
+				hapticsService.hapticEnable();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void haptic_disable() {
+
+		if (hasHapticService) {
+			try {
+				hapticsService.hapticDisable();
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override protected void onCreate( Bundle icicle )
@@ -262,6 +338,10 @@ import static android.system.Os.setenv;
 		Log.v( TAG, "GLES3JNIActivity::onStart()" );
 		super.onStart();
 
+		// Bind to the service - Make this a config file thing
+		bindService(new Intent("com.drbeef.hapticservice.HapticService_bHaptics").setPackage("com.drbeef.hapticservice"), this,
+				Context.BIND_AUTO_CREATE);
+
 		GLES3JNILib.onStart( mNativeHandle, this );
 	}
 
@@ -334,4 +414,17 @@ import static android.system.Os.setenv;
 		}
 	}
 
+	@Override
+	public void onServiceConnected(ComponentName name, IBinder service) {
+		hapticsService = IHapticsService.Stub.asInterface(service);
+		hasHapticService = true;
+	}
+
+	@Override
+	public void onServiceDisconnected(ComponentName name) {
+		stopService(new Intent("com.drbeef.hapticservice.HapticService_bHaptics").setPackage("com.drbeef.hapticservice"));
+
+		hasHapticService = false;
+		hapticsService = null;
+	}
 }

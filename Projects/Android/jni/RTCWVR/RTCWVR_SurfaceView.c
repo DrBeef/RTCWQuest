@@ -908,6 +908,43 @@ void RTCWVR_Vibrate( int duration, int channel, float intensity )
 	vibration_channel_intensity[channel] = intensity;
 }
 
+void jni_haptic_event(const char* event, int position, int flags, int intensity, float angle, float yHeight);
+void jni_haptic_updateevent(const char* event, int intensity, float angle);
+void jni_haptic_stopevent(const char* event);
+void jni_haptic_endframe();
+void jni_haptic_enable();
+void jni_haptic_disable();
+
+void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight )
+{
+    jni_haptic_event(event, position, flags, intensity, angle, yHeight);
+}
+
+void RTCWVR_HapticUpdateEvent(const char* event, int intensity, float angle )
+{
+    jni_haptic_updateevent(event, intensity, angle);
+}
+
+void RTCWVR_HapticEndFrame()
+{
+    jni_haptic_endframe();
+}
+
+void RTCWVR_HapticStopEvent(const char* event)
+{
+    jni_haptic_stopevent(event);
+}
+
+void RTCWVR_HapticEnable()
+{
+    jni_haptic_enable();
+}
+
+void RTCWVR_HapticDisable()
+{
+    jni_haptic_disable();
+}
+
 void RTCWVR_GetMove(float *forward, float *side, float *pos_forward, float *pos_side, float *up,
                     float *yaw, float *pitch, float *roll)
 {
