@@ -1882,8 +1882,14 @@ Activity lifecycle
 
 
 jmethodID android_shutdown;
+jmethodID android_haptic_event;
+jmethodID android_haptic_updateevent;
+jmethodID android_haptic_stopevent;
+jmethodID android_haptic_endframe;
+jmethodID android_haptic_enable;
+jmethodID android_haptic_disable;
 static JavaVM *jVM;
-static jobject shutdownCallbackObj=0;
+static jobject jniCallbackObj=0;
 
 void jni_shutdown()
 {
@@ -1894,7 +1900,88 @@ void jni_shutdown()
 	{
 		(*jVM)->AttachCurrentThread(jVM,&env, NULL);
 	}
-	return (*env)->CallVoidMethod(env, shutdownCallbackObj, android_shutdown);
+	return (*env)->CallVoidMethod(env, jniCallbackObj, android_shutdown);
+}
+
+void jni_haptic_event(const char* event, int position, int flags, int intensity, float angle, float yHeight)
+{
+    JNIEnv *env;
+    jobject tmp;
+    if (((*jVM)->GetEnv(jVM, (void**) &env, JNI_VERSION_1_4))<0)
+    {
+        (*jVM)->AttachCurrentThread(jVM,&env, NULL);
+    }
+
+    jstring StringArg1 = (*env)->NewStringUTF(env, event);
+
+    return (*env)->CallVoidMethod(env, jniCallbackObj, android_haptic_event, StringArg1, position, flags, intensity, angle, yHeight);
+}
+
+void jni_haptic_updateevent(const char* event, int intensity, float angle)
+{
+    JNIEnv *env;
+    jobject tmp;
+    if (((*jVM)->GetEnv(jVM, (void**) &env, JNI_VERSION_1_4))<0)
+    {
+        (*jVM)->AttachCurrentThread(jVM,&env, NULL);
+    }
+
+    jstring StringArg1 = (*env)->NewStringUTF(env, event);
+
+    return (*env)->CallVoidMethod(env, jniCallbackObj, android_haptic_updateevent, StringArg1, intensity, angle);
+}
+
+void jni_haptic_stopevent(const char* event)
+{
+    ALOGV("Calling: jni_haptic_stopevent");
+    JNIEnv *env;
+    jobject tmp;
+    if (((*jVM)->GetEnv(jVM, (void**) &env, JNI_VERSION_1_4))<0)
+    {
+        (*jVM)->AttachCurrentThread(jVM,&env, NULL);
+    }
+
+    jstring StringArg1 = (*env)->NewStringUTF(env, event);
+
+    return (*env)->CallVoidMethod(env, jniCallbackObj, android_haptic_stopevent, StringArg1);
+}
+
+void jni_haptic_endframe()
+{
+    JNIEnv *env;
+    jobject tmp;
+    if (((*jVM)->GetEnv(jVM, (void**) &env, JNI_VERSION_1_4))<0)
+    {
+        (*jVM)->AttachCurrentThread(jVM,&env, NULL);
+    }
+
+    return (*env)->CallVoidMethod(env, jniCallbackObj, android_haptic_endframe);
+}
+
+void jni_haptic_enable()
+{
+    ALOGV("Calling: jni_haptic_enable");
+    JNIEnv *env;
+    jobject tmp;
+    if (((*jVM)->GetEnv(jVM, (void**) &env, JNI_VERSION_1_4))<0)
+    {
+        (*jVM)->AttachCurrentThread(jVM,&env, NULL);
+    }
+
+    return (*env)->CallVoidMethod(env, jniCallbackObj, android_haptic_enable);
+}
+
+void jni_haptic_disable()
+{
+    ALOGV("Calling: jni_haptic_disable");
+    JNIEnv *env;
+    jobject tmp;
+    if (((*jVM)->GetEnv(jVM, (void**) &env, JNI_VERSION_1_4))<0)
+    {
+        (*jVM)->AttachCurrentThread(jVM,&env, NULL);
+    }
+
+    return (*env)->CallVoidMethod(env, jniCallbackObj, android_haptic_disable);
 }
 
 int JNI_OnLoad(JavaVM* vm, void* reserved)
@@ -1990,8 +2077,8 @@ JNIEXPORT void JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onStart( JNIEnv * e
 	ALOGV( "    GLES3JNILib::onStart()" );
 
 
-	shutdownCallbackObj = (jobject)(*env)->NewGlobalRef(env, obj1);
-	jclass callbackClass = (*env)->GetObjectClass(env, shutdownCallbackObj);
+    jniCallbackObj = (jobject)(*env)->NewGlobalRef(env, obj1);
+	jclass callbackClass = (*env)->GetObjectClass(env, jniCallbackObj);
 
 	android_shutdown = (*env)->GetMethodID(env,callbackClass,"shutdown","()V");
 

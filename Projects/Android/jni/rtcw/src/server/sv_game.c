@@ -304,6 +304,12 @@ static int  FloatAsInt( float f ) {
 }
 
 void RTCWVR_Vibrate(int duration, int channel, float intensity );
+void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight );
+void RTCWVR_HapticUpdateEvent(const char* event, int intensity, float angle );
+void RTCWVR_HapticEndFrame();
+void RTCWVR_HapticStopEvent(const char* event);
+void RTCWVR_HapticEnable();
+void RTCWVR_HapticDisable();
 
 /*
 ====================
