@@ -862,7 +862,24 @@ int CL_CgameSystemCalls( int *args ) {
 		return SV_GetModelInfo( args[1], VMA( 2 ), VMA( 3 ) );
 
 	case CG_HAPTIC:
+		//VMF(3) = Intensity
+		//VMA(4) = Description
+		//VMF(5) = Yaw
+		//VMF(6) = Height
+
 		RTCWVR_Vibrate( args[1], args[2], VMF( 3 ) );
+
+		float shakeScale = 1.0f - Com_Clamp(0.0f, 1.0f, ( VMF(3)  * ( 1.0f / 4000.0f ) ) + 0.25f );		// 0...4000 -> max...min rumble
+		float highMag = shakeScale;
+		int highDuration = FloatAsInt(300.0f * shakeScale);
+		float lowMag = shakeScale * 0.75f;
+		int lowDuration = FloatAsInt(500.0f * shakeScale);
+
+		//generic rumbling - keep it low
+        RTCWVR_HapticEvent("rumble_front", 0, 0, 30.0f * Com_Clamp(0.1, 1.0, VMF(3)*2.0f + 0.1f), highDuration, 0);
+        RTCWVR_HapticEvent("rumble_back", 0, 0, 30.0f * Com_Clamp(0.1, 1.0, VMF(3)*2.0f + 0.1f), highDuration, 0);
+
+
 		return 0;
 
 	default:

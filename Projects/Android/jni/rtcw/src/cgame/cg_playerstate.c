@@ -221,6 +221,13 @@ void CG_DamageFeedback( int yawByte, int pitchByte, int damage ) {
 	vd->damageDuration = kick * 50 * ( 1 + 2 * ( !vd->damageX && !vd->damageY ) );
 	cg.damageTime = cg.snap->serverTime;
 	cg.damageIndex = slot;
+
+	//GB - Add a haptic event
+	//Ensure a decent level of haptic feedback for any damage
+	//float hapticLevel = 80 + min(damage * 4, 120.0);
+
+	//Indicate head damage if appropriate
+	//RTCWVR_HapticEvent("damage", 0, 0, hapticLevel, yaw, pitch);
 }
 
 

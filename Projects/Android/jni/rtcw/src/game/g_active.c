@@ -95,8 +95,8 @@ void P_DamageFeedback( gentity_t *player ) {
 	client->ps.damageCount = count;
 
 	if (!client->ps.aiChar) {
-		trap_Vibrate(1000, 1, (count / 255.0) + 0.5f);
-		trap_Vibrate(1000, 0, (count / 255.0) + 0.5f);
+		trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage", client->ps.damageYaw, client->ps.damagePitch);
+		trap_Vibrate(1000, 0, (count / 255.0) + 0.5f, "ignore", 0.0, 0.0);
 	}
 
 

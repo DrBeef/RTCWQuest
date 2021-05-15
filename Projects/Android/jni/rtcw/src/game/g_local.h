@@ -1214,7 +1214,8 @@ void    trap_GetUsercmd( int clientNum, usercmd_t *cmd );
 qboolean    trap_GetEntityToken( char *buffer, int bufferSize );
 qboolean trap_GetTag( int clientNum, char *tagName, orientation_t * or );
 
-int trap_Vibrate(int duration, int channel, float intensity );
+//int trap_Vibrate(int duration, int channel, float intensity );
+int trap_Vibrate( int duration, int channel, float intensity, char *description, float yaw, float height);
 
 int     trap_DebugPolygonCreate( int color, int numPoints, vec3_t *points );
 void    trap_DebugPolygonDelete( int id );

@@ -2458,7 +2458,7 @@ int         trap_Key_GetCatcher( void );
 void        trap_Key_SetCatcher( int catcher );
 int         trap_Key_GetKey( const char *binding );
 
-int trap_Vibrate(int duration, int channel, float intensity );
+int trap_Vibrate( int duration, int channel, float intensity, char *description, float yaw, float height);
 
 // RF
 void trap_SendMoveSpeedsToGame( int entnum, char *movespeeds );
