@@ -29,6 +29,7 @@ If you have questions concerning this license or the applicable additional terms
 
 
 
+#include <stdbool.h>
 #include "g_local.h"
 #include "../../../RTCWVR/VrClientInfo.h"
 
@@ -2413,7 +2414,7 @@ void G_RunFrame( int levelTime ) {
 	int msec;
 //int start, end;
 
-	// if we are waiting for the level to restart, do nothing
+// if we are waiting for the level to restart, do nothing
 	if ( level.restarted ) {
 		return;
 	}

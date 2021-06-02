@@ -219,7 +219,8 @@ typedef enum {
 
 	CG_GETMODELINFO,
 
-	CG_HAPTIC
+	CG_HAPTIC,
+	CG_HAPTICENABLE
 } cgameImport_t;
 
 

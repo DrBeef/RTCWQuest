@@ -908,6 +908,84 @@ void RTCWVR_Vibrate( int duration, int channel, float intensity )
 	vibration_channel_intensity[channel] = intensity;
 }
 
+void RTCWVR_Haptic( int duration, int channel, float intensity, char *description, float yaw, float height  )
+{
+    if(strstr(description,"camera_shake") == NULL)
+        Com_Printf("Vibrate Description: %s", description);
+
+    if(strstr(description,"damage_") != NULL) {
+        RTCWVR_HapticEvent(description, 0, 0, 100.0f * intensity, yaw, height);
+    }
+    else if(strstr(description,"fire_") != NULL) {
+        if(strcmp(description,"fire_11") == 0 || strcmp(description,"fire_2") == 0) {
+            RTCWVR_HapticEvent("fire_pistol", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+        }
+		else if(strcmp(description,"fire_3") == 0) {
+			RTCWVR_HapticEvent("fire_mp40", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_4") == 0) {
+			RTCWVR_HapticEvent("fire_mauser", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_5") == 0 || strcmp(description,"fire_17") == 0) {
+			RTCWVR_HapticEvent("fire_fg42", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_6") == 0) {
+			RTCWVR_HapticEvent("fire_grenadelauncher", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_7") == 0 || strcmp(description,"fire_rocket") == 0) {
+			RTCWVR_HapticEvent("fire_panzerfaust", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_8") == 0) {
+			RTCWVR_HapticEvent("fire_venom", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_9") == 0 || strcmp(description,"fire_flames") == 0) {
+			RTCWVR_HapticEvent("fire_flamethrower", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_10") == 0 || strcmp(description,"fire_tesla") == 0) {
+			RTCWVR_HapticEvent("fire_tesla", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_12") == 0) {
+			RTCWVR_HapticEvent("fire_thompson", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_13") == 0) {
+			RTCWVR_HapticEvent("fire_garand", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_14") == 0) {
+			RTCWVR_HapticEvent("fire_grenade", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_15") == 0) {
+			RTCWVR_HapticEvent("fire_sniper", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_16") == 0) {
+			RTCWVR_HapticEvent("fire_snooperscope", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_18") == 0) {
+			RTCWVR_HapticEvent("fire_sten", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_19") == 0) {
+			RTCWVR_HapticEvent("fire_silencer", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+		}
+		else if(strcmp(description,"fire_20") == 0) {
+			//Plays on 0 position (Vest) (not left or right)
+			RTCWVR_HapticEvent("fire_akimbo", 0, 0, 100.0f * intensity, 0, 0);
+		}
+    }
+    else if(strcmp(description,"knife_hit") == 0) {
+        RTCWVR_HapticEvent("knife_hit", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+    }
+    else if(strcmp(description,"camera_shake_left") == 0) {
+        RTCWVR_HapticEvent("rumble_front", 0, 0, 100.0f * intensity, yaw, height);
+    }
+    else if(strcmp(description,"camera_shake_right") == 0) {
+        RTCWVR_HapticEvent("rumble_back", 0, 0, 100.0f * intensity, yaw, height);
+    }
+    else {
+		if(strstr(description,"ignore") == NULL &&
+		   strstr(description,"dead") == NULL)
+    		Com_Printf("Missing Haptic: %s", description);
+    }
+}
+
 void jni_haptic_event(const char* event, int position, int flags, int intensity, float angle, float yHeight);
 void jni_haptic_updateevent(const char* event, int intensity, float angle);
 void jni_haptic_stopevent(const char* event);
@@ -917,6 +995,7 @@ void jni_haptic_disable();
 
 void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight )
 {
+    Com_Printf( "Vibrate Event Fired: %s", event );
     jni_haptic_event(event, position, flags, intensity, angle, yHeight);
 }
 
@@ -937,7 +1016,11 @@ void RTCWVR_HapticStopEvent(const char* event)
 
 void RTCWVR_HapticEnable()
 {
-    jni_haptic_enable();
+	static bool firstTime = true;
+	if (firstTime) {
+		jni_haptic_enable();
+		firstTime = false;
+	}
 }
 
 void RTCWVR_HapticDisable()
@@ -1609,7 +1692,7 @@ void * AppThreadFunction(void * parm ) {
     vrapi_GetSystemPropertyFloatArray(&java, VRAPI_SYS_PROP_SUPPORTED_DISPLAY_REFRESH_RATES,
                                       &refreshRatesArray[0], numberOfRefreshRates);
     for (int i = 0; i < numberOfRefreshRates; i++) {
-        ALOGV("Supported refresh rate : %s Hz", refreshRatesArray[i]);
+        ALOGV("Supported refresh rate : %d Hz", refreshRatesArray[i]);
         if (maximumSupportRefresh < refreshRatesArray[i]) {
             maximumSupportRefresh = refreshRatesArray[i];
         }
@@ -1846,6 +1929,7 @@ void RTCWVR_submitFrame()
 
 
 	RTCWVR_incrementFrameIndex();
+	RTCWVR_HapticEndFrame();
 }
 
 static void ovrAppThread_Create( ovrAppThread * appThread, JNIEnv * env, jobject activityObject, jclass activityClass )
@@ -2081,6 +2165,12 @@ JNIEXPORT void JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onStart( JNIEnv * e
 	jclass callbackClass = (*env)->GetObjectClass(env, jniCallbackObj);
 
 	android_shutdown = (*env)->GetMethodID(env,callbackClass,"shutdown","()V");
+	android_haptic_event = (*env)->GetMethodID(env, callbackClass, "haptic_event", "(Ljava/lang/String;IIIFF)V");
+	android_haptic_updateevent = (*env)->GetMethodID(env, callbackClass, "haptic_updateevent", "(Ljava/lang/String;IF)V");
+	android_haptic_stopevent = (*env)->GetMethodID(env, callbackClass, "haptic_stopevent", "(Ljava/lang/String;)V");
+	android_haptic_endframe = (*env)->GetMethodID(env, callbackClass, "haptic_endframe", "()V");
+	android_haptic_enable = (*env)->GetMethodID(env, callbackClass, "haptic_enable", "()V");
+	android_haptic_disable = (*env)->GetMethodID(env, callbackClass, "haptic_disable", "()V");
 
 	ovrAppThread * appThread = (ovrAppThread *)((size_t)handle);
 	ovrMessage message;

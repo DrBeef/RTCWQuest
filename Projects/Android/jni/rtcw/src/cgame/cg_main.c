@@ -2454,6 +2454,9 @@ void CG_Init( int serverMessageNum, int serverCommandSequence ) {
 	}
 	// jpw
 	// -NERVE - SMF
+
+	//GB - Turn on haptics here - because reasons
+	trap_EnableHaptics();
 }
 
 /*

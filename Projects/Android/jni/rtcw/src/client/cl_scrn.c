@@ -557,6 +557,7 @@ void SCR_UpdateScreen( void ) {
 	recursive = 1;
 
 	RTCWVR_FrameSetup();
+
 	RTCWVR_processMessageQueue();
 
 	//Get controller state here

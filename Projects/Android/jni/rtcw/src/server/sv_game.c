@@ -304,6 +304,7 @@ static int  FloatAsInt( float f ) {
 }
 
 void RTCWVR_Vibrate(int duration, int channel, float intensity );
+void RTCWVR_Haptic(int duration, int channel, float intensity, char *description, float yaw, float height);
 void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight );
 void RTCWVR_HapticUpdateEvent(const char* event, int intensity, float angle );
 void RTCWVR_HapticEndFrame();
@@ -479,6 +480,8 @@ int SV_GameSystemCalls( int *args ) {
 		return SV_GetTag( args[1], VMA( 2 ), VMA( 3 ) );
 	case G_HAPTIC:
 		RTCWVR_Vibrate( args[1], args[2], VMF( 3 ) );
+
+		RTCWVR_Haptic( args[1], args[2], VMF( 3 ), VMA(4), VMF(5), VMF(6) );
 		return 0;
 
 		//====================================

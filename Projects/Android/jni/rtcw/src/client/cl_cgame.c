@@ -45,6 +45,7 @@ extern qboolean getCameraInfo( int camNum, int time, vec3_t *origin, vec3_t *ang
 extern void SV_SendMoveSpeedsToGame( int entnum, char *text );
 extern qboolean SV_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **modelInfo );
 void RTCWVR_Vibrate(int duration, int channel, float intensity );
+void RTCWVR_Haptic(int duration, int channel, float intensity, char *description, float yaw, float height);
 void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight );
 void RTCWVR_HapticUpdateEvent(const char* event, int intensity, float angle );
 void RTCWVR_HapticEndFrame();
@@ -862,6 +863,7 @@ int CL_CgameSystemCalls( int *args ) {
 		return SV_GetModelInfo( args[1], VMA( 2 ), VMA( 3 ) );
 
 	case CG_HAPTIC:
+		//args[2] = Right or left channel (1 = Right / 0 = left)
 		//VMF(3) = Intensity
 		//VMA(4) = Description
 		//VMF(5) = Yaw
@@ -869,17 +871,11 @@ int CL_CgameSystemCalls( int *args ) {
 
 		RTCWVR_Vibrate( args[1], args[2], VMF( 3 ) );
 
-		float shakeScale = 1.0f - Com_Clamp(0.0f, 1.0f, ( VMF(3)  * ( 1.0f / 4000.0f ) ) + 0.25f );		// 0...4000 -> max...min rumble
-		float highMag = shakeScale;
-		int highDuration = FloatAsInt(300.0f * shakeScale);
-		float lowMag = shakeScale * 0.75f;
-		int lowDuration = FloatAsInt(500.0f * shakeScale);
+		RTCWVR_Haptic( args[1], args[2], VMF( 3 ), VMA(4), VMF(5), VMF(6) );
+		return 0;
 
-		//generic rumbling - keep it low
-        RTCWVR_HapticEvent("rumble_front", 0, 0, 30.0f * Com_Clamp(0.1, 1.0, VMF(3)*2.0f + 0.1f), highDuration, 0);
-        RTCWVR_HapticEvent("rumble_back", 0, 0, 30.0f * Com_Clamp(0.1, 1.0, VMF(3)*2.0f + 0.1f), highDuration, 0);
-
-
+	case CG_HAPTICENABLE:
+		RTCWVR_HapticEnable();
 		return 0;
 
 	default:

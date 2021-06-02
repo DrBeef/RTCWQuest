@@ -60,6 +60,7 @@ int GetRefresh();
 qboolean RTCWVR_useScreenLayer();
 void RTCWVR_GetScreenRes(int *width, int *height);
 void RTCWVR_Vibrate(int duration, int channel, float intensity );
+void RTCWVR_Haptic(int duration, int channel, float intensity, char *description, float yaw, float height);
 void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight );
 void RTCWVR_HapticUpdateEvent(const char* event, int intensity, float angle );
 void RTCWVR_HapticEndFrame();
