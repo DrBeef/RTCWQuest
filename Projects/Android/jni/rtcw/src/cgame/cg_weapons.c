@@ -3378,8 +3378,11 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 
 			if (wasfiring) {
 			    //Stop haptics
-				trap_Vibrate(0, 0, 0.0, "stop_firing", 0.0, 0.0);
-    			trap_Vibrate(0, 1, 0.0, "stop_firing", 0.0, 0.0);
+				char *fire_command = (char*)malloc(8 * sizeof(char));
+				sprintf(fire_command, "stop_firing_%i", weaponNum);
+
+				trap_Vibrate(0, 0, 0.0, fire_command, 0.0, 0.0);
+    			trap_Vibrate(0, 1, 0.0, "ignore", 0.0, 0.0);
 				wasfiring = qfalse;
 			}
 		}

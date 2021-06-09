@@ -60,7 +60,7 @@ void P_DamageFeedback( gentity_t *player ) {
 
 	// total points of damage shot at the player this frame
 	count = client->damage_blood + client->damage_armor;
-	if ( count == 0 ) {
+    if ( count == 0 ) {
 		return;     // didn't take any damage
 	}
 
@@ -95,17 +95,31 @@ void P_DamageFeedback( gentity_t *player ) {
 	client->ps.damageCount = count;
 
 	if (!client->ps.aiChar) {
+        vec3_t viewangle;
+		float_t pitch, yaw;
+		pitch = (abs(angles[PITCH]) / 360.0) - 0.5;
+		VectorCopy( client->ps.viewangles, viewangle );
+		//If this doesn't work try (+ 360) instead of abs
+        //Com_Printf( "GBRTCW: viewangle yaw = %f", viewangle[YAW] );
+        //Com_Printf( "GBRTCW: damage location yaw = %f", angles[YAW] );
 
+		yaw = angles[YAW] - (viewangle[YAW] + 180.0f);
+		if(yaw < 0.0f)
+		    yaw += 360.0f;
+		if(yaw > 360.0f)
+            yaw -= 360.0f;
+
+        //AnglesToAxis( viewangle, wolfkick.axis );
 		switch(client->lasthurt_mod)
         {
             case MOD_SHOTGUN:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_shotgun", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_shotgun", yaw, pitch);
                 break;
             case MOD_GRENADE:
             case MOD_GRENADE_SPLASH:
             case MOD_GRENADE_LAUNCHER:
             case MOD_GRENADE_PINEAPPLE:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_frag", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_frag", yaw, pitch);
                 break;
             case MOD_ROCKET:
             case MOD_ROCKET_SPLASH:
@@ -115,12 +129,12 @@ void P_DamageFeedback( gentity_t *player ) {
             case MOD_BFG_SPLASH:
             case MOD_MORTAR:
             case MOD_MORTAR_SPLASH:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_rocket", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_rocket", yaw, pitch);
                 break;
             case MOD_KNIFE:
             case MOD_KNIFE2:
             case MOD_KNIFE_STEALTH:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_knife", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_knife", yaw, pitch);
                 break;
             case MOD_LUGER:
             case MOD_COLT:
@@ -128,7 +142,7 @@ void P_DamageFeedback( gentity_t *player ) {
             case MOD_AKIMBO:
             case MOD_SPEARGUN_CO2:
             case MOD_TARGET_LASER:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_low_bullet", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_low_bullet", yaw, pitch);
                 break;
             case MOD_THOMPSON:
             case MOD_STEN:
@@ -137,7 +151,7 @@ void P_DamageFeedback( gentity_t *player ) {
             case MOD_GARAND:
             case MOD_SPEARGUN:
             case MOD_CROSS:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_mid_bullet", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_mid_bullet", yaw, pitch);
                 break;
             case MOD_RAILGUN:
             case MOD_SNIPERRIFLE:
@@ -148,59 +162,59 @@ void P_DamageFeedback( gentity_t *player ) {
             case MOD_MACHINEGUN:
             case MOD_VENOM:
             case MOD_VENOM_FULL:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_high_bullet", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_high_bullet", yaw, pitch);
                 break;
             case MOD_FLAMETHROWER:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_flamethrower", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_flamethrower", yaw, pitch);
                 break;
             case MOD_LIGHTNING:
             case MOD_TESLA:
             case MOD_TELEFRAG:
             case MOD_LOPER_HIT:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_electric", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_electric", yaw, pitch);
                 break;
             case MOD_EXPLOSIVE:
             case MOD_DYNAMITE:
             case MOD_DYNAMITE_SPLASH:
             case MOD_AIRSTRIKE:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_explosion", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_explosion", yaw, pitch);
                 break;
             case MOD_GRAPPLE:
             case MOD_KICKED:
             case MOD_GRABBER:
             case MOD_LOPER_LEAP:
             case MOD_LOPER_GROUND:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_melee", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_melee", yaw, pitch);
                 break;
             case MOD_FALLING:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_fall", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_fall", yaw, pitch);
                 break;
             case MOD_SUICIDE:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_death", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_death", yaw, pitch);
                 break;
             case MOD_POISONGAS:
             case MOD_WATER:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_gas", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_gas", yaw, pitch);
                 break;
             case MOD_ZOMBIESPIRIT:
             case MOD_ZOMBIESPIRIT_SPLASH:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_zombiespirit", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_zombiespirit", yaw, pitch);
                 break;
             case MOD_SLIME:
             case MOD_ZOMBIESPIT:
             case MOD_ZOMBIESPIT_SPLASH:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_slime", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_slime", yaw, pitch);
                 break;
             case MOD_LAVA:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_fire", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_fire", yaw, pitch);
                 break;
             case MOD_CRUSH:
             case MOD_TRIGGER_HURT:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_crush", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_crush", yaw, pitch);
                 break;
 
                 default:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage", client->ps.damageYaw, client->ps.damagePitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage", yaw, pitch);
                 break;
         }
 		trap_Vibrate(1000, 0, (count / 255.0) + 0.5f, "ignore", 0.0, 0.0);

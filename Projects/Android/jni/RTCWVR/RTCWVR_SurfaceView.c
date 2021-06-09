@@ -910,11 +910,17 @@ void RTCWVR_Vibrate( int duration, int channel, float intensity )
 
 void RTCWVR_Haptic( int duration, int channel, float intensity, char *description, float yaw, float height  )
 {
-    if(strstr(description,"camera_shake") == NULL)
-        Com_Printf("Vibrate Description: %s", description);
+    /*if(strstr(description,"camera_shake") == NULL && strstr(description,"ignore") == NULL && strstr(description,"dead_") == NULL)
+        Com_Printf("GBRTCW: Vibrate Description: %s (Yaw: %f Pitch: %f)", description, yaw, height);*/
 
     if(strstr(description,"damage_") != NULL) {
         RTCWVR_HapticEvent(description, 0, 0, 100.0f * intensity, yaw, height);
+    }
+    else if(strstr(description,"stop_firing_") != NULL) {
+        /*
+    	if(strcmp(description,"stop_firing_9") == 0 || strcmp(description,"stop_firing_flames") == 0) {
+            RTCWVR_HapticStopEvent("fire_flamethrower");
+        }*/
     }
     else if(strstr(description,"fire_") != NULL) {
         if(strcmp(description,"fire_11") == 0 || strcmp(description,"fire_2") == 0) {
@@ -995,7 +1001,7 @@ void jni_haptic_disable();
 
 void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight )
 {
-    Com_Printf( "Vibrate Event Fired: %s", event );
+    //Com_Printf( "Vibrate Event Fired: %s", event );
     jni_haptic_event(event, position, flags, intensity, angle, yHeight);
 }
 
@@ -1020,6 +1026,7 @@ void RTCWVR_HapticEnable()
 	if (firstTime) {
 		jni_haptic_enable();
 		firstTime = false;
+		jni_haptic_event("fire_pistol", 0, 0, 100, 0, 0);
 	}
 }
 
