@@ -132,7 +132,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         resetCursor = qtrue;
 
         static bool canUseQuickSave = false;
-        if (pOffTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)) {
+        if (pOffTracking->Status & VRAPI_TRACKING_STATUS_POSITION_TRACKED) {
             canUseQuickSave = false;
         }
         else if (!canUseQuickSave) {
@@ -207,7 +207,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
         static qboolean binocularstate = qfalse;
         qboolean binocularsactive = (vr.hasbinoculars && vr.backpackitemactive == 3 &&
                 (distanceToHMD < BINOCULAR_ENGAGE_DISTANCE) &&
-                (pDominantTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)));
+                (pDominantTracking->Status & VRAPI_TRACKING_STATUS_POSITION_TRACKED));
         if (binocularstate != binocularsactive)
         {
             //Engage scope if conditions are right
@@ -308,7 +308,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 finishReloadNextFrame = false;
             }
 
-            if (pDominantTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)) {
+            if (pDominantTracking->Status & VRAPI_TRACKING_STATUS_POSITION_TRACKED) {
                 canUseBackpack = false;
             }
             else if (!canUseBackpack && vr.backpackitemactive == 0) {
