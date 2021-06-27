@@ -1706,6 +1706,8 @@ void CG_RumbleEfx( float pitch, float yaw ) {
 	VectorCopy( recoil, cg.kickAVel );
 	// set the recoil
 	cg.recoilPitch -= pitchRecoilAdd;
+
+
 }
 
 

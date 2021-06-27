@@ -910,10 +910,31 @@ void RTCWVR_Vibrate( int duration, int channel, float intensity )
 
 void RTCWVR_Haptic( int duration, int channel, float intensity, char *description, float yaw, float height  )
 {
-    /*if(strstr(description,"camera_shake") == NULL && strstr(description,"ignore") == NULL && strstr(description,"dead_") == NULL)
-        Com_Printf("GBRTCW: Vibrate Description: %s (Yaw: %f Pitch: %f)", description, yaw, height);*/
+    if(strstr(description,"camera_shake") == NULL && strstr(description,"ignore") == NULL && strstr(description,"dead_") == NULL)
+        Com_Printf("GBRTCW: Vibrate Description: %s (Yaw: %f Pitch: %f)", description, yaw, height);
 
-    if(strstr(description,"damage_") != NULL) {
+	if(strcmp(description,"player_dead") == 0) {
+		RTCWVR_HapticEvent("player_dead", 0, 0, 100.0f * intensity, yaw, height);
+	}
+    else if(strcmp(description,"door_kick") == 0) {
+		RTCWVR_HapticEvent("kick_door", 0, 0, 100.0f * intensity, yaw, height);
+	}
+	else if(strcmp(description,"door_open") == 0) {
+		RTCWVR_HapticEvent("open_door", 0, 0, 100.0f * intensity, yaw, height);
+	}
+    else if(strcmp(description,"alarm_on") == 0) {
+        RTCWVR_HapticEvent("heartbeat", 0, 0, 100.0f * intensity, yaw, height);
+    }
+    else if(strcmp(description,"end_alarm") == 0) {
+        RTCWVR_HapticStopEvent("heartbeat");
+    }
+	else if(strcmp(description,"give_armor") == 0) {
+		RTCWVR_HapticEvent(description, 0, 0, 100.0f * intensity, yaw, height);
+	}
+	else if(strcmp(description,"give_health") == 0) {
+		RTCWVR_HapticEvent(description, 0, 0, 100.0f * intensity, yaw, height);
+	}
+    else if(strstr(description,"damage_") != NULL) {
         RTCWVR_HapticEvent(description, 0, 0, 100.0f * intensity, yaw, height);
     }
     else if(strstr(description,"stop_firing_") != NULL) {
@@ -1001,7 +1022,7 @@ void jni_haptic_disable();
 
 void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight )
 {
-    //Com_Printf( "Vibrate Event Fired: %s", event );
+    //Com_Printf( "GBRTCW: Vibrate Event Fired: %s", event );
     jni_haptic_event(event, position, flags, intensity, angle, yHeight);
 }
 

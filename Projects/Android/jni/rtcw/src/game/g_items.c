@@ -498,6 +498,12 @@ int Pickup_Weapon( gentity_t *ent, gentity_t *other ) {
 int Pickup_Health( gentity_t *ent, gentity_t *other ) {
 	int max;
 	int quantity = 0;
+	float intensity = 1.0f;
+	//Trigger a haptic for armor pickup
+	intensity = ent->count / 100;
+	if(intensity < 0.4)
+		intensity = 0.4f;
+	trap_Haptic(1,0,intensity,"give_health",0.0f, 0.0f);
 
 	// small and mega healths will go over the max
 	if ( ent->item->quantity != 5 && ent->item->quantity != 100  ) {
@@ -548,6 +554,12 @@ int Pickup_Health( gentity_t *ent, gentity_t *other ) {
 //======================================================================
 
 int Pickup_Armor( gentity_t *ent, gentity_t *other ) {
+
+	//Trigger a haptic for armor pickup
+	if ( other->client->ps.stats[STAT_ARMOR] < 100 ) {
+		trap_Haptic(1,0,1.0f,"give_armor",0.0f, 0.0f);
+	}
+
 	other->client->ps.stats[STAT_ARMOR] += ent->item->quantity;
 //	if ( other->client->ps.stats[STAT_ARMOR] > other->client->ps.stats[STAT_MAX_HEALTH] * 2 ) {
 //		other->client->ps.stats[STAT_ARMOR] = other->client->ps.stats[STAT_MAX_HEALTH] * 2;

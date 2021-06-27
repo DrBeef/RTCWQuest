@@ -2239,12 +2239,14 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		ByteToDir( es->eventParm, dir );
 		CG_Bullet( es->pos.trBase, es->otherEntityNum, dir, qfalse, ENTITYNUM_WORLD, qtrue, es->otherEntityNum2 );
 		trap_S_StartSound( NULL, es->number, CHAN_AUTO, cgs.media.fkickwall );
+		trap_Vibrate(1, 1, 0.8, "door_kick", 0.0, -0.5);
 		break;
 
 	case EV_WOLFKICK_HIT_FLESH:
 		DEBUGNAME( "EV_WOLFKICK_HIT_FLESH" );
 		CG_Bullet( es->pos.trBase, es->otherEntityNum, dir, qtrue, es->eventParm, qtrue, es->otherEntityNum2 );
 		trap_S_StartSound( NULL, es->number, CHAN_AUTO, cgs.media.fkickflesh );
+		trap_Vibrate(1, 1, 0.7, "door_kick", 0.0, -0.5);
 		break;
 
 	case EV_WOLFKICK_MISS:

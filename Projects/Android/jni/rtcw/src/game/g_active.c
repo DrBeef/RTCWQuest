@@ -97,11 +97,18 @@ void P_DamageFeedback( gentity_t *player ) {
 	if (!client->ps.aiChar) {
         vec3_t viewangle;
 		float_t pitch, yaw;
-		pitch = (abs(angles[PITCH]) / 360.0) - 0.5;
+		//pitch = (abs(angles[PITCH]) / 360.0) - 0.5;
+		pitch = angles[PITCH];
+		Com_Printf( "GBRTCW: damage location pitch = %f", pitch );
+		if(pitch > -90)
+			pitch = pitch / 180.0;
+		else if(pitch < -270 && pitch > -360)
+			pitch = (pitch + 360) / 180;
 		VectorCopy( client->ps.viewangles, viewangle );
 		//If this doesn't work try (+ 360) instead of abs
         //Com_Printf( "GBRTCW: viewangle yaw = %f", viewangle[YAW] );
         //Com_Printf( "GBRTCW: damage location yaw = %f", angles[YAW] );
+
 
 		yaw = angles[YAW] - (viewangle[YAW] + 180.0f);
 		if(yaw < 0.0f)

@@ -1215,6 +1215,7 @@ qboolean    trap_GetEntityToken( char *buffer, int bufferSize );
 qboolean trap_GetTag( int clientNum, char *tagName, orientation_t * or );
 
 //int trap_Vibrate(int duration, int channel, float intensity );
+int trap_Haptic( int duration, int channel, float intensity, char *description, float yaw, float height);
 int trap_Vibrate( int duration, int channel, float intensity, char *description, float yaw, float height);
 int trap_EnableHaptics();
 

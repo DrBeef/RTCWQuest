@@ -483,7 +483,9 @@ int SV_GameSystemCalls( int *args ) {
 
 		RTCWVR_Haptic( args[1], args[2], VMF( 3 ), VMA(4), VMF(5), VMF(6) );
 		return 0;
-
+	case G_HAPTICTRIGGER:
+		RTCWVR_Haptic( args[1], args[2], VMF( 3 ), VMA(4), VMF(5), VMF(6) );
+		return 0;
 		//====================================
 
 	case BOTLIB_SETUP:

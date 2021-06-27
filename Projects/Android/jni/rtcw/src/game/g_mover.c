@@ -35,6 +35,9 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 #include "g_local.h"
+#include "../../../RTCWVR/VrClientInfo.h"
+
+extern vr_client_info_t* gVR;
 
 char *hintStrings[] = {
 	"",                  // HINT_NONE
@@ -769,13 +772,16 @@ void SetMoverState( gentity_t *ent, moverState_t moverState, int time ) {
 		if ( kicked ) {
 			f = 2000.0 / ent->gDuration;        // double speed when kicked open
 			ent->s.apos.trDuration = ent->gDuration / 2.0;
+
 		} else if ( soft ) {
 			f = 500.0 / ent->gDuration;         // 1/2 speed when soft opened
 			ent->s.apos.trDuration = ent->gDuration * 2;
+			//trap_Vibrate(1, gVR->right_handed ? 0 : 1, 0.5f, "door_open", 0, 0); //I've reversed the hands as I presume you will open it with the hand your gun isn't in.
 		} else {
 			f = 1000.0 / ent->gDuration;
 //				ent->s.apos.trDuration = ent->gDurationBack;	// (SA) durationback?
 			ent->s.apos.trDuration = ent->gDuration;
+			//trap_Vibrate(1, gVR->right_handed ? 0 : 1, 0.75f, "door_open", 0, 0); //not sure what this is
 		}
 		VectorScale( ent->rotate, f * ent->angle, ent->s.apos.trDelta );
 		ent->s.apos.trType = TR_LINEAR_STOP;
@@ -2200,17 +2206,19 @@ void G_TryDoor( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 
 				Use_BinaryMover( ent->teammaster, activator, activator );
 				G_UseTargets( ent->teammaster, activator );
-			} else
+			}
+			else
 			{
 				ent->active = qtrue;
 				if ( walking ) {
 					ent->flags |= FL_SOFTACTIVATE;      // no noise
+					trap_Vibrate(1, gVR->right_handed ? 0 : 1, 1.0f, "door_open", 0, 0); //I've reversed the hands as I presume you will open it with the hand your gun isn't in.
 				} else {
+					trap_Vibrate(1, gVR->right_handed ? 0 : 1, 0.6f, "door_open", 0, 0); //I've reversed the hands as I presume you will open it with the hand your gun isn't in.
 					if ( activator ) {
 						soundrange = HEAR_RANGE_DOOR_OPEN;
 					}
 				}
-
 				Use_BinaryMover( ent, activator, activator );
 				G_UseTargets( ent, activator );
 			}

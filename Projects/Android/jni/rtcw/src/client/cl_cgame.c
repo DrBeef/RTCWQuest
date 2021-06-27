@@ -873,7 +873,14 @@ int CL_CgameSystemCalls( int *args ) {
 
 		RTCWVR_Haptic( args[1], args[2], VMF( 3 ), VMA(4), VMF(5), VMF(6) );
 		return 0;
+    case CG_HAPTICTRIGGER:
+		//VMF(1) = Intensity
+		//VMA(2) = Description
+		//VMF(3) = Yaw
+		//VMF(4) = Height
 
+		RTCWVR_Haptic( args[1], args[2], VMF( 3 ), VMA(4), VMF(5), VMF(6) );
+		return 0;
 	case CG_HAPTICENABLE:
 		RTCWVR_HapticEnable();
 		return 0;
