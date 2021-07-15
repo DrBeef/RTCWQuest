@@ -27,7 +27,8 @@ void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const ve
 
 void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight );
 
-void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew, ovrInputStateTrackedRemote *pDominantTrackedRemoteOld, ovrTracking* pDominantTracking,
+void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateGamepad *pFootTrackingOld,
+                          ovrInputStateTrackedRemote *pDominantTrackedRemoteNew, ovrInputStateTrackedRemote *pDominantTrackedRemoteOld, ovrTracking* pDominantTracking,
                           ovrInputStateTrackedRemote *pOffTrackedRemoteNew, ovrInputStateTrackedRemote *pOffTrackedRemoteOld, ovrTracking* pOffTracking,
                           int domButton1, int domButton2, int offButton1, int offButton2 )
 
@@ -444,6 +445,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             }
 
 
+
+
             //We need to record if we have started firing primary so that releasing trigger will stop firing, if user has pushed grip
             //in meantime, then it wouldn't stop the gun firing and it would get stuck
             static qboolean firing = false;
@@ -549,8 +552,8 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
             //Apply a filter and quadratic scaler so small movements are easier to make
             float dist = length(pSecondaryJoystick->x, pSecondaryJoystick->y);
             float nlf = nonLinearFilter(dist);
-            float x = nlf * pSecondaryJoystick->x;
-            float y = nlf * pSecondaryJoystick->y;
+            float x = (nlf * pSecondaryJoystick->x) + pFootTrackingNew->LeftJoystick.x;
+            float y = (nlf * pSecondaryJoystick->y) - pFootTrackingNew->LeftJoystick.y;
 
             vr.player_moving = (fabs(x) + fabs(y)) > 0.05f;
 
@@ -616,6 +619,7 @@ void HandleInput_Default( ovrInputStateTrackedRemote *pDominantTrackedRemoteNew,
                 handleTrackedControllerButton(pOffTrackedRemoteNew,
                                               pOffTrackedRemoteOld,
                                               ovrButton_Trigger, K_SHIFT);
+
             } else {
                 if (pOffTrackedRemoteNew->Buttons & ovrButton_Trigger)
                 {

@@ -39,7 +39,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 
 #include "g_local.h"
-
+#include "../../../RTCWVR/VrClientInfo.h"
 
 
 #define RESPAWN_SP          -1
@@ -54,7 +54,7 @@ If you have questions concerning this license or the applicable additional terms
 #define RESPAWN_PARTIAL     998     // for multi-stage ammo/health
 #define RESPAWN_PARTIAL_DONE 999    // for multi-stage ammo/health
 
-
+extern vr_client_info_t* gVR;
 //======================================================================
 
 int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
@@ -87,6 +87,7 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 	// brandy also gives a little health (10)
 	if ( ent->item->giTag == PW_NOFATIGUE ) {
 		if ( Q_stricmp( ent->item->classname, "item_stamina_brandy" ) == 0 ) {
+			trap_Haptic(1, 0, 0.6, "give_drink", 0.0f, 0.0f);
 			other->health += 10;
 			if ( other->health > other->client->ps.stats[STAT_MAX_HEALTH] ) {
 				other->health = other->client->ps.stats[STAT_MAX_HEALTH];
@@ -169,6 +170,7 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
 //======================================================================
 int Pickup_Key( gentity_t *ent, gentity_t *other ) {
 	other->client->ps.stats[STAT_KEYS] |= ( 1 << ent->item->giTag );
+	trap_Haptic(1, gVR->right_handed ? 1 : 0, 1.0f, "pickup_item", 0.0f, 0.0f);
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
 		if ( !( ent->spawnflags & 8 ) ) {
 			return RESPAWN_SP;
@@ -187,6 +189,7 @@ Pickup_Clipboard
 */
 int Pickup_Clipboard( gentity_t *ent, gentity_t *other ) {
 
+	trap_Haptic(1, gVR->right_handed ? 1 : 0, 1.0f, "pickup_item", 0.0f, 0.0f);
 	if ( ent->spawnflags & 4 ) {
 		return 0;   // leave in world
 
@@ -203,6 +206,7 @@ Pickup_Treasure
 int Pickup_Treasure( gentity_t *ent, gentity_t *other ) {
 	gentity_t *player = AICast_FindEntityForName( "player" );
 	player->numTreasureFound++;
+	trap_Haptic(1, 0, 1.0, "pickup_treasure", 0.0f, 0.0f);
 	G_SendMissionStats();
 	return RESPAWN_SP;  // no respawn
 }
@@ -218,6 +222,7 @@ void UseHoldableItem( gentity_t *ent, int item ) {
 	switch ( item ) {
 	case HI_WINE:           // 1921 Chateu Lafite - gives 25 pts health up to max health
 		ent->health += 25;
+		trap_Haptic(1, 0, 1.0, "give_drink", 0.0f, 0.0f);
 		if ( ent->health > ent->client->ps.stats[STAT_MAX_HEALTH] ) {
 			ent->health = ent->client->ps.stats[STAT_MAX_HEALTH];
 		}
@@ -256,6 +261,7 @@ int Pickup_Holdable( gentity_t *ent, gentity_t *other ) {
 	other->client->ps.holding = item->giTag;
 
 	other->client->ps.stats[STAT_HOLDABLE_ITEM] |= ( 1 << ent->item->giTag );   //----(SA)	added
+	trap_Haptic(1, gVR->right_handed ? 1 : 0, 1.0f, "pickup_item", 0.0f, 0.0f);
 
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
 		if ( !( ent->spawnflags & 8 ) ) {
@@ -386,6 +392,7 @@ int Pickup_Ammo( gentity_t *ent, gentity_t *other ) {
 	}
 
 	Add_Ammo( other, ent->item->giTag, quantity, qfalse );   //----(SA)	modified
+	trap_Haptic(1, gVR->right_handed ? 1 : 0, 1.0f, "pickup_item", 0.0f, 0.0f);
 
 	// single player has no respawns	(SA)
 	if ( g_gametype.integer == GT_SINGLE_PLAYER ) {
@@ -468,6 +475,7 @@ int Pickup_Weapon( gentity_t *ent, gentity_t *other ) {
 //----(SA)	end
 
 	Add_Ammo( other, weapon, quantity, !alreadyHave );
+	trap_Haptic(1, gVR->right_handed ? 1 : 0, 1.0f, "pickup_item", 0.0f, 0.0f);
 
 //----(SA) no hook
 //	if (weapon == WP_GRAPPLING_HOOK)
@@ -503,7 +511,23 @@ int Pickup_Health( gentity_t *ent, gentity_t *other ) {
 	intensity = ent->count / 100;
 	if(intensity < 0.4)
 		intensity = 0.4f;
-	trap_Haptic(1,0,intensity,"give_health",0.0f, 0.0f);
+
+	//Need to find food and see if different (cheese and other stuff)
+	//item_health / icons/iconh_med (25)
+	//item_health_wall / icons/iconh_wall (25)
+    //item_health_turkey / icons/iconh_turkey (15)
+    //item_health_breadandmeat / "icons/iconh_breadandmeat (10)
+	if(strstr(ent->item->classname,"turkey") ||
+	   strstr(ent->item->classname,"bread") ||
+	   strstr(ent->item->classname,"meat") ||
+       strstr(ent->item->classname,"wine") ||
+       strstr(ent->item->classname,"latour")) {
+        //quantity (25)
+	    trap_Haptic(1, 0, intensity, "give_food", 0.0f, 0.0f);
+    } else {
+        trap_Haptic(1, 0, intensity, "give_health", 0.0f, 0.0f);
+	}
+
 
 	// small and mega healths will go over the max
 	if ( ent->item->quantity != 5 && ent->item->quantity != 100  ) {

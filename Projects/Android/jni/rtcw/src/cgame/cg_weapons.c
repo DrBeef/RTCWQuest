@@ -4359,6 +4359,7 @@ void CG_SetSniperZoom( int lastweap, int newweap ) {
         default:
 			Com_Printf("**WEAPON EVENT**  cgVR->scopeengaged = qfalse");
 			cgVR->scopeengaged = qfalse;
+			trap_Haptic(1, cgVR->right_handed ? 1 : 0, 0.7f, "switch_weapon", 0.0f, 0.0f);
             break;
     }
 
@@ -4372,6 +4373,7 @@ void CG_SetSniperZoom( int lastweap, int newweap ) {
     switch ( newweap ) {
 
 	default:
+
 		return;     // no sniper zoom, get out.
 
 	case WP_SNIPERRIFLE:

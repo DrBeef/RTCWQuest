@@ -928,12 +928,13 @@ void RTCWVR_Haptic( int duration, int channel, float intensity, char *descriptio
     else if(strcmp(description,"end_alarm") == 0) {
         RTCWVR_HapticStopEvent("heartbeat");
     }
-	else if(strcmp(description,"give_armor") == 0) {
-		RTCWVR_HapticEvent(description, 0, 0, 100.0f * intensity, yaw, height);
+	else if(strcmp(description,"switch_weapon") == 0 || strcmp(description,"pickup_item") == 0) {
+		RTCWVR_HapticEvent(description, channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
 	}
-	else if(strcmp(description,"give_health") == 0) {
-		RTCWVR_HapticEvent(description, 0, 0, 100.0f * intensity, yaw, height);
-	}
+    else if(strcmp(description,"give_armor") == 0 || strcmp(description,"give_food") == 0 ||
+    		strcmp(description,"give_drink") == 0 || strcmp(description,"give_health") == 0 || strcmp(description,"pickup_treasure") == 0) {
+        RTCWVR_HapticEvent(description, 0, 0, 100.0f * intensity, yaw, height);
+    }
     else if(strstr(description,"damage_") != NULL) {
         RTCWVR_HapticEvent(description, 0, 0, 100.0f * intensity, yaw, height);
     }
@@ -1651,7 +1652,7 @@ void * AppThreadFunction(void * parm ) {
 	// This app will handle android gamepad events itself.
 	vrapi_SetPropertyInt(&gAppState.Java, VRAPI_EAT_NATIVE_GAMEPAD_EVENTS, 0);
 
-    //Set device defaults
+	//Set device defaults
     if (vrapi_GetSystemPropertyInt(&java, VRAPI_SYS_PROP_DEVICE_TYPE) == VRAPI_DEVICE_TYPE_OCULUSQUEST)
     {
         if (SS_MULTIPLIER == 0.0f)
@@ -1664,6 +1665,7 @@ void * AppThreadFunction(void * parm ) {
         if (SS_MULTIPLIER == 0.0f)
         {
             //Lower to allow 90hz to work nicely
+            //GB Override as refresh is now 72 by default
             SS_MULTIPLIER = 1.0f;
         }
         else if (SS_MULTIPLIER > 1.2F)
@@ -1733,7 +1735,7 @@ void * AppThreadFunction(void * parm ) {
 
     if (REFRESH == 0 || REFRESH > maximumSupportRefresh)
     {
-        REFRESH = maximumSupportRefresh;
+        REFRESH = 72.0;
     }
     //-----------------------------------------------------------------------------------------------------------
 
@@ -1864,12 +1866,14 @@ void RTCWVR_getTrackedRemotesOrientation() {//Get info for tracked remotes
 	switch (vr_control_scheme->integer)
 	{
 		case RIGHT_HANDED_DEFAULT:
-			HandleInput_Default(&rightTrackedRemoteState_new, &rightTrackedRemoteState_old, &rightRemoteTracking_new,
+			HandleInput_Default(&footTrackedRemoteState_new, &footTrackedRemoteState_old,
+			                    &rightTrackedRemoteState_new, &rightTrackedRemoteState_old, &rightRemoteTracking_new,
 								&leftTrackedRemoteState_new, &leftTrackedRemoteState_old, &leftRemoteTracking_new,
 								ovrButton_A, ovrButton_B, ovrButton_X, ovrButton_Y);
 			break;
 		case LEFT_HANDED_DEFAULT:
-			HandleInput_Default(&leftTrackedRemoteState_new, &leftTrackedRemoteState_old, &leftRemoteTracking_new,
+			HandleInput_Default(&footTrackedRemoteState_new, &footTrackedRemoteState_old,
+			                    &leftTrackedRemoteState_new, &leftTrackedRemoteState_old, &leftRemoteTracking_new,
 								&rightTrackedRemoteState_new, &rightTrackedRemoteState_old, &rightRemoteTracking_new,
 								ovrButton_X, ovrButton_Y, ovrButton_A, ovrButton_B);
 			break;

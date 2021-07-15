@@ -102,7 +102,7 @@ void P_DamageFeedback( gentity_t *player ) {
 		Com_Printf( "GBRTCW: damage location pitch = %f", pitch );
 		if(pitch > -90)
 			pitch = pitch / 180.0;
-		else if(pitch < -270 && pitch > -360)
+		else if(pitch <= -270 && pitch > -360)
 			pitch = (pitch + 360) / 180;
 		VectorCopy( client->ps.viewangles, viewangle );
 		//If this doesn't work try (+ 360) instead of abs
@@ -119,7 +119,7 @@ void P_DamageFeedback( gentity_t *player ) {
         //AnglesToAxis( viewangle, wolfkick.axis );
 		switch(client->lasthurt_mod)
         {
-            case MOD_SHOTGUN:
+			case MOD_SHOTGUN:
                 trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_shotgun", yaw, pitch);
                 break;
             case MOD_GRENADE:
@@ -186,6 +186,7 @@ void P_DamageFeedback( gentity_t *player ) {
             case MOD_AIRSTRIKE:
                 trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_explosion", yaw, pitch);
                 break;
+            case MOD_GAUNTLET:
             case MOD_GRAPPLE:
             case MOD_KICKED:
             case MOD_GRABBER:
@@ -221,7 +222,7 @@ void P_DamageFeedback( gentity_t *player ) {
                 break;
 
                 default:
-                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage", yaw, pitch);
+                trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_mid_bullet", yaw, pitch);
                 break;
         }
 		trap_Vibrate(1000, 0, (count / 255.0) + 0.5f, "ignore", 0.0, 0.0);

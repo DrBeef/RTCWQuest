@@ -1393,7 +1393,7 @@ void Use_BinaryMover( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 		if ( kicked ) {
 			ent->teammaster->flags |= FL_KICKACTIVATE;
 		}
-		if ( soft ) {
+		else if ( soft || 1 == 1) {
 			ent->teammaster->flags |= FL_SOFTACTIVATE;
 		}
 
@@ -2210,11 +2210,13 @@ void G_TryDoor( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 			else
 			{
 				ent->active = qtrue;
-				if ( walking ) {
+				if ( walking || 1 == 1) {
 					ent->flags |= FL_SOFTACTIVATE;      // no noise
-					trap_Vibrate(1, gVR->right_handed ? 0 : 1, 1.0f, "door_open", 0, 0); //I've reversed the hands as I presume you will open it with the hand your gun isn't in.
+					if(gVR)
+					    trap_Vibrate(1, gVR->right_handed ? 0 : 1, 0.3f, "door_open", 0, 0); //I've reversed the hands as I presume you will open it with the hand your gun isn't in.
 				} else {
-					trap_Vibrate(1, gVR->right_handed ? 0 : 1, 0.6f, "door_open", 0, 0); //I've reversed the hands as I presume you will open it with the hand your gun isn't in.
+                    if(gVR)
+				        trap_Vibrate(1, gVR->right_handed ? 0 : 1, 0.5f, "door_open", 0, 0); //I've reversed the hands as I presume you will open it with the hand your gun isn't in.
 					if ( activator ) {
 						soundrange = HEAR_RANGE_DOOR_OPEN;
 					}

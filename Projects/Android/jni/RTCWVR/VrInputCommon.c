@@ -94,7 +94,22 @@ void acquireTrackedRemotesData(const ovrMobile *Ovr, double displayTime) {//The 
             break;
         }
 
-        if (cap.Type == ovrControllerType_TrackedRemote) {
+        if (cap.Type == ovrControllerType_Gamepad) {
+
+            ovrInputGamepadCapabilities remoteCaps;
+            remoteCaps.Header = cap;
+            if (vrapi_GetInputDeviceCapabilities(Ovr, &remoteCaps.Header) >= 0) {
+                // remote is connected
+                ovrInputStateGamepad remoteState;
+                remoteState.Header.ControllerType = ovrControllerType_Gamepad;
+                if ( vrapi_GetCurrentInputState( Ovr, cap.DeviceID, &remoteState.Header ) >= 0 )
+                {
+                    // act on device state returned in remoteState
+                    footTrackedRemoteState_new = remoteState;
+                }
+            }
+        }
+        else if (cap.Type == ovrControllerType_TrackedRemote) {
             ovrTracking remoteTracking;
             ovrInputStateTrackedRemote trackedRemoteState;
             trackedRemoteState.Header.ControllerType = ovrControllerType_TrackedRemote;

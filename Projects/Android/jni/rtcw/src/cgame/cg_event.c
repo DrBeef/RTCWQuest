@@ -32,9 +32,10 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "cg_local.h"
 #include "../ui/ui_shared.h" // for Menus_CloseAll()
+#include "../../../RTCWVR/VrClientInfo.h"
 
 extern int hWeaponSnd;
-
+extern vr_client_info_t *cgVR;
 extern void CG_Tracer( vec3_t source, vec3_t dest, int sparks );
 //==========================================================================
 
@@ -1979,17 +1980,17 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		// client will get this message if reloading while using an alternate weapon
 		// client should voluntarily switch back to primary at that point
 		switch ( es->weapon ) {
-		case WP_SNOOPERSCOPE:
-			newweap = WP_GARAND;
-			break;
-		case WP_SNIPERRIFLE:
-			newweap = WP_MAUSER;
-			break;
-		case WP_FG42SCOPE:
-			newweap = WP_FG42;
-			break;
-		default:
-			break;
+            case WP_SNOOPERSCOPE:
+                newweap = WP_GARAND;
+                break;
+            case WP_SNIPERRIFLE:
+                newweap = WP_MAUSER;
+                break;
+            case WP_FG42SCOPE:
+                newweap = WP_FG42;
+                break;
+            default:
+                break;
 		}
 
 		// TTimo
