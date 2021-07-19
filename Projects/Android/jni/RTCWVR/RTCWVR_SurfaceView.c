@@ -1664,13 +1664,12 @@ void * AppThreadFunction(void * parm ) {
     {
         if (SS_MULTIPLIER == 0.0f)
         {
-            //Lower to allow 90hz to work nicely
-            //GB Override as refresh is now 72 by default
-            SS_MULTIPLIER = 1.0f;
+            //GB Override as refresh is now 72 by default as we decided a higher res is better as 90hz has stutters
+            SS_MULTIPLIER = 1.35f;
         }
-        else if (SS_MULTIPLIER > 1.2F)
+        else if (SS_MULTIPLIER > 1.5f)
 		{
-			SS_MULTIPLIER = 1.2f;
+			SS_MULTIPLIER = 1.5f;
 		}
     } else {
         //Don't know what headset this is!? abort

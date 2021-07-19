@@ -154,7 +154,13 @@ ovrLayerCylinder2 BuildCylinderLayer( ovrRenderer * cylinderRenderer,
 	const float density = 4500.0f;
 	const float rotateYaw = 0.0f;
 	const float radius = 4.0f;
-	const float distance = vr_screen_dist ? -vr_screen_dist->value : -3.5f;
+	//GB Hacky Override
+	float screen_offset = 0;
+	if(textureWidth > 1900)
+	{
+		screen_offset = -2.625f;
+	}
+	const float distance = vr_screen_dist ? -vr_screen_dist->value + screen_offset : -3.5f + screen_offset;
 
 	const ovrVector3f translation = { 0.0f, playerHeight/2, distance };
 
