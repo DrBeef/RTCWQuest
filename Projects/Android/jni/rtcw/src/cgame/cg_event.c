@@ -32,9 +32,10 @@ If you have questions concerning this license or the applicable additional terms
 
 #include "cg_local.h"
 #include "../ui/ui_shared.h" // for Menus_CloseAll()
+#include "../../../RTCWVR/VrClientInfo.h"
 
 extern int hWeaponSnd;
-
+extern vr_client_info_t *cgVR;
 extern void CG_Tracer( vec3_t source, vec3_t dest, int sparks );
 //==========================================================================
 
@@ -1979,17 +1980,17 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		// client will get this message if reloading while using an alternate weapon
 		// client should voluntarily switch back to primary at that point
 		switch ( es->weapon ) {
-		case WP_SNOOPERSCOPE:
-			newweap = WP_GARAND;
-			break;
-		case WP_SNIPERRIFLE:
-			newweap = WP_MAUSER;
-			break;
-		case WP_FG42SCOPE:
-			newweap = WP_FG42;
-			break;
-		default:
-			break;
+            case WP_SNOOPERSCOPE:
+                newweap = WP_GARAND;
+                break;
+            case WP_SNIPERRIFLE:
+                newweap = WP_MAUSER;
+                break;
+            case WP_FG42SCOPE:
+                newweap = WP_FG42;
+                break;
+            default:
+                break;
 		}
 
 		// TTimo
@@ -2239,12 +2240,14 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		ByteToDir( es->eventParm, dir );
 		CG_Bullet( es->pos.trBase, es->otherEntityNum, dir, qfalse, ENTITYNUM_WORLD, qtrue, es->otherEntityNum2 );
 		trap_S_StartSound( NULL, es->number, CHAN_AUTO, cgs.media.fkickwall );
+		trap_Vibrate(1, 1, 0.8, "door_kick", 0.0, -0.5);
 		break;
 
 	case EV_WOLFKICK_HIT_FLESH:
 		DEBUGNAME( "EV_WOLFKICK_HIT_FLESH" );
 		CG_Bullet( es->pos.trBase, es->otherEntityNum, dir, qtrue, es->eventParm, qtrue, es->otherEntityNum2 );
 		trap_S_StartSound( NULL, es->number, CHAN_AUTO, cgs.media.fkickflesh );
+		trap_Vibrate(1, 1, 0.7, "door_kick", 0.0, -0.5);
 		break;
 
 	case EV_WOLFKICK_MISS:

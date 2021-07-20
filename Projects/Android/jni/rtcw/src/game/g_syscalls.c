@@ -255,8 +255,12 @@ qboolean trap_GetTag( int clientNum, char *tagName, orientation_t *or ) {
 	return syscall( G_GETTAG, clientNum, tagName, or );
 }
 
-int trap_Vibrate(int duration, int channel, float intensity ) {
-	return syscall( G_HAPTIC, duration, channel, PASSFLOAT(intensity) );
+int trap_Vibrate( int duration, int channel, float intensity, char *description, float yaw, float height) {
+	return syscall( G_HAPTIC, duration, channel, PASSFLOAT(intensity), description, PASSFLOAT(yaw), PASSFLOAT(height));
+}
+
+int trap_Haptic( int duration, int channel, float intensity, char *description, float yaw, float height) {
+	return syscall( G_HAPTICTRIGGER, duration, channel, PASSFLOAT(intensity), description, PASSFLOAT(yaw), PASSFLOAT(height));
 }
 
 // BotLib traps start here

@@ -250,6 +250,8 @@ typedef enum {
 	G_GETTAG,
 
 	G_HAPTIC,
+	G_HAPTICTRIGGER,
+	G_FULL_HAPTIC,
 
 	BOTLIB_SETUP = 200,             // ( void );
 	BOTLIB_SHUTDOWN,                // ( void );

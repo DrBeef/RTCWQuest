@@ -141,7 +141,7 @@ void Weapon_Knife( gentity_t *ent ) {
 	tent->s.weapon = ent->s.weapon;
 
 	//we hit something
-	trap_Vibrate(100, gVR->right_handed ? 1 : 0, 0.9);
+	trap_Vibrate(100, gVR->right_handed ? 1 : 0, 0.9, "knife_hit", 0.0, 0.0);
 
 	if ( tr.entityNum == ENTITYNUM_WORLD ) { // don't worry about doing any damage
 		return;
@@ -963,15 +963,17 @@ void Bullet_Fire( gentity_t *ent, float spread, int damage ) {
 	if (!ent->aiCharacter) {
 
 	    qboolean right = gVR->right_handed;
+		// Allocates storage
+		char *fire_command = (char*)malloc(8 * sizeof(char));
+		sprintf(fire_command, "fire_%i", ent->s.weapon);
 	    if (ent->s.weapon == WP_AKIMBO)
         {
             right = BG_AkimboFireSequence(ent->s.weapon, ent->client->ps.ammoclip[WP_AKIMBO], ent->client->ps.ammoclip[WP_COLT] );
-            trap_Vibrate(100, right ? 1 : 0, 1.0);
-
+            trap_Vibrate(100, right ? 1 : 0, 1.0, fire_command, 0.0, 0.0);
         } else{
-            trap_Vibrate(100, right ? 1 : 0, 1.0);
+            trap_Vibrate(100, right ? 1 : 0, 1.0, fire_command, 0.0, 0.0);
             if (gVR->weapon_stabilised) {
-                trap_Vibrate(100, right ? 0 : 1, 0.7);
+                trap_Vibrate(100, right ? 0 : 1, 0.7, fire_command, 0.0, 0.0);
             }
 	    }
     }
@@ -2033,9 +2035,9 @@ void FireWeapon( gentity_t *ent ) {
 		ent->client->ps.classWeaponTime = level.time; // JPW NERVE
 		Weapon_RocketLauncher_Fire( ent, aimSpreadScale );
 		if (!ent->aiCharacter) {
-            trap_Vibrate(200, gVR->right_handed ? 1 : 0, 1.0);
+            trap_Vibrate(200, gVR->right_handed ? 1 : 0, 1.0, "fire_rocket", 0.0, 0.0);
             if (gVR->weapon_stabilised) {
-                trap_Vibrate(200, gVR->right_handed ? 0 : 1, 0.7);
+                trap_Vibrate(200, gVR->right_handed ? 0 : 1, 0.7, "fire_rocket", 0.0, 0.0);
             }
         }
         break;

@@ -1407,7 +1407,8 @@ void Cmd_Activate_f( gentity_t *ent ) {
 
 		if ( ( ( Q_stricmp( traceEnt->classname, "func_door" ) == 0 ) || ( Q_stricmp( traceEnt->classname, "func_door_rotating" ) == 0 ) ) ) {
 //----(SA)	modified
-			if ( walking ) {
+			//GB Force this on as they don't hve a key which seems unfair in VR
+			if ( walking || 1 == 1) {
 				traceEnt->flags |= FL_SOFTACTIVATE;     // no noise
 			}
 			G_TryDoor( traceEnt, ent, ent );      // (door,other,activator)
@@ -1419,7 +1420,7 @@ void Cmd_Activate_f( gentity_t *ent ) {
 //			Use_BinaryMover (traceEnt, ent, ent);
 //			traceEnt->active = qtrue;
 		} else if ( !Q_stricmp( traceEnt->classname, "func_invisible_user" ) )     {
-			if ( walking ) {
+			if ( walking || 1 == 1) {
 				traceEnt->flags |= FL_SOFTACTIVATE;     // no noise
 			}
 			traceEnt->use( traceEnt, ent, ent );

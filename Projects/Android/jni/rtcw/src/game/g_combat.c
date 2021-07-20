@@ -359,7 +359,9 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 //	if (self->client && self->client->hook)
 //		Weapon_HookFree(self->client->hook);
 
+	trap_Haptic(1,0,1.0f,"player_dead",0,0);
 	self->client->ps.pm_type = PM_DEAD;
+
 
 	if ( attacker ) {
 		killer = attacker->s.number;

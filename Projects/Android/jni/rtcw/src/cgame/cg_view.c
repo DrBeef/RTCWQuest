@@ -1666,8 +1666,8 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 
 	//Don't allow long running haptics to continue once dead
 	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
-		trap_Vibrate(0, 0, 0.0);
-		trap_Vibrate(0, 1, 0.0);
+		trap_Vibrate(0, 0, 0.0, "dead_left", 0.0, 0.0);
+		trap_Vibrate(0, 1, 0.0, "dead_right", 0.0, 0.0);
 	}
 
 	DEBUGTIME

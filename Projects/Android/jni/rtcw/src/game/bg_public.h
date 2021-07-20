@@ -543,16 +543,16 @@ typedef enum {
 	WP_VENOM,               // 8
 	WP_FLAMETHROWER,        // 9
 	WP_TESLA,               // 10
-//	WP_SPEARGUN,			// 11
+//	WP_SPEARGUN,			// __
 
 // weapon keys only go 1-0, so put the alternates above that (since selection will be a double click on the german weapon key)
 
 	// American equivalents
-//	WP_KNIFE2,				// 12
+//	WP_KNIFE2,				// __
 	WP_COLT,                // 11	equivalent american weapon to german luger
 	WP_THOMPSON,            // 12	equivalent american weapon to german mp40
 	WP_GARAND,              // 13	equivalent american weapon to german mauser
-//	WP_BAR,					// 16	equivalent american weapon to german fg42
+//	WP_BAR,					// __	equivalent american weapon to german fg42
 	WP_GRENADE_PINEAPPLE,   // 14
 //	WP_ROCKET_LAUNCHER,		// 18	equivalent american weapon to german panzerfaust
 
