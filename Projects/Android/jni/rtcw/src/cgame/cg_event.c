@@ -1957,6 +1957,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			// can re-work if this causes trouble
 //			trap_S_StartSound (NULL, es->number, CHAN_AUTO, cg_weapons[es->weapon].reloadSound );
 			trap_S_StartSound( NULL, es->number, CHAN_WEAPON, cg_weapons[es->weapon].reloadSound );
+			trap_Haptic(1, cgVR->right_handed ? 1 : 0, 1.0f, "weapon_reload", 0.0f, 0.0f);
 		}
 		break;
 
