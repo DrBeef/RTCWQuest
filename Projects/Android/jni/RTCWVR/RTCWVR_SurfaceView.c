@@ -919,6 +919,9 @@ void RTCWVR_Haptic( int duration, int channel, float intensity, char *descriptio
     else if(strcmp(description,"door_kick") == 0) {
 		RTCWVR_HapticEvent("kick_door", 0, 0, 100.0f * intensity, yaw, height);
 	}
+    else if(strcmp(description,"weapon_reload") == 0) {
+        RTCWVR_HapticEvent("weapon_reload", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
+    }
 	else if(strcmp(description,"door_open") == 0) {
 		RTCWVR_HapticEvent("open_door", 0, 0, 100.0f * intensity, yaw, height);
 	}
