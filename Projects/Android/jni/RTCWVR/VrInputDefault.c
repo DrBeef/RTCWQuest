@@ -27,6 +27,11 @@ void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const ve
 
 void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight );
 
+static inline float AngleBetweenVectors(const vec3_t a, const vec3_t b)
+{
+    return degrees(acosf(DotProduct(a, b)/(VectorLength(a) * VectorLength(b))));
+}
+
 void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateGamepad *pFootTrackingOld,
                           ovrInputStateTrackedRemote *pDominantTrackedRemoteNew, ovrInputStateTrackedRemote *pDominantTrackedRemoteOld, ovrTracking* pDominantTracking,
                           ovrInputStateTrackedRemote *pOffTrackedRemoteNew, ovrInputStateTrackedRemote *pOffTrackedRemoteOld, ovrTracking* pOffTracking,
@@ -42,7 +47,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
     static qboolean dominantGripPushed = false;
 	static float dominantGripPushTime = 0.0f;
     static bool canUseBackpack = false;
-
+    static bool canUseQuickSave = false;
 
     //Need this for the touch screen
     ovrTracking * pWeapon = pDominantTracking;
@@ -133,33 +138,6 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
     else
     {
         resetCursor = qtrue;
-
-        static bool canUseQuickSave = false;
-        if (pOffTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)) {
-            canUseQuickSave = false;
-        }
-        else if (!canUseQuickSave) {
-            int channel = (vr_control_scheme->integer >= 10) ? 1 : 0;
-            RTCWVR_Vibrate(40, channel, 0.5); // vibrate to let user know they can switch
-            canUseQuickSave = true;
-        }
-
-        if (canUseQuickSave)
-        {
-            if (((pOffTrackedRemoteNew->Buttons & offButton1) !=
-                 (pOffTrackedRemoteOld->Buttons & offButton1)) &&
-                (pOffTrackedRemoteNew->Buttons & offButton1)) {
-                sendButtonActionSimple("savegame quicksave");
-            }
-
-            if (((pOffTrackedRemoteNew->Buttons & offButton2) !=
-                 (pOffTrackedRemoteOld->Buttons & offButton2)) &&
-                (pOffTrackedRemoteNew->Buttons & offButton2)) {
-                sendButtonActionSimple("loadgame quicksave");
-            }
-        }
-
-
 
         float distance = sqrtf(powf(pOff->HeadPose.Pose.Position.x - pWeapon->HeadPose.Pose.Position.x, 2) +
                                powf(pOff->HeadPose.Pose.Position.y - pWeapon->HeadPose.Pose.Position.y, 2) +
@@ -311,7 +289,70 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                 finishReloadNextFrame = false;
             }
 
-            if (pDominantTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)) {
+            // Calculate if player tries to reach backpack
+            bool handInBackpack = false;
+            bool bpDistToHMDOk = false, bpWeaponHeightOk = false, bpWeaponAngleOk = false, bpHmdToWeaponAngleOk = false;
+            vec3_t hmdForwardXY = {}, weaponForwardXY = {};
+            float weaponToDownAngle = 0, hmdToWeaponDotProduct = 0;
+            static vec3_t downVector = {0.0, 0.0, -1.0};
+
+            bool bpTrackOk = pOffTracking->Status & VRAPI_TRACKING_STATUS_POSITION_TRACKED;                        // 1) Position must be tracked
+            if (bpTrackOk && (bpDistToHMDOk = distanceToHMD >= 0.2 && distanceToHMD <= 0.35)                       // 2) Weapon-to-HMD distance must be within <0.2-0.35> range
+                && (bpWeaponHeightOk = vr.current_weaponoffset[1] >= -0.10 && vr.current_weaponoffset[1] <= 0.10)) // 3) Weapon height in relation to HMD must be within <-0.10, 0.10> range
+            {
+                AngleVectors(&vr.hmdorientation, &hmdForwardXY, NULL, NULL);
+                AngleVectors(&vr.weaponangles, &weaponForwardXY, NULL, NULL);
+
+                float weaponToDownAngle = AngleBetweenVectors(downVector, weaponForwardXY);
+                // 4) Angle between weapon forward vector and a down vector must be within 80-140 degrees
+                if(bpWeaponAngleOk = weaponToDownAngle >= 80.0 && weaponToDownAngle <= 140.0)
+                {
+                    hmdForwardXY[2] = 0;
+                    VectorNormalize(&hmdForwardXY);
+
+                    weaponForwardXY[2] = 0;
+                    VectorNormalize(&weaponForwardXY);
+
+                    hmdToWeaponDotProduct = DotProduct(hmdForwardXY, weaponForwardXY);
+                    // 5) HMD and weapon forward on XY plane must go in opposite directions (i.e. dot product < 0)
+                    handInBackpack = bpHmdToWeaponAngleOk = hmdToWeaponDotProduct < 0;
+                }
+            }
+
+            // Uncomment to debug backpack reaching
+            /*
+            ALOGV("Backpack> Dist: %f | WpnToDownAngle: %f | WpnOffs: %f %f %f\nHmdWpnDot: %f | HmdFwdXY: %f %f | WpnFwdXY: %f %f\nTrackOk: %i, DistOk: %i, HeightOk: %i, WpnAngleOk: %i, HmdWpnDotOk: %i",
+                  distanceToHMD, weaponToDownAngle, vr.current_weaponoffset[0], vr.current_weaponoffset[1], vr.current_weaponoffset[2],
+                  hmdToWeaponDotProduct, hmdForwardXY[0], hmdForwardXY[1], weaponForwardXY[0], weaponForwardXY[1],
+                  bpTrackOk, bpDistToHMDOk, bpWeaponHeightOk, bpWeaponAngleOk, bpHmdToWeaponAngleOk);
+            */
+
+            // Check quicksave
+            if (!handInBackpack) {
+                canUseQuickSave = false;
+            }
+            else if (!canUseQuickSave) {
+                int channel = (vr_control_scheme->integer >= 10) ? 1 : 0;
+                RTCWVR_Vibrate(40, channel, 0.5); // vibrate to let user know they can switch
+                canUseQuickSave = true;
+            }
+
+            if (canUseQuickSave)
+            {
+                if (((pOffTrackedRemoteNew->Buttons & offButton1) !=
+                     (pOffTrackedRemoteOld->Buttons & offButton1)) &&
+                    (pOffTrackedRemoteNew->Buttons & offButton1)) {
+                    sendButtonActionSimple("savegame quicksave");
+                }
+
+                if (((pOffTrackedRemoteNew->Buttons & offButton2) !=
+                     (pOffTrackedRemoteOld->Buttons & offButton2)) &&
+                    (pOffTrackedRemoteNew->Buttons & offButton2)) {
+                    sendButtonActionSimple("loadgame quicksave");
+                }
+            }
+
+            if (!handInBackpack) {
                 canUseBackpack = false;
             }
             else if (!canUseBackpack && vr.backpackitemactive == 0) {
