@@ -300,18 +300,18 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
             if (bpTrackOk && (bpDistToHMDOk = distanceToHMD >= 0.2 && distanceToHMD <= 0.35)                       // 2) Weapon-to-HMD distance must be within <0.2-0.35> range
                 && (bpWeaponHeightOk = vr.current_weaponoffset[1] >= -0.10 && vr.current_weaponoffset[1] <= 0.10)) // 3) Weapon height in relation to HMD must be within <-0.10, 0.10> range
             {
-                AngleVectors(&vr.hmdorientation, &hmdForwardXY, NULL, NULL);
-                AngleVectors(&vr.weaponangles, &weaponForwardXY, NULL, NULL);
+                AngleVectors(vr.hmdorientation, hmdForwardXY, NULL, NULL);
+                AngleVectors(vr.weaponangles, weaponForwardXY, NULL, NULL);
 
                 float weaponToDownAngle = AngleBetweenVectors(downVector, weaponForwardXY);
                 // 4) Angle between weapon forward vector and a down vector must be within 80-140 degrees
                 if(bpWeaponAngleOk = weaponToDownAngle >= 80.0 && weaponToDownAngle <= 140.0)
                 {
                     hmdForwardXY[2] = 0;
-                    VectorNormalize(&hmdForwardXY);
+                    VectorNormalize(hmdForwardXY);
 
                     weaponForwardXY[2] = 0;
-                    VectorNormalize(&weaponForwardXY);
+                    VectorNormalize(weaponForwardXY);
 
                     hmdToWeaponDotProduct = DotProduct(hmdForwardXY, weaponForwardXY);
                     // 5) HMD and weapon forward on XY plane must go in opposite directions (i.e. dot product < 0)
