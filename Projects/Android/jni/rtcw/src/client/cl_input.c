@@ -595,6 +595,13 @@ void CL_JoystickMove( usercmd_t *cmd ) {
 
 	cmd->forwardmove = ClampChar( cmd->forwardmove + (new_move.forward * 127) + (new_move.pos_forward * 127));
 	cmd->rightmove = ClampChar( cmd->rightmove + (new_move.side * 127) + (new_move.pos_side * 127));
+
+	float moveMagnitude = sqrt(new_move.forward * new_move.forward + new_move.side * new_move.side);
+	if(moveMagnitude < 0.35)
+	{
+		// Triggers silent-stepping
+		cmd->buttons |= BUTTON_WALKING;
+	}
 }
 
 /*
