@@ -1193,8 +1193,10 @@ static void ovrApp_HandleVrModeChanges( ovrApp * app )
                 { ALOGV("Failed to change refresh rate to 90Hz Result=%d",result); }
 
                 vrapi_SetClockLevels( app->Ovr, app->CpuLevel, app->GpuLevel );
-
 				ALOGV( "		vrapi_SetClockLevels( %d, %d )", app->CpuLevel, app->GpuLevel );
+
+                 vrapi_SetExtraLatencyMode(app->Ovr, VRAPI_EXTRA_LATENCY_MODE_ON);
+				ALOGV( "		vrapi_SetExtraLatencyMode( %d )", VRAPI_EXTRA_LATENCY_MODE_ON );
 
 				vrapi_SetPerfThread( app->Ovr, VRAPI_PERF_THREAD_TYPE_MAIN, app->MainThreadTid );
 
@@ -1762,6 +1764,8 @@ void RTCWVR_FrameSetup()
 
 	//Set framerate so VrApi doesn't change it on us..
     vrapi_SetDisplayRefreshRate(gAppState.Ovr, REFRESH);
+
+	vrapi_SetExtraLatencyMode(gAppState.Ovr, VRAPI_EXTRA_LATENCY_MODE_ON);
 }
 
 void RTCWVR_processHaptics() {
@@ -2122,11 +2126,11 @@ JNIEXPORT jlong JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onCreate( JNIEnv *
 
 	/* the global arg_xxx structs are initialised within the argtable */
 	void *argtable[] = {
-			ss    = arg_dbl0("s", "supersampling", "<double>", "super sampling value (e.g. 1.0)"),
+			ss    = arg_dbl0("s", "supersampling", "<double>", "super sampling value (default: Q1: 1.2, Q2: 1.35)"),
             cpu   = arg_int0("c", "cpu", "<int>", "CPU perf index 1-4 (default: 2)"),
             gpu   = arg_int0("g", "gpu", "<int>", "GPU perf index 1-4 (default: 3)"),
             msaa  = arg_int0("m", "msaa", "<int>", "MSAA (default: 1)"),
-            refresh  = arg_int0("r", "refresh", "<int>", "Refresh Rate (default: Q1: 72, Q2: 90)"),
+            refresh  = arg_int0("r", "refresh", "<int>", "Refresh Rate (default: Q1: 72, Q2: 72)"),
             end   = arg_end(20)
 	};
 
