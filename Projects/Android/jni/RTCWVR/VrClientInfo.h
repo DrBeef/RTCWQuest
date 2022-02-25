@@ -51,6 +51,9 @@ typedef struct {
     qboolean velocitytriggered; // Weapon attack triggered by velocity (knife)
 
     vec3_t offhandangles;
+    vec3_t offhandangles_last; // Don't use this, it is just for calculating delta!
+    vec3_t offhandangles_delta;
+
     vec3_t offhandoffset;
 
     //
