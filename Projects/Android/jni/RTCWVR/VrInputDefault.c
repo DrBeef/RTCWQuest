@@ -27,6 +27,11 @@ void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const ve
 
 void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight );
 
+static inline float AngleBetweenVectors(const vec3_t a, const vec3_t b)
+{
+    return degrees(acosf(DotProduct(a, b)/(VectorLength(a) * VectorLength(b))));
+}
+
 void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateGamepad *pFootTrackingOld,
                           ovrInputStateTrackedRemote *pDominantTrackedRemoteNew, ovrInputStateTrackedRemote *pDominantTrackedRemoteOld, ovrTracking* pDominantTracking,
                           ovrInputStateTrackedRemote *pOffTrackedRemoteNew, ovrInputStateTrackedRemote *pOffTrackedRemoteOld, ovrTracking* pOffTracking,
@@ -42,7 +47,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
     static qboolean dominantGripPushed = false;
 	static float dominantGripPushTime = 0.0f;
     static bool canUseBackpack = false;
-
+    static bool canUseQuickSave = false;
 
     //Need this for the touch screen
     ovrTracking * pWeapon = pDominantTracking;
@@ -115,6 +120,13 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
         ALOGV("        weaponangles_last: %f, %f, %f",
               vr.weaponangles_last[0], vr.weaponangles_last[1], vr.weaponangles_last[2]);
 
+        //GB Also set offhand angles just in case we want to use those.
+        vec3_t rotation_off = {0};
+        rotation_off[PITCH] = vr_weapon_pitchadjust->value;
+        QuatToYawPitchRoll(pOff->HeadPose.Pose.Orientation, rotation_off, vr.offhandangles);
+
+        VectorSubtract(vr.offhandangles_last, vr.offhandangles, vr.offhandangles_delta);
+        VectorCopy(vr.offhandangles, vr.offhandangles_last);
     }
 
     //Menu button
@@ -134,33 +146,6 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
     {
         resetCursor = qtrue;
 
-        static bool canUseQuickSave = false;
-        if (pOffTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)) {
-            canUseQuickSave = false;
-        }
-        else if (!canUseQuickSave) {
-            int channel = (vr_control_scheme->integer >= 10) ? 1 : 0;
-            RTCWVR_Vibrate(40, channel, 0.5); // vibrate to let user know they can switch
-            canUseQuickSave = true;
-        }
-
-        if (canUseQuickSave)
-        {
-            if (((pOffTrackedRemoteNew->Buttons & offButton1) !=
-                 (pOffTrackedRemoteOld->Buttons & offButton1)) &&
-                (pOffTrackedRemoteNew->Buttons & offButton1)) {
-                sendButtonActionSimple("savegame quicksave");
-            }
-
-            if (((pOffTrackedRemoteNew->Buttons & offButton2) !=
-                 (pOffTrackedRemoteOld->Buttons & offButton2)) &&
-                (pOffTrackedRemoteNew->Buttons & offButton2)) {
-                sendButtonActionSimple("loadgame quicksave");
-            }
-        }
-
-
-
         float distance = sqrtf(powf(pOff->HeadPose.Pose.Position.x - pWeapon->HeadPose.Pose.Position.x, 2) +
                                powf(pOff->HeadPose.Pose.Position.y - pWeapon->HeadPose.Pose.Position.y, 2) +
                                powf(pOff->HeadPose.Pose.Position.z - pWeapon->HeadPose.Pose.Position.z, 2));
@@ -169,6 +154,11 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                                     powf(vr.hmdposition[1] - pWeapon->HeadPose.Pose.Position.y, 2) +
                                     powf(vr.hmdposition[2] - pWeapon->HeadPose.Pose.Position.z, 2));
 
+        float distanceToHMDOff = sqrtf(powf(vr.hmdposition[0] - pOff->HeadPose.Pose.Position.x, 2) +
+                                    powf(vr.hmdposition[1] - pOff->HeadPose.Pose.Position.y, 2) +
+                                    powf(vr.hmdposition[2] - pOff->HeadPose.Pose.Position.z, 2));
+
+        float controllerYawHeading = 0.0f;
         //Turn on weapon stabilisation?
         qboolean stabilised = qfalse;
         if (!vr.pistol && // Don't stabilise pistols
@@ -194,6 +184,14 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                 }
                 lastScopeReady = scopeready;
             }
+        }
+
+        //ALOGV("**GB WEAPON ACTIVE** %i",vr.weaponid);
+        if(!scopeready && vr.weaponid >= 15 && vr.weaponid <= 17)
+        {
+            lastScopeReady = false;
+            ALOGV("**WEAPON EVENT**  disable scope mode forced");
+            sendButtonActionSimple("weapalt");
         }
 
         //Engage scope / virtual stock (iron sight lock) if conditions are right
@@ -311,7 +309,120 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                 finishReloadNextFrame = false;
             }
 
-            if (pDominantTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)) {
+            // Calculate if player tries to reach backpack
+            bool handInBackpack = false;
+            bool bpDistToHMDOk = false, bpWeaponHeightOk = false, bpWeaponAngleOk = false, bpHmdToWeaponAngleOk = false;
+            vec3_t hmdForwardXY = {}, weaponForwardXY = {};
+            float weaponToDownAngle = 0, hmdToWeaponDotProduct = 0;
+            static vec3_t downVector = {0.0, 0.0, -1.0};
+
+            bool bpTrackOk = pOffTracking->Status & VRAPI_TRACKING_STATUS_POSITION_TRACKED;                        // 1) Position must be tracked
+            if (bpTrackOk && (bpDistToHMDOk = distanceToHMD >= 0.2 && distanceToHMD <= 0.35)                       // 2) Weapon-to-HMD distance must be within <0.2-0.35> range
+                && (bpWeaponHeightOk = vr.current_weaponoffset[1] >= -0.10 && vr.current_weaponoffset[1] <= 0.10)) // 3) Weapon height in relation to HMD must be within <-0.10, 0.10> range
+            {
+                AngleVectors(vr.hmdorientation, hmdForwardXY, NULL, NULL);
+                AngleVectors(vr.weaponangles, weaponForwardXY, NULL, NULL);
+
+                float weaponToDownAngle = AngleBetweenVectors(downVector, weaponForwardXY);
+                // 4) Angle between weapon forward vector and a down vector must be within 80-140 degrees
+                if(bpWeaponAngleOk = weaponToDownAngle >= 80.0 && weaponToDownAngle <= 140.0)
+                {
+                    hmdForwardXY[2] = 0;
+                    VectorNormalize(hmdForwardXY);
+
+                    weaponForwardXY[2] = 0;
+                    VectorNormalize(weaponForwardXY);
+
+                    hmdToWeaponDotProduct = DotProduct(hmdForwardXY, weaponForwardXY);
+                    // 5) HMD and weapon forward on XY plane must go in opposite directions (i.e. dot product < 0)
+                    handInBackpack = bpHmdToWeaponAngleOk = hmdToWeaponDotProduct < 0;
+                }
+            }
+
+            // Uncomment to debug backpack reaching
+            /*
+            ALOGV("Backpack> Dist: %f | WpnToDownAngle: %f | WpnOffs: %f %f %f\nHmdWpnDot: %f | HmdFwdXY: %f %f | WpnFwdXY: %f %f\nTrackOk: %i, DistOk: %i, HeightOk: %i, WpnAngleOk: %i, HmdWpnDotOk: %i",
+                  distanceToHMD, weaponToDownAngle, vr.current_weaponoffset[0], vr.current_weaponoffset[1], vr.current_weaponoffset[2],
+                  hmdToWeaponDotProduct, hmdForwardXY[0], hmdForwardXY[1], weaponForwardXY[0], weaponForwardXY[1],
+                  bpTrackOk, bpDistToHMDOk, bpWeaponHeightOk, bpWeaponAngleOk, bpHmdToWeaponAngleOk);
+            */
+
+
+            //off-hand stuff (done here as I reference it in the save state thing
+            {
+                vr.offhandoffset[0] = pOff->HeadPose.Pose.Position.x - vr.hmdposition[0];
+                vr.offhandoffset[1] = pOff->HeadPose.Pose.Position.y - vr.hmdposition[1];
+                vr.offhandoffset[2] = pOff->HeadPose.Pose.Position.z - vr.hmdposition[2];
+
+                vec3_t rotation = {0};
+                QuatToYawPitchRoll(pOff->HeadPose.Pose.Orientation, rotation, vr.offhandangles);
+
+                if (vr_walkdirection->value == 0) {
+                    controllerYawHeading = vr.offhandangles[YAW] - vr.hmdorientation[YAW];
+                }
+                else
+                {
+                    controllerYawHeading = 0.0f;
+                }
+            }
+
+            // Use off hand as well to trigger save condition
+            canUseQuickSave = false;
+            bool bpOffhandDistToHMDOk = false, bpOffhandHeightOk = false, bpOffhandAngleOk = false, bpHmdToOffhandAngleOk = false;
+            vec3_t offhandForwardXY = {};
+            float hmdToOffhandDotProduct = 0;
+            float offhandToDownAngle = 0;
+            if (bpTrackOk && (bpOffhandDistToHMDOk = distanceToHMDOff >= 0.2 && distanceToHMDOff <= 0.35)   // 2) Off-to-HMD distance must be within <0.2-0.35> range
+                && (bpOffhandHeightOk = vr.offhandoffset[1] >= -0.10 && vr.offhandoffset[1] <= 0.10)) // 3) Offhand height in relation to HMD must be within <-0.10, 0.10> range
+            {
+                //Need to do this again as might not have done it above and cant be bothered to refactor
+                AngleVectors(vr.hmdorientation, hmdForwardXY, NULL, NULL);
+                AngleVectors(vr.offhandangles, offhandForwardXY, NULL, NULL);
+
+                offhandToDownAngle = AngleBetweenVectors(downVector, offhandForwardXY);
+
+                // 4) Angle between weapon forward vector and a down vector must be within 80-140 degrees
+                if(bpOffhandAngleOk = offhandToDownAngle >= 80.0 && offhandToDownAngle <= 140.0)
+                {
+                    hmdForwardXY[2] = 0;
+                    VectorNormalize(hmdForwardXY);
+
+                    offhandForwardXY[2] = 0;
+                    VectorNormalize(offhandForwardXY);
+
+                    hmdToOffhandDotProduct = DotProduct(hmdForwardXY, offhandForwardXY);
+                    // 5) HMD and weapon forward on XY plane must go in opposite directions (i.e. dot product < 0)
+                    canUseQuickSave = bpHmdToOffhandAngleOk = hmdToOffhandDotProduct < 0;
+                }
+            }
+
+            // Uncomment to debug offhand reaching
+
+            ALOGV("Quick Save> Dist: %f | OffHandToDownAngle: %f | HandOffs: %f %f %f\nHmdHandDot: %f | HmdFwdXY: %f %f | WpnFwdXY: %f %f\nTrackOk: %i, DistOk: %i, HeightOk: %i, HnadAngleOk: %i, HmdHandDotOk: %i",
+                  distanceToHMDOff, offhandToDownAngle, vr.offhandoffset[0], vr.offhandoffset[1], vr.offhandoffset[2],
+                  hmdToOffhandDotProduct, hmdForwardXY[0], hmdForwardXY[1], offhandForwardXY[0], offhandForwardXY[1],
+                  bpTrackOk, bpOffhandDistToHMDOk, bpOffhandHeightOk, bpOffhandAngleOk, bpHmdToOffhandAngleOk);
+
+
+            // Check quicksave
+            if (canUseQuickSave) {
+                int channel = (vr_control_scheme->integer >= 10) ? 1 : 0;
+                RTCWVR_Vibrate(40, channel, 0.5); // vibrate to let user know they can switch
+
+                if (((pOffTrackedRemoteNew->Buttons & offButton1) !=
+                     (pOffTrackedRemoteOld->Buttons & offButton1)) &&
+                    (pOffTrackedRemoteNew->Buttons & offButton1)) {
+                    sendButtonActionSimple("savegame quicksave");
+                }
+
+                if (((pOffTrackedRemoteNew->Buttons & offButton2) !=
+                     (pOffTrackedRemoteOld->Buttons & offButton2)) &&
+                    (pOffTrackedRemoteNew->Buttons & offButton2)) {
+                    sendButtonActionSimple("loadgame quicksave");
+                }
+            }
+
+            if (!handInBackpack) {
                 canUseBackpack = false;
             }
             else if (!canUseBackpack && vr.backpackitemactive == 0) {
@@ -393,24 +504,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
             }
         }
 
-        float controllerYawHeading = 0.0f;
-        //off-hand stuff
-        {
-            vr.offhandoffset[0] = pOff->HeadPose.Pose.Position.x - vr.hmdposition[0];
-            vr.offhandoffset[1] = pOff->HeadPose.Pose.Position.y - vr.hmdposition[1];
-            vr.offhandoffset[2] = pOff->HeadPose.Pose.Position.z - vr.hmdposition[2];
 
-            vec3_t rotation = {0};
-            QuatToYawPitchRoll(pOff->HeadPose.Pose.Orientation, rotation, vr.offhandangles);
-
-			if (vr_walkdirection->value == 0) {
-				controllerYawHeading = vr.offhandangles[YAW] - vr.hmdorientation[YAW];
-			}
-			else
-			{
-				controllerYawHeading = 0.0f;
-			}
-        }
 
         //Right-hand specific stuff
         {
