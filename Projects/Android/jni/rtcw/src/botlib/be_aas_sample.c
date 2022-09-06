@@ -41,8 +41,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_precomp.h"
 #include "l_struct.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_aas_def.h"
 
@@ -411,9 +411,11 @@ aas_trace_t AAS_TraceClientBBox( vec3_t start, vec3_t end, int presencetype,
 				//exactly the same when they're both the start point
 				if ( tstack_p->start[0] == start[0] &&
 					 tstack_p->start[1] == start[1] &&
-					 tstack_p->start[2] == start[2] ) {
+					 tstack_p->start[2] == start[2] )
+				{
 					trace.startsolid = qtrue;
 					trace.fraction = 0.0;
+					VectorClear(v1);
 				} //end if
 				else
 				{
@@ -460,9 +462,11 @@ aas_trace_t AAS_TraceClientBBox( vec3_t start, vec3_t end, int presencetype,
 			//exactly the same when they're both the start point
 			if ( tstack_p->start[0] == start[0] &&
 				 tstack_p->start[1] == start[1] &&
-				 tstack_p->start[2] == start[2] ) {
+				 tstack_p->start[2] == start[2] )
+			{
 				trace.startsolid = qtrue;
 				trace.fraction = 0.0;
+				VectorClear(v1);
 			} //end if
 			else
 			{
@@ -1244,7 +1248,7 @@ aas_link_t *AAS_LinkEntityClientBBox( vec3_t absmins, vec3_t absmaxs, int entnum
 //===========================================================================
 aas_plane_t *AAS_PlaneFromNum( int planenum ) {
 	if ( !( *aasworld ).loaded ) {
-		return 0;
+		return NULL;
 	}
 
 	return &( *aasworld ).planes[planenum];

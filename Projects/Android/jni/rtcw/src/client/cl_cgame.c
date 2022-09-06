@@ -447,10 +447,20 @@ CL_CgameSystemCalls
 The cgame module is making a system call
 ====================
 */
+
+
+void *VM_ArgPtr( intptr_t intValue );
 //#define VMA( x ) VM_ArgPtr( args[x] )
-#define VMA( x ) ( (void *) args[x] )
-#define VMF( x )  ( (float *)args )[x]
-int CL_CgameSystemCalls( int *args ) {
+#define	VMA(x) VM_ArgPtr(args[x])
+static ID_INLINE float _vmf(intptr_t x)
+{
+	floatint_t fi;
+	fi.i = (int) x;
+	return fi.f;
+}
+#define	VMF(x)	_vmf(args[x])
+
+int CL_CgameSystemCalls( intptr_t *args ) {
 	switch ( args[0] ) {
 	case CG_PRINT:
 		Com_Printf( "%s", VMA( 1 ) );
@@ -1095,7 +1105,7 @@ CL_CGameRendering
 =====================
 */
 void CL_CGameSetVRClientInfo() {
-	VM_Call( cgvm, CG_SET_VR_CLIENT_INFO, &vr );
+	VM_Call( cgvm, CG_SET_VR_CLIENT_INFO, LO_ARG(&vr), HI_ARG(&vr) );
 }
 
 
@@ -1343,5 +1353,5 @@ qboolean CL_GetTag( int clientNum, char *tagname, orientation_t *or ) {
 		return qfalse;
 	}
 
-	return VM_Call( cgvm, CG_GET_TAG, clientNum, tagname, or );
+	return VM_Call( cgvm, CG_GET_TAG, clientNum, LO_ARG(tagname), HI_ARG(tagname), LO_ARG(or), HI_ARG(or) );
 }

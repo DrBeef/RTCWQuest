@@ -826,7 +826,8 @@ void SV_Frame( int msec ) {
 	}
 
 	//Ensure the game library has our VR client info
-	VM_Call( gvm, GAME_SET_VR_CLIENT_INFO, &vr );
+	//Ensure the game library has our VR client info
+	VM_Call( gvm, GAME_SET_VR_CLIENT_INFO, LO_ARG(&vr), HI_ARG(&vr) );
 
 	if ( com_speeds->integer ) {
 		startTime = Sys_Milliseconds();

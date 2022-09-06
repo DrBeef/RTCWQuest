@@ -117,7 +117,6 @@ localEntity_t *CG_SmokePuff( const vec3_t p, const vec3_t vel,
 							 int fadeInTime,
 							 int leFlags,
 							 qhandle_t hShader ) {
-	static int seed = 0x92;
 	localEntity_t   *le;
 	refEntity_t     *re;
 
@@ -126,6 +125,7 @@ localEntity_t *CG_SmokePuff( const vec3_t p, const vec3_t vel,
 	le->radius = radius;
 
 	re = &le->refEntity;
+	static int seed = 0x92;
 	re->rotation = Q_random( &seed ) * 360;
 	re->radius = radius;
 	re->shaderTime = startTime / 1000.0f;

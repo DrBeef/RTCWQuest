@@ -43,8 +43,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_utils.h"
 #include "l_log.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_aas_def.h"
@@ -146,7 +146,6 @@ int AAS_UpdateEntity( int entnum, bot_entitystate_t *state ) {
 			//absolute mins and maxs
 			VectorAdd( ent->i.mins, ent->i.origin, absmins );
 			VectorAdd( ent->i.maxs, ent->i.origin, absmaxs );
-
 			//unlink the entity
 			AAS_UnlinkFromAreas( ent->areas );
 			//relink the entity to the AAS areas (use the larges bbox)
@@ -352,8 +351,8 @@ int AAS_NearestEntity( vec3_t origin, int modelindex ) {
 			continue;
 		}
 		VectorSubtract( ent->i.origin, origin, dir );
-		if ( abs( dir[0] ) < 40 ) {
-			if ( abs( dir[1] ) < 40 ) {
+		if ( fabs( dir[0] ) < 40 ) {
+			if ( fabs( dir[1] ) < 40 ) {
 				dist = VectorLength( dir );
 				if ( dist < bestdist ) {
 					bestdist = dist;
@@ -467,7 +466,7 @@ void AAS_SetAASBlockingEntity( vec3_t absmin, vec3_t absmax, qboolean blocking )
 	int numareas, i, w;
 	//
 	// check for resetting AAS blocking
-	if ( VectorCompare( absmin, absmax ) && blocking < 0 ) {
+	if ( VectorCompare( absmin, absmax ) && !blocking ) {
 		for ( w = 0; w < MAX_AAS_WORLDS; w++ ) {
 			AAS_SetCurrentWorld( w );
 			//

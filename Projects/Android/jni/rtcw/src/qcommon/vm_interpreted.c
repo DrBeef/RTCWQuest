@@ -317,7 +317,7 @@ locals from sp
 
 #define DEBUGSTR va( "%s%i", VM_Indent( vm ), opStack - stack )
 
-int VM_CallInterpreted( vm_t *vm, int *args ) {
+intptr_t VM_CallInterpreted( vm_t *vm, int *args ) {
 	int stack[MAX_STACK];
 	int     *opStack;
 	int programCounter;

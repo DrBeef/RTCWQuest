@@ -544,9 +544,11 @@ void SV_BotInitCvars( void ) {
 BotImport_AICast_VisibleFromPos
 ===============
 */
+
 qboolean BotImport_AICast_VisibleFromPos(   vec3_t srcpos, int srcnum,
 											vec3_t destpos, int destnum, qboolean updateVisPos ) {
-	return VM_Call( gvm, AICAST_VISIBLEFROMPOS, (int)srcpos, srcnum, (int)destpos, destnum, updateVisPos );
+
+	return VM_Call( gvm, AICAST_VISIBLEFROMPOS, LO_ARG(srcpos), HI_ARG(srcpos), srcnum, LO_ARG(destpos), HI_ARG(destpos), destnum, updateVisPos );
 }
 
 /*
@@ -555,7 +557,7 @@ BotImport_AICast_CheckAttackAtPos
 ===============
 */
 qboolean BotImport_AICast_CheckAttackAtPos( int entnum, int enemy, vec3_t pos, qboolean ducking, qboolean allowHitWorld ) {
-	return VM_Call( gvm, AICAST_CHECKATTACKATPOS, entnum, enemy, (int)pos, ducking, allowHitWorld );
+	return VM_Call( gvm, AICAST_CHECKATTACKATPOS, entnum, enemy, LO_ARG(pos), HI_ARG(pos), ducking, allowHitWorld );
 }
 // done.
 

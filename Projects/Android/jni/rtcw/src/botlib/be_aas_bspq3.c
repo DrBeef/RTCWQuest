@@ -41,8 +41,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_precomp.h"
 #include "l_struct.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_aas_def.h"
 
@@ -400,7 +400,7 @@ void AAS_ParseBSPEntities( void ) {
 	while ( PS_ReadToken( script, &token ) )
 	{
 		if ( strcmp( token.string, "{" ) ) {
-			ScriptError( script, "invalid %s\n", token.string );
+			ScriptError( script, "invalid %s", token.string );
 			AAS_FreeBSPEntities();
 			FreeScript( script );
 			return;
@@ -416,7 +416,7 @@ void AAS_ParseBSPEntities( void ) {
 			}
 			bufsize += sizeof( bsp_epair_t );
 			if ( token.type != TT_STRING ) {
-				ScriptError( script, "invalid %s\n", token.string );
+				ScriptError( script, "invalid %s", token.string );
 				AAS_FreeBSPEntities();
 				FreeScript( script );
 				return;
@@ -432,7 +432,7 @@ void AAS_ParseBSPEntities( void ) {
 			bufsize += strlen( token.string ) + 1;
 		} //end while
 		if ( strcmp( token.string, "}" ) ) {
-			ScriptError( script, "missing }\n" );
+			ScriptError( script, "missing }" );
 			AAS_FreeBSPEntities();
 			FreeScript( script );
 			return;

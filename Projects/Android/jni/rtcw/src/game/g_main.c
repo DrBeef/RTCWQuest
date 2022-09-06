@@ -282,7 +282,7 @@ This must be the very first function compiled into the .q3vm file
 #if defined( __MACOS__ )
 #pragma export on
 #endif
-int vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6 ) {
+intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  ) {
 #if defined( __MACOS__ )
 #pragma export off
 #endif
@@ -294,7 +294,7 @@ int vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int a
 		G_ShutdownGame( arg0 );
 		return 0;
 	case GAME_CLIENT_CONNECT:
-		return (int)ClientConnect( arg0, arg1, arg2 );
+		return (intptr_t)ClientConnect( arg0, arg1, arg2 );
 	case GAME_CLIENT_THINK:
 		ClientThink( arg0 );
 		return 0;
@@ -319,19 +319,20 @@ int vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int a
 		return BotAIStartFrame( arg0 );
 		// Ridah, Cast AI
 	case AICAST_VISIBLEFROMPOS:
-		return AICast_VisibleFromPos( (float *)arg0, arg1, (float *)arg2, arg3, arg4 );
+		return AICast_VisibleFromPos( (float *)VM_PointerArg(arg0, arg1), arg2, (float *)VM_PointerArg(arg3, arg4), arg5, arg6 );
 	case AICAST_CHECKATTACKATPOS:
-		return AICast_CheckAttackAtPos( arg0, arg1, (float *)arg2, arg3, arg4 );
+		return AICast_CheckAttackAtPos( arg0, arg1, (float *)VM_PointerArg(arg2, arg3), arg4, arg5 );
 		// done.
 
 	case GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT:
-		G_RetrieveMoveSpeedsFromClient( arg0, (char *)arg1 );
+		G_RetrieveMoveSpeedsFromClient( arg0, (char *)VM_PointerArg(arg1, arg2) );
 		return 0;
 	case GAME_GETMODELINFO:
-		return G_GetModelInfo( arg0, (char *)arg1, (animModelInfo_t **)arg2 );
+		return G_GetModelInfo( arg0, (char *)VM_PointerArg(arg1, arg2), (animModelInfo_t **)VM_PointerArg(arg3, arg4) );
 
-	case GAME_SET_VR_CLIENT_INFO:
-		gVR = (vr_client_info_t*)arg0;
+	case GAME_SET_VR_CLIENT_INFO: {
+			gVR = (vr_client_info_t *)VM_PointerArg(arg0, arg1);
+		}
 		return 0;
 	}
 

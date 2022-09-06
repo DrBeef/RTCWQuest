@@ -44,11 +44,11 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_struct.h"
 #include "l_libvar.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_interface.h"
-#include "../game/be_ai_char.h"
+#include "be_ai_char.h"
 
 #define MAX_CHARACTERISTICS     80
 
@@ -108,8 +108,8 @@ bot_character_t *BotCharacterFromHandle( int handle ) {
 void BotDumpCharacter( bot_character_t *ch ) {
 	int i;
 
-	Log_Write( "%s", ch->filename );
-	Log_Write( "skill %d\n", ch->skill );
+	Log_Write("%s\n", ch->filename);
+	Log_Write("skill %d\n", ch->skill);
 	Log_Write( "{\n" );
 	for ( i = 0; i < MAX_CHARACTERISTICS; i++ )
 	{
@@ -246,7 +246,7 @@ bot_character_t *BotLoadCharacterFromFile( char *charfile, int skill ) {
 						break;
 					}
 					if ( token.type != TT_NUMBER || !( token.subtype & TT_INTEGER ) ) {
-						SourceError( source, "expected integer index, found %s\n", token.string );
+						SourceError( source, "expected integer index, found %s", token.string );
 						FreeSource( source );
 						BotFreeCharacterStrings( ch );
 						FreeMemory( ch );
@@ -254,14 +254,14 @@ bot_character_t *BotLoadCharacterFromFile( char *charfile, int skill ) {
 					} //end if
 					index = token.intvalue;
 					if ( index < 0 || index > MAX_CHARACTERISTICS ) {
-						SourceError( source, "characteristic index out of range [0, %d]\n", MAX_CHARACTERISTICS );
+						SourceError( source, "characteristic index out of range [0, %d]", MAX_CHARACTERISTICS );
 						FreeSource( source );
 						BotFreeCharacterStrings( ch );
 						FreeMemory( ch );
 						return NULL;
 					} //end if
 					if ( ch->c[index].type ) {
-						SourceError( source, "characteristic %d already initialized\n", index );
+						SourceError( source, "characteristic %d already initialized", index );
 						FreeSource( source );
 						BotFreeCharacterStrings( ch );
 						FreeMemory( ch );
@@ -292,7 +292,7 @@ bot_character_t *BotLoadCharacterFromFile( char *charfile, int skill ) {
 					} //end else if
 					else
 					{
-						SourceError( source, "expected integer, float or string, found %s\n", token.string );
+						SourceError( source, "expected integer, float or string, found %s", token.string );
 						FreeSource( source );
 						BotFreeCharacterStrings( ch );
 						FreeMemory( ch );
@@ -322,7 +322,7 @@ bot_character_t *BotLoadCharacterFromFile( char *charfile, int skill ) {
 		} //end if
 		else
 		{
-			SourceError( source, "unknown definition %s\n", token.string );
+			SourceError( source, "unknown definition %s", token.string );
 			FreeSource( source );
 			BotFreeCharacterStrings( ch );
 			FreeMemory( ch );
@@ -399,7 +399,7 @@ int BotLoadCachedCharacter( char *charfile, int skill, int reload ) {
 		//
 		botimport.Print( PRT_MESSAGE, "loaded skill %d from %s\n", skill, charfile );
 #ifdef DEBUG
-		if ( bot_developer ) {
+		if ( botDeveloper ) {
 			botimport.Print( PRT_MESSAGE, "skill %d loaded in %d msec from %s\n", skill, Sys_MilliSeconds() - starttime, charfile );
 		} //end if
 #endif //DEBUG
@@ -685,7 +685,7 @@ int Characteristic_Integer( int character, int index ) {
 	} //end else if
 	else
 	{
-		botimport.Print( PRT_ERROR, "characteristic %d is not a integer\n", index );
+		botimport.Print( PRT_ERROR, "characteristic %d is not an integer\n", index );
 		return 0;
 	} //end else if
 //	return 0;
@@ -738,14 +738,11 @@ void Characteristic_String( int character, int index, char *buf, int size ) {
 	if ( ch->c[index].type == CT_STRING ) {
 		strncpy( buf, ch->c[index].value.string, size - 1 );
 		buf[size - 1] = '\0';
-		return;
 	} //end if
 	else
 	{
 		botimport.Print( PRT_ERROR, "characteristic %d is not a string\n", index );
-		return;
 	} //end else if
-	return;
 } //end of the function Characteristic_String
 //===========================================================================
 //

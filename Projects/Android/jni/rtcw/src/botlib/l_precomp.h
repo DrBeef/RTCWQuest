@@ -35,10 +35,6 @@ If you have questions concerning this license or the applicable additional terms
  *
  *****************************************************************************/
 
-#ifndef _MAX_PATH
-	#define MAX_PATH            MAX_QPATH
-#endif
-
 #ifndef PATH_SEPERATORSTR
 	#if defined( WIN32 ) | defined( _WIN32 ) | defined( __NT__ ) | defined( __WINDOWS__ ) | defined( __WINDOWS_386__ )
 		#define PATHSEPERATOR_STR       "\\"
@@ -96,8 +92,8 @@ typedef struct indent_s
 //source file
 typedef struct source_s
 {
-	char filename[_MAX_PATH];               //file name of the script
-	char includepath[_MAX_PATH];            //path to include files
+	char filename[MAX_QPATH];              //file name of the script
+	char includepath[MAX_QPATH];           //path to include files
 	punctuation_t *punctuations;            //punctuations to use
 	script_t *scriptstack;                  //stack with scripts of the source
 	token_t *tokens;                        //tokens to read first
@@ -119,7 +115,7 @@ int PC_ExpectTokenType( source_t *source, int type, int subtype, token_t *token 
 int PC_ExpectAnyToken( source_t *source, token_t *token );
 //returns true when the token is available
 int PC_CheckTokenString( source_t *source, char *string );
-//returns true an reads the token when a token with the given type is available
+//returns true and reads the token when a token with the given type is available
 int PC_CheckTokenType( source_t *source, int type, int subtype, token_t *token );
 //skip tokens until the given token string is read
 int PC_SkipUntilString( source_t *source, char *string );
@@ -154,25 +150,9 @@ source_t *LoadSourceMemory( char *ptr, int length, char *name );
 //free the given source
 void FreeSource( source_t *source );
 //print a source error
-void QDECL SourceError( source_t *source, char *str, ... );
+void QDECL SourceError(source_t *source, char *str, ...) __attribute__ ((format (printf, 2, 3)));
 //print a source warning
-void QDECL SourceWarning( source_t *source, char *str, ... );
-
-#ifdef BSPC
-// some of BSPC source does include game/q_shared.h and some does not
-// we define pc_token_s pc_token_t if needed (yes, it's ugly)
-#ifndef __Q_SHARED_H
-#define MAX_TOKENLENGTH         1024
-typedef struct pc_token_s
-{
-	int type;
-	int subtype;
-	int intvalue;
-	float floatvalue;
-	char string[MAX_TOKENLENGTH];
-} pc_token_t;
-#endif //!_Q_SHARED_H
-#endif //BSPC
+void QDECL SourceWarning(source_t *source, char *str, ...)  __attribute__ ((format (printf, 2, 3)));
 
 //
 int PC_LoadSourceHandle( const char *filename );

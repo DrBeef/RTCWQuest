@@ -41,8 +41,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_precomp.h"
 #include "l_struct.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_aas_def.h"
 
@@ -97,9 +97,8 @@ void AAS_InitSettings( void ) {
 	aassettings.sv_maxwaterjump         = 17;
 	// Ridah, calculate maxbarrier according to jumpvel and gravity
 	aassettings.sv_jumpvel              = 270;
-	aassettings.sv_maxbarrier           = 49; //-0.8 + (0.5 * aassettings.sv_gravity * (aassettings.sv_jumpvel / aassettings.sv_gravity) * (aassettings.sv_jumpvel / aassettings.sv_gravity));
+	aassettings.sv_maxbarrier           = 49; // -0.8 + ( 0.5 * aassettings.sv_gravity * ( aassettings.sv_jumpvel / aassettings.sv_gravity ) * ( aassettings.sv_jumpvel / aassettings.sv_gravity ) );
 	// done.
-
 } //end of the function AAS_InitSettings
 //===========================================================================
 // returns qtrue if the bot is against a ladder
@@ -161,7 +160,7 @@ int AAS_AgainstLadder( vec3_t origin, int ms_areanum ) {
 		//get the plane the face is in
 		plane = &( *aasworld ).planes[face->planenum ^ side];
 		//if the origin is pretty close to the plane
-		if ( abs( DotProduct( plane->normal, origin ) - plane->dist ) < 3 ) {
+		if ( fabs( DotProduct( plane->normal, origin ) - plane->dist ) < 3 ) {
 			if ( AAS_PointInsideFace( abs( facenum ), origin, 0.1 ) ) {
 				return qtrue;
 			}
@@ -378,17 +377,6 @@ void AAS_Accelerate( vec3_t velocity, float frametime, vec3_t wishdir, float wis
 	}
 } //end of the function AAS_Accelerate
 //===========================================================================
-//
-// Parameter:			-
-// Returns:				-
-// Changes Globals:		-
-//===========================================================================
-void AAS_AirControl( vec3_t start, vec3_t end, vec3_t velocity, vec3_t cmdmove ) {
-	vec3_t dir;
-
-	VectorSubtract( end, start, dir );
-} //end of the function AAS_AirControl
-//===========================================================================
 // applies ground friction to the given velocity
 //
 // Parameter:				-
@@ -444,7 +432,8 @@ int AAS_PredictClientMovement( struct aas_clientmove_s *move,
 	float sv_maxstep, sv_maxsteepness, sv_jumpvel, friction;
 	float gravity, delta, maxvel, wishspeed, accelerate;
 	//float velchange, newvel;
-	int n, i, j, pc, step, swimming, ax, crouch, event, jump_frame, areanum;
+	//int ax;
+	int n, i, j, pc, step, swimming, crouch, event, jump_frame, areanum;
 	int areas[20], numareas;
 	vec3_t points[20];
 	vec3_t org, end, feet, start, stepend, lastorg, wishdir;
@@ -491,7 +480,7 @@ int AAS_PredictClientMovement( struct aas_clientmove_s *move,
 		frame_test_vel[2] = frame_test_vel[2] - ( gravity * 0.1 * frametime );
 		//if on the ground or swimming
 		if ( onground || swimming ) {
-			friction = swimming ? sv_friction : sv_waterfriction;
+			friction = swimming ? sv_waterfriction : sv_friction;
 			//apply friction
 			VectorScale( frame_test_vel, 1 / frametime, frame_test_vel );
 			AAS_ApplyFriction( frame_test_vel, friction, sv_stopspeed, frametime );
@@ -500,7 +489,7 @@ int AAS_PredictClientMovement( struct aas_clientmove_s *move,
 		crouch = qfalse;
 		//apply command movement
 		if ( n < cmdframes ) {
-			ax = 0;
+			//ax = 0;
 			maxvel = sv_maxwalkvelocity;
 			accelerate = sv_airaccelerate;
 			VectorCopy( cmdmove, wishdir );
@@ -521,12 +510,12 @@ int AAS_PredictClientMovement( struct aas_clientmove_s *move,
 				{
 					accelerate = sv_walkaccelerate;
 				} //end else
-				ax = 2;
+				//ax = 2;
 			} //end if
 			if ( swimming ) {
 				maxvel = sv_maxswimvelocity;
 				accelerate = sv_swimaccelerate;
-				ax = 3;
+				//ax = 3;
 			} //end if
 			else
 			{

@@ -334,12 +334,12 @@ void    VM_Free( vm_t *vm );
 void    VM_Clear( void );
 vm_t    *VM_Restart( vm_t *vm );
 
-int QDECL VM_Call( vm_t *vm, int callNum, ... );
+intptr_t QDECL VM_Call( vm_t *vm, int callNum, ... );
 
 void    VM_Debug( int level );
 
-void    *VM_ArgPtr( int intValue );
-void    *VM_ExplicitArgPtr( vm_t *vm, int intValue );
+void    *VM_ArgPtr( intptr_t intValue );
+void    *VM_ExplicitArgPtr( vm_t *vm, intptr_t intValue );
 
 /*
 ==============================================================
@@ -703,7 +703,6 @@ void        Com_Quit_f( void );
 int         Com_EventLoop( void );
 int         Com_Milliseconds( void );   // will be journaled properly
 unsigned    Com_BlockChecksum( const void *buffer, int length );
-unsigned    Com_BlockChecksumKey( void *buffer, int length, int key );
 int         Com_HashKey( char *string, int maxlen );
 int         Com_Filter( char *filter, char *name, int casesensitive );
 int         Com_FilterPath( char *filter, char *name, int casesensitive );
@@ -938,8 +937,8 @@ void Sys_EnterCriticalSection( void *ptr );
 void Sys_LeaveCriticalSection( void *ptr );
 
 // general development dll loading for virtual machine testing
-void    * QDECL Sys_LoadDll( const char *name, int( QDECL * *entryPoint ) ( int, ... ),
-							 int ( QDECL * systemcalls )( int, ... ) );
+void    * QDECL Sys_LoadDll( const char *name, intptr_t( QDECL * *entryPoint ) ( intptr_t, ... ),
+							 intptr_t ( QDECL * systemcalls )( intptr_t, ... ) );
 void    Sys_UnloadDll( void *dllHandle );
 
 void    Sys_UnloadGame( void );

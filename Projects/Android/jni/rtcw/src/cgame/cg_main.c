@@ -58,13 +58,13 @@ This must be the very first function compiled into the .q3vm file
 #if defined( __MACOS__ ) // TTimo: guarding
 #pragma export on
 #endif
-int vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  ) {
+intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  ) {
 #if defined( __MACOS__ )
 #pragma export off
 #endif
 	switch ( command ) {
 	case CG_GET_TAG:
-		return CG_GetTag( arg0, (char *)arg1, (orientation_t *)arg2 );
+		return CG_GetTag( arg0, (char *)VM_PointerArg(arg1, arg2), (orientation_t *)VM_PointerArg(arg3, arg4) );
 	case CG_DRAW_ACTIVE_FRAME:
 		CG_DrawActiveFrame( arg0, arg1, arg2 );
 		return 0;
@@ -91,8 +91,9 @@ int vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int a
 		cgDC.cursory = cgs.cursorY;
 		CG_MouseEvent( arg0, arg1 );
 		return 0;
-	case CG_SET_VR_CLIENT_INFO:
-		cgVR = (vr_client_info_t*)arg0;
+	case CG_SET_VR_CLIENT_INFO:{
+			cgVR = (vr_client_info_t *)VM_PointerArg(arg0, arg1);
+		}
 		return 0;
 	default:
 		CG_Error( "vmMain: unknown command %i", command );

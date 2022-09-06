@@ -45,11 +45,13 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_precomp.h"
 #include "l_struct.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_aas_def.h"
+
+#define	LL(x) x=LittleLong(x)
 
 #define ROUTING_DEBUG
 
@@ -126,7 +128,7 @@ void AAS_RoutingInfo( void ) {
 // Returns:				-
 // Changes Globals:		-
 //===========================================================================
-__inline int AAS_ClusterAreaNum( int cluster, int areanum ) {
+static ID_INLINE int AAS_ClusterAreaNum(int cluster, int areanum) {
 	int side, areacluster;
 
 	areacluster = ( *aasworld ).areasettings[areanum].cluster;
@@ -197,7 +199,7 @@ int AAS_TravelFlagForType( int traveltype ) {
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-__inline float AAS_RoutingTime( void ) {
+static ID_INLINE float AAS_RoutingTime(void) {
 	return AAS_Time();
 } //end of the function AAS_RoutingTime
 //===========================================================================
@@ -280,7 +282,7 @@ int AAS_EnableRoutingArea( int areanum, int enable ) {
 	int flags;
 
 	if ( areanum <= 0 || areanum >= ( *aasworld ).numareas ) {
-		if ( bot_developer ) {
+		if ( botDeveloper ) {
 			botimport.Print( PRT_ERROR, "AAS_EnableRoutingArea: areanum %d out of range\n", areanum );
 		} //end if
 		return 0;
@@ -412,9 +414,11 @@ void AAS_CalculateAreaTravelTimes( void ) {
 	aas_reversedlink_t *revlink;
 	aas_reachability_t *reach;
 	aas_areasettings_t *settings;
+#ifdef DEBUG
 	int starttime;
 
 	starttime = Sys_MilliSeconds();
+#endif
 	//if there are still area travel times, free the memory
 	if ( ( *aasworld ).areatraveltimes ) {
 		AAS_RoutingFreeMemory( ( *aasworld ).areatraveltimes );
@@ -429,7 +433,8 @@ void AAS_CalculateAreaTravelTimes( void ) {
 		//
 		size += settings->numreachableareas * sizeof( unsigned short * );
 		//
-		size += settings->numreachableareas * revreach->numlinks * sizeof( unsigned short );
+		size += settings->numreachableareas *
+			PAD(revreach->numlinks, sizeof(long)) * sizeof(unsigned short);
 	} //end for
 	  //allocate memory for the area travel times
 	ptr = (char *) AAS_RoutingGetMemory( size );
@@ -450,7 +455,7 @@ void AAS_CalculateAreaTravelTimes( void ) {
 		for ( l = 0; l < settings->numreachableareas; l++, reach++ )
 		{
 			( *aasworld ).areatraveltimes[i][l] = (unsigned short *) ptr;
-			ptr += revreach->numlinks * sizeof( unsigned short );
+			ptr += PAD(revreach->numlinks, sizeof(long)) * sizeof(unsigned short);
 			//reachability link
 			//
 			for ( n = 0, revlink = revreach->first; revlink; revlink = revlink->next, n++ )
@@ -826,7 +831,7 @@ void AAS_InitRoutingUpdate( void ) {
 //===========================================================================
 
 void AAS_CreateAllRoutingCache( void ) {
-	int i, j, k, t, tfl, numroutingareas;
+	int i, j, k, tfl, numroutingareas;
 	aas_areasettings_t *areasettings;
 	aas_reachability_t *reach;
 
@@ -867,13 +872,48 @@ void AAS_CreateAllRoutingCache( void ) {
 			if ( !( ( *aasworld ).areasettings[j].areaflags & AREA_USEFORROUTING ) ) {
 				continue;
 			}
-			t = AAS_AreaTravelTimeToGoalArea( j, ( *aasworld ).areawaypoints[j], i, tfl );
+			AAS_AreaTravelTimeToGoalArea( j, ( *aasworld ).areawaypoints[j], i, tfl );
 			( *aasworld ).frameroutingupdates = 0;
-			//if (t) break;
-			//Log_Write("traveltime from %d to %d is %d", i, j, t);
 		} //end for
 	} //end for
 } //end of the function AAS_CreateAllRoutingCache
+//===========================================================================
+//
+// Parameter:			-
+// Returns:				-
+// Changes Globals:		-
+//===========================================================================
+void AAS_WriteCache( fileHandle_t fp, aas_routingcache_t *nativecache ) {
+	int i, size, numtraveltimes;
+	aas_routingcache_32_t *cache;
+	unsigned char *cache_reachabilities;
+
+	size = nativecache->size + sizeof (aas_routingcache_32_t) - sizeof (aas_routingcache_t);
+
+	cache = GetClearedMemory( size );
+	cache->size = LittleLong( size );
+	cache->time = LittleFloat( nativecache->time );
+	cache->cluster = LittleLong( nativecache->cluster );
+	cache->areanum = LittleLong( nativecache->areanum );
+	cache->origin[0] = LittleFloat( nativecache->origin[0] );
+	cache->origin[1] = LittleFloat( nativecache->origin[1] );
+	cache->origin[2] = LittleFloat( nativecache->origin[2] );
+	cache->starttraveltime = LittleFloat( nativecache->starttraveltime );
+	cache->travelflags = LittleLong( nativecache->travelflags );
+
+	numtraveltimes = ( size - sizeof( aas_routingcache_32_t ) ) / 3;
+	for ( i = 0; i < numtraveltimes; i++ ) {
+		cache->traveltimes[i] = LittleShort( nativecache->traveltimes[i] );
+	}
+
+	cache_reachabilities = (unsigned char *) cache + sizeof( aas_routingcache_32_t ) + numtraveltimes * sizeof (cache->traveltimes[0]);
+	for ( i = 0; i < numtraveltimes; i++ ) {
+		cache_reachabilities[i] = nativecache->reachabilities[i];
+	}
+
+	botimport.FS_Write( cache, size, fp );
+	FreeMemory( cache );
+} //end of the function AAS_WriteCache
 //===========================================================================
 //
 // Parameter:			-
@@ -912,6 +952,7 @@ void AAS_WriteRouteCache( void ) {
 	char filename[MAX_QPATH];
 	routecacheheader_t routecacheheader;
 	byte *buf;
+	vec3_t waypoint;
 
 	buf = (byte *) GetClearedMemory( ( *aasworld ).numareas * 2 * sizeof( byte ) );   // in case it ends up bigger than the decompressedvis, which is rare but possible
 
@@ -943,15 +984,15 @@ void AAS_WriteRouteCache( void ) {
 		return;
 	} //end if
 	  //create the header
-	routecacheheader.ident = RCID;
-	routecacheheader.version = RCVERSION;
-	routecacheheader.numareas = ( *aasworld ).numareas;
-	routecacheheader.numclusters = ( *aasworld ).numclusters;
-	routecacheheader.areacrc = CRC_ProcessString( (unsigned char *)( *aasworld ).areas, sizeof( aas_area_t ) * ( *aasworld ).numareas );
-	routecacheheader.clustercrc = CRC_ProcessString( (unsigned char *)( *aasworld ).clusters, sizeof( aas_cluster_t ) * ( *aasworld ).numclusters );
-	routecacheheader.reachcrc = CRC_ProcessString( (unsigned char *)( *aasworld ).reachability, sizeof( aas_reachability_t ) * ( *aasworld ).reachabilitysize );
-	routecacheheader.numportalcache = numportalcache;
-	routecacheheader.numareacache = numareacache;
+	routecacheheader.ident = LittleLong( RCID );
+	routecacheheader.version = LittleLong( RCVERSION );
+	routecacheheader.numareas = LittleLong( ( *aasworld ).numareas );
+	routecacheheader.numclusters = LittleLong( ( *aasworld ).numclusters );
+	routecacheheader.areacrc = LittleLong( CRC_ProcessString( (unsigned char *)( *aasworld ).areas, sizeof( aas_area_t ) * ( *aasworld ).numareas ) );
+	routecacheheader.clustercrc = LittleLong( CRC_ProcessString( (unsigned char *)( *aasworld ).clusters, sizeof( aas_cluster_t ) * ( *aasworld ).numclusters ) );
+	routecacheheader.reachcrc = LittleLong( CRC_ProcessString( (unsigned char *)( *aasworld ).reachability, sizeof( aas_reachability_t ) * ( *aasworld ).reachabilitysize ) );
+	routecacheheader.numportalcache = LittleLong( numportalcache );
+	routecacheheader.numareacache = LittleLong( numareacache );
 	//write the header
 	botimport.FS_Write( &routecacheheader, sizeof( routecacheheader_t ), fp );
 	//write all the cache
@@ -959,7 +1000,7 @@ void AAS_WriteRouteCache( void ) {
 	{
 		for ( cache = ( *aasworld ).portalcache[i]; cache; cache = cache->next )
 		{
-			botimport.FS_Write( cache, cache->size, fp );
+			AAS_WriteCache( fp, cache );
 		} //end for
 	} //end for
 	for ( i = 0; i < ( *aasworld ).numclusters; i++ )
@@ -969,7 +1010,7 @@ void AAS_WriteRouteCache( void ) {
 		{
 			for ( cache = ( *aasworld ).clusterareacache[i][j]; cache; cache = cache->next )
 			{
-				botimport.FS_Write( cache, cache->size, fp );
+				AAS_WriteCache( fp, cache );
 			} //end for
 		} //end for
 	} //end for
@@ -977,17 +1018,24 @@ void AAS_WriteRouteCache( void ) {
 	for ( i = 0; i < ( *aasworld ).numareas; i++ )
 	{
 		if ( !( *aasworld ).areavisibility[i] ) {
-			size = 0;
+			size = LittleLong( 0 );
 			botimport.FS_Write( &size, sizeof( int ), fp );
 			continue;
 		}
 		AAS_DecompressVis( ( *aasworld ).areavisibility[i], ( *aasworld ).numareas, ( *aasworld ).decompressedvis );
 		size = AAS_CompressVis( ( *aasworld ).decompressedvis, ( *aasworld ).numareas, buf );
+		LL( size );
 		botimport.FS_Write( &size, sizeof( int ), fp );
+		LL( size ); // convert back to native endian
 		botimport.FS_Write( buf, size, fp );
 	}
 	// write the waypoints
-	botimport.FS_Write( ( *aasworld ).areawaypoints, sizeof( vec3_t ) * ( *aasworld ).numareas, fp );
+	for ( i = 0; i < ( *aasworld ).numareas; i++ ) {
+		waypoint[0] = LittleFloat( ( *aasworld ).areawaypoints[i][0] );
+		waypoint[1] = LittleFloat( ( *aasworld ).areawaypoints[i][1] );
+		waypoint[2] = LittleFloat( ( *aasworld ).areawaypoints[i][2] );
+		botimport.FS_Write( waypoint, sizeof( vec3_t ), fp );
+	}
 	//
 	botimport.FS_FCloseFile( fp );
 	botimport.Print( PRT_MESSAGE, "\nroute cache written to %s\n", filename );
@@ -999,37 +1047,58 @@ void AAS_WriteRouteCache( void ) {
 // Changes Globals:		-
 //===========================================================================
 aas_routingcache_t *AAS_ReadCache( fileHandle_t fp ) {
-	int i, size;
-	aas_routingcache_t *cache;
+	int i, size, numtraveltimes;
+	aas_routingcache_t *nativecache;
+	aas_routingcache_32_t *cache;
+	unsigned char *cache_reachabilities;
 
 	botimport.FS_Read( &size, sizeof( size ), fp );
-	size = LittleLong( size );
-	cache = (aas_routingcache_t *) AAS_RoutingGetMemory( size );
+	LL( size );
+	cache = (aas_routingcache_32_t *) AAS_RoutingGetMemory( size );
 	cache->size = size;
 	botimport.FS_Read( (unsigned char *)cache + sizeof( size ), size - sizeof( size ), fp );
 
-	if ( 1 != LittleLong( 1 ) ) {
-		cache->time = LittleFloat( cache->time );
-		cache->cluster = LittleLong( cache->cluster );
-		cache->areanum = LittleLong( cache->areanum );
-		cache->origin[0] = LittleFloat( cache->origin[0] );
-		cache->origin[1] = LittleFloat( cache->origin[1] );
-		cache->origin[2] = LittleFloat( cache->origin[2] );
-		cache->starttraveltime = LittleFloat( cache->starttraveltime );
-		cache->travelflags = LittleLong( cache->travelflags );
+	numtraveltimes = ( size - sizeof( aas_routingcache_32_t ) ) / 3;
+
+	if ( sizeof (intptr_t) == 4 ) {
+		nativecache = (aas_routingcache_t *) cache;
+	} else {
+		int nativesize = size - sizeof (aas_routingcache_32_t) + sizeof (aas_routingcache_t);
+		nativecache = (aas_routingcache_t *) AAS_RoutingGetMemory( nativesize );
+		nativecache->size = nativesize;
 	}
 
-//	cache->reachabilities = (unsigned char *) cache + sizeof(aas_routingcache_t) - sizeof(unsigned short) +
-//		(size - sizeof(aas_routingcache_t) + sizeof(unsigned short)) / 3 * 2;
-	cache->reachabilities = (unsigned char *) cache + sizeof( aas_routingcache_t ) +
-							( ( size - sizeof( aas_routingcache_t ) ) / 3 ) * 2;
+	// copy to native structure and/or swap
+	if ( sizeof (intptr_t) != 4 || 1 != LittleLong( 1 ) ) {
+		nativecache->time = LittleFloat( cache->time );
+		nativecache->cluster = LittleLong( cache->cluster );
+		nativecache->areanum = LittleLong( cache->areanum );
+		nativecache->origin[0] = LittleFloat( cache->origin[0] );
+		nativecache->origin[1] = LittleFloat( cache->origin[1] );
+		nativecache->origin[2] = LittleFloat( cache->origin[2] );
+		nativecache->starttraveltime = LittleFloat( cache->starttraveltime );
+		nativecache->travelflags = LittleLong( cache->travelflags );
 
-	//DAJ BUGFIX for missing byteswaps for traveltimes
-	size = ( size - sizeof( aas_routingcache_t ) ) / 3 + 1;
-	for ( i = 0; i < size; i++ ) {
-		cache->traveltimes[i] = LittleShort( cache->traveltimes[i] );
+		//DAJ BUGFIX for missing byteswaps for traveltimes
+		for ( i = 0; i < numtraveltimes; i++ ) {
+			nativecache->traveltimes[i] = LittleShort( cache->traveltimes[i] );
+		}
 	}
-	return cache;
+
+	nativecache->reachabilities = (unsigned char *) nativecache + sizeof( aas_routingcache_t ) + numtraveltimes * sizeof (nativecache->traveltimes[0]);
+
+	// copy reachabilities to native structure, free original cache
+	if ( sizeof (intptr_t) != 4 ) {
+		cache_reachabilities = (unsigned char *) cache + sizeof( aas_routingcache_32_t ) + numtraveltimes * sizeof (cache->traveltimes[0]);
+
+		for ( i = 0; i < numtraveltimes; i++ ) {
+			nativecache->reachabilities[i] = cache_reachabilities[i];
+		}
+
+		AAS_RoutingFreeMemory(cache);
+	}
+
+	return nativecache;
 } //end of the function AAS_ReadCache
 //===========================================================================
 //
@@ -1050,9 +1119,6 @@ int AAS_ReadRouteCache( void ) {
 		return qfalse;
 	} //end if
 	botimport.FS_Read( &routecacheheader, sizeof( routecacheheader_t ), fp );
-
-	// GJD: route cache data MUST be written on a PC because I've not altered the writing code.
-
 	routecacheheader.areacrc = LittleLong( routecacheheader.areacrc );
 	routecacheheader.clustercrc = LittleLong( routecacheheader.clustercrc );
 	routecacheheader.ident = LittleLong( routecacheheader.ident );
@@ -1071,7 +1137,7 @@ int AAS_ReadRouteCache( void ) {
 
 	if ( routecacheheader.version != RCVERSION ) {
 		botimport.FS_FCloseFile( fp );
-		Com_Printf( "route cache dump has wrong version %d, should be %d", routecacheheader.version, RCVERSION );
+		Com_Printf( "route cache dump has wrong version %d, should be %d\n", routecacheheader.version, RCVERSION );
 		return qfalse;
 	} //end if
 	if ( routecacheheader.numareas != ( *aasworld ).numareas ) {
@@ -1084,26 +1150,27 @@ int AAS_ReadRouteCache( void ) {
 		//AAS_Error("route cache dump has wrong number of clusters\n");
 		return qfalse;
 	} //end if
-#ifdef _WIN32                           // crc code is only good on intel machines
-	if ( routecacheheader.areacrc !=
-		 CRC_ProcessString( (unsigned char *)( *aasworld ).areas, sizeof( aas_area_t ) * ( *aasworld ).numareas ) ) {
-		botimport.FS_FCloseFile( fp );
-		//AAS_Error("route cache dump area CRC incorrect\n");
-		return qfalse;
+	// crc code is only good on little endian machines
+	if ( 1 == LittleLong( 1 ) ) {
+		if ( routecacheheader.areacrc !=
+			 CRC_ProcessString( (unsigned char *)( *aasworld ).areas, sizeof( aas_area_t ) * ( *aasworld ).numareas ) ) {
+			botimport.FS_FCloseFile( fp );
+			//AAS_Error("route cache dump area CRC incorrect\n");
+			return qfalse;
+		} //end if
+		if ( routecacheheader.clustercrc !=
+			 CRC_ProcessString( (unsigned char *)( *aasworld ).clusters, sizeof( aas_cluster_t ) * ( *aasworld ).numclusters ) ) {
+			botimport.FS_FCloseFile( fp );
+			//AAS_Error("route cache dump cluster CRC incorrect\n");
+			return qfalse;
+		} //end if
+		if ( routecacheheader.reachcrc !=
+			 CRC_ProcessString( (unsigned char *)( *aasworld ).reachability, sizeof( aas_reachability_t ) * ( *aasworld ).reachabilitysize ) ) {
+			botimport.FS_FCloseFile( fp );
+			//AAS_Error("route cache dump reachability CRC incorrect\n");
+			return qfalse;
+		} //end if
 	} //end if
-	if ( routecacheheader.clustercrc !=
-		 CRC_ProcessString( (unsigned char *)( *aasworld ).clusters, sizeof( aas_cluster_t ) * ( *aasworld ).numclusters ) ) {
-		botimport.FS_FCloseFile( fp );
-		//AAS_Error("route cache dump cluster CRC incorrect\n");
-		return qfalse;
-	} //end if
-	if ( routecacheheader.reachcrc !=
-		 CRC_ProcessString( (unsigned char *)( *aasworld ).reachability, sizeof( aas_reachability_t ) * ( *aasworld ).reachabilitysize ) ) {
-		botimport.FS_FCloseFile( fp );
-		//AAS_Error("route cache dump reachability CRC incorrect\n");
-		return qfalse;
-	} //end if
-#endif
 	//read all the portal cache
 	for ( i = 0; i < routecacheheader.numportalcache; i++ )
 	{
@@ -1133,7 +1200,7 @@ int AAS_ReadRouteCache( void ) {
 	for ( i = 0; i < ( *aasworld ).numareas; i++ )
 	{
 		botimport.FS_Read( &size, sizeof( size ), fp );
-		size = LittleLong( size );
+		LL( size );
 		if ( size ) {
 			( *aasworld ).areavisibility[i] = (byte *) GetMemory( size );
 			botimport.FS_Read( ( *aasworld ).areavisibility[i], size, fp );
@@ -1237,27 +1304,6 @@ void AAS_FreeRoutingCaches( void ) {
 	}
 	( *aasworld ).areawaypoints = NULL;
 } //end of the function AAS_FreeRoutingCaches
-//===========================================================================
-// this function could be replaced by a bubble sort or for even faster
-// routing by a B+ tree
-//
-// Parameter:			-
-// Returns:				-
-// Changes Globals:		-
-//===========================================================================
-__inline void AAS_AddUpdateToList( aas_routingupdate_t **updateliststart,
-								   aas_routingupdate_t **updatelistend,
-								   aas_routingupdate_t *update ) {
-	if ( !update->inlist ) {
-		if ( *updatelistend ) {
-			( *updatelistend )->next = update;
-		} else { *updateliststart = update;}
-		update->prev = *updatelistend;
-		update->next = NULL;
-		*updatelistend = update;
-		update->inlist = qtrue;
-	} //end if
-} //end of the function AAS_AddUpdateToList
 //===========================================================================
 //
 // Parameter:				-
@@ -1613,20 +1659,23 @@ int AAS_AreaRouteToGoalArea( int areanum, vec3_t origin, int goalareanum, int tr
 		*reachnum = 0;
 		return qtrue;
 	} //end if
-	  //
+	//check !AAS_AreaReachability(areanum) with custom developer-only debug message
 	if ( areanum <= 0 || areanum >= ( *aasworld ).numareas ) {
-		if ( bot_developer ) {
+		if ( botDeveloper ) {
 			botimport.Print( PRT_ERROR, "AAS_AreaTravelTimeToGoalArea: areanum %d out of range\n", areanum );
 		} //end if
 		return qfalse;
 	} //end if
 	if ( goalareanum <= 0 || goalareanum >= ( *aasworld ).numareas ) {
-		if ( bot_developer ) {
+		if ( botDeveloper ) {
 			botimport.Print( PRT_ERROR, "AAS_AreaTravelTimeToGoalArea: goalareanum %d out of range\n", goalareanum );
 		} //end if
 		return qfalse;
 	} //end if
-
+	if ( !( *aasworld ).areasettings[areanum].numreachableareas || !( *aasworld ).areasettings[goalareanum].numreachableareas )
+	{
+		return qfalse;
+	} //end if
 	//make sure the routing cache doesn't grow to large
 	while ( routingcachesize > max_routingcachesize ) {
 		if ( !AAS_FreeOldestCache() ) {
@@ -1800,7 +1849,7 @@ int AAS_AreaRouteToGoalArea( int areanum, vec3_t origin, int goalareanum, int tr
 // Changes Globals:		-
 //===========================================================================
 int AAS_AreaTravelTimeToGoalArea( int areanum, vec3_t origin, int goalareanum, int travelflags ) {
-	int traveltime, reachnum;
+	int traveltime, reachnum = 0;
 
 	if ( AAS_AreaRouteToGoalArea( areanum, origin, goalareanum, travelflags, &traveltime, &reachnum ) ) {
 		return traveltime;
@@ -1814,7 +1863,7 @@ int AAS_AreaTravelTimeToGoalArea( int areanum, vec3_t origin, int goalareanum, i
 // Changes Globals:		-
 //===========================================================================
 int AAS_AreaTravelTimeToGoalAreaCheckLoop( int areanum, vec3_t origin, int goalareanum, int travelflags, int loopareanum ) {
-	int traveltime, reachnum;
+	int traveltime, reachnum = 0;
 	aas_reachability_t *reach;
 
 	if ( AAS_AreaRouteToGoalArea( areanum, origin, goalareanum, travelflags, &traveltime, &reachnum ) ) {
@@ -1833,7 +1882,7 @@ int AAS_AreaTravelTimeToGoalAreaCheckLoop( int areanum, vec3_t origin, int goala
 // Changes Globals:		-
 //===========================================================================
 int AAS_AreaReachabilityToGoalArea( int areanum, vec3_t origin, int goalareanum, int travelflags ) {
-	int traveltime, reachnum;
+	int traveltime, reachnum = 0;
 
 	if ( AAS_AreaRouteToGoalArea( areanum, origin, goalareanum, travelflags, &traveltime, &reachnum ) ) {
 		return reachnum;
@@ -2022,26 +2071,16 @@ int AAS_CompressVis( byte *vis, int numareas, byte *dest ) {
 void AAS_DecompressVis( byte *in, int numareas, byte *decompressed ) {
 	byte c;
 	byte    *out;
-	//int		row;
 	byte    *end;
 
 	// initialize the vis data, only set those that are visible
 	memset( decompressed, 0, numareas );
 
-	//row = (numareas+7)>>3;
 	out = decompressed;
-	end = ( byte * )( (int)decompressed + numareas );
+	end = ( byte * )( decompressed + numareas );
 
 	do
 	{
-		/*
-		if (*in)
-		{
-			*out++ = *in++;
-			continue;
-		}
-		*/
-
 		c = in[1];
 		if ( !c ) {
 			AAS_Error( "DecompressVis: 0 repeat" );
@@ -2050,13 +2089,6 @@ void AAS_DecompressVis( byte *in, int numareas, byte *decompressed ) {
 			memset( out, 1, c );
 		}
 		in += 2;
-		/*
-		while (c)
-		{
-			*out++ = 0;
-			c--;
-		}
-		*/
 		out += c;
 	} while ( out < end );
 } //end of the function AAS_DecompressVis
@@ -2185,7 +2217,7 @@ float VectorDistance( vec3_t v1, vec3_t v2 );
 extern void ProjectPointOntoVector( vec3_t point, vec3_t vStart, vec3_t vEnd, vec3_t vProj ) ;
 int AAS_NearestHideArea( int srcnum, vec3_t origin, int areanum, int enemynum, vec3_t enemyorigin, int enemyareanum, int travelflags ) {
 	int i, j, nextareanum, badtravelflags, numreach, bestarea;
-	unsigned short int t, besttraveltime, enemytraveltime;
+	unsigned short int t, besttraveltime;
 	aas_routingupdate_t *updateliststart, *updatelistend, *curupdate, *nextupdate;
 	aas_reachability_t *reach;
 	float dist1, dist2;
@@ -2222,7 +2254,7 @@ int AAS_NearestHideArea( int srcnum, vec3_t origin, int areanum, int enemynum, v
 	besttraveltime = 0;
 	bestarea = 0;
 	if ( enemyareanum ) {
-		enemytraveltime = AAS_AreaTravelTimeToGoalArea( areanum, origin, enemyareanum, travelflags );
+		AAS_AreaTravelTimeToGoalArea( areanum, origin, enemyareanum, travelflags );
 	}
 	VectorSubtract( enemyorigin, origin, enemyVec );
 	enemytraveldist = VectorNormalize( enemyVec );
@@ -2406,7 +2438,7 @@ int AAS_NearestHideArea( int srcnum, vec3_t origin, int areanum, int enemynum, v
 //===========================================================================
 int AAS_FindAttackSpotWithinRange( int srcnum, int rangenum, int enemynum, float rangedist, int travelflags, float *outpos ) {
 	int i, nextareanum, badtravelflags, numreach, bestarea;
-	unsigned short int t, besttraveltime, enemytraveltime;
+	unsigned short int t, besttraveltime;
 	aas_routingupdate_t *updateliststart, *updatelistend, *curupdate, *nextupdate;
 	aas_reachability_t *reach;
 	vec3_t srcorg, rangeorg, enemyorg;
@@ -2447,7 +2479,7 @@ int AAS_FindAttackSpotWithinRange( int srcnum, int rangenum, int enemynum, float
 	//
 	besttraveltime = 0;
 	bestarea = 0;
-	enemytraveltime = AAS_AreaTravelTimeToGoalArea( srcarea, srcorg, enemyarea, travelflags );
+	AAS_AreaTravelTimeToGoalArea( srcarea, srcorg, enemyarea, travelflags );
 	//
 	badtravelflags = ~travelflags;
 	//

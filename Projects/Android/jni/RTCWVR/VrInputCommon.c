@@ -166,7 +166,7 @@ void updateScopeAngles()
 }
 
 void PortableMouseAbs(float x,float y);
-inline float clamp(float _min, float _val, float _max)
+float clamp(float _min, float _val, float _max)
 {
     return max(min(_val, _max), _min);
 }

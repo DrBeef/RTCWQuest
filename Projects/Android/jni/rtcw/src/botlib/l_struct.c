@@ -37,7 +37,7 @@ If you have questions concerning this license or the applicable additional terms
 
 #ifdef BOTLIB
 #include "../game/q_shared.h"
-#include "../game/botlib.h"              //for the include of be_interface.h
+#include "botlib.h"              //for the include of be_interface.h
 #include "l_script.h"
 #include "l_precomp.h"
 #include "l_struct.h"
@@ -153,14 +153,14 @@ qboolean ReadNumber( source_t *source, fielddef_t *fd, void *p ) {
 			intmax = Minimum( intmax, fd->floatmax );
 		} //end if
 		if ( intval < intmin || intval > intmax ) {
-			SourceError( source, "value %d out of range [%d, %d]", intval, intmin, intmax );
+			SourceError( source, "value %ld out of range [%ld, %ld]", intval, intmin, intmax );
 			return 0;
 		} //end if
 	} //end if
 	else if ( ( fd->type & FT_TYPE ) == FT_FLOAT ) {
 		if ( fd->type & FT_BOUNDED ) {
 			if ( intval < fd->floatmin || intval > fd->floatmax ) {
-				SourceError( source, "value %d out of range [%f, %f]", intval, fd->floatmin, fd->floatmax );
+				SourceError( source, "value %ld out of range [%f, %f]", intval, fd->floatmin, fd->floatmax );
 				return 0;
 			} //end if
 		} //end if
@@ -223,7 +223,7 @@ int ReadString( source_t *source, fielddef_t *fd, void *p ) {
 	//remove the double quotes
 	StripDoubleQuotes( token.string );
 	//copy the string
-	strncpy( (char *) p, token.string, MAX_STRINGFIELD );
+	strncpy( (char *) p, token.string, MAX_STRINGFIELD - 1 );
 	//make sure the string is closed with a zero
 	( (char *)p )[MAX_STRINGFIELD - 1] = '\0';
 	//
@@ -363,7 +363,7 @@ int WriteFloat( FILE *fp, float value ) {
 	char buf[128];
 	int l;
 
-	sprintf( buf, "%f", value );
+	Com_sprintf(buf, sizeof(buf), "%f", value);
 	l = strlen( buf );
 	//strip any trailing zeros
 	while ( l-- > 1 )

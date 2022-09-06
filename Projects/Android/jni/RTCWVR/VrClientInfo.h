@@ -5,6 +5,7 @@
 #define WEAPON_RECOIL           15.0f;
 
 typedef struct {
+    int clientNum;
     qboolean screen;
     float  fov;
     qboolean weapon_stabilised;

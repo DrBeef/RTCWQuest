@@ -28,12 +28,13 @@ If you have questions concerning this license or the applicable additional terms
 
 //===========================================================================
 //
-// Name:			botlib.h
-// Function:		bot AI Library
-// Programmer:		Mr Elusive (MrElusive@idsoftware.com)
-// Last update:		1999-08-18
-// Tab Size:		3
-//===========================================================================
+/*****************************************************************************
+ * name:		botlib.h
+ *
+ * desc:		bot AI library
+ *
+ *
+ *****************************************************************************/
 
 #define BOTLIB_API_VERSION      2
 
@@ -117,8 +118,9 @@ struct weaponinfo_s;
 #define ACTION_TALK             1024
 #define ACTION_GESTURE          2048
 #define ACTION_WALK             4096
+#define ACTION_RELOAD           8192
 
-//the bot input, will be converted to an usercmd_t
+//the bot input, will be converted to a usercmd_t
 typedef struct bot_input_s
 {
 	float thinktime;        //time since last output (in seconds)
@@ -187,7 +189,7 @@ typedef struct bot_entitystate_s
 typedef struct botlib_import_s
 {
 	//print messages from the bot library
-	void ( QDECL * Print )( int type, char *fmt, ... );
+	void		(QDECL *Print)(int type, char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 	//trace a bbox through the world
 	void ( *Trace )( bsp_trace_t *trace, vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int passent, int contentmask );
 	//trace a bbox against a specific entity
@@ -205,7 +207,6 @@ typedef struct botlib_import_s
 	//memory allocation
 	void        *( *GetMemory )( int size );
 	void ( *FreeMemory )( void *ptr );
-	void ( *FreeZoneMemory )( void );
 	void        *( *HunkAlloc )( int size );
 	//file system access
 	int ( *FS_FOpenFile )( const char *qpath, fileHandle_t *file, fsMode_t mode );
@@ -281,6 +282,7 @@ typedef struct aas_export_s
 	void ( *AAS_RT_ShowRoute )( vec3_t srcpos, int srcnum, int destnum );
 	qboolean ( *AAS_RT_GetHidePos )( vec3_t srcpos, int srcnum, int srcarea, vec3_t destpos, int destnum, int destarea, vec3_t returnPos );
 	int ( *AAS_FindAttackSpotWithinRange )( int srcnum, int rangenum, int enemynum, float rangedist, int travelflags, float *outpos );
+	qboolean ( *AAS_GetRouteFirstVisPos )( vec3_t srcpos, vec3_t destpos, int travelflags, vec3_t retpos );
 	void ( *AAS_SetAASBlockingEntity )( vec3_t absmin, vec3_t absmax, qboolean blocking );
 	// done.
 
@@ -305,6 +307,7 @@ typedef struct ea_export_s
 	void ( *EA_SelectWeapon )( int client, int weapon );
 	void ( *EA_Talk )( int client );
 	void ( *EA_Attack )( int client );
+	void ( *EA_Reload )( int client );
 	void ( *EA_Use )( int client );
 	void ( *EA_Respawn )( int client );
 	void ( *EA_Jump )( int client );
@@ -437,11 +440,17 @@ typedef struct botlib_export_s
 	//shutdown the bot library, returns BLERR_
 	int ( *BotLibShutdown )( void );
 	//sets a library variable returns BLERR_
-	int ( *BotLibVarSet )( char *var_name, char *value );
+	int ( *BotLibVarSet )( const char *var_name, const char *value );
 	//gets a library variable returns BLERR_
-	int ( *BotLibVarGet )( char *var_name, char *value, int size );
+	int ( *BotLibVarGet )( const char *var_name, char *value, int size );
+
 	//sets a C-like define returns BLERR_
-	int ( *BotLibDefine )( char *string );
+	int ( *PC_AddGlobalDefine )( char *string );
+	int ( *PC_LoadSourceHandle )( const char *filename );
+	int ( *PC_FreeSourceHandle )( int handle );
+	int ( *PC_ReadTokenHandle )( int handle, pc_token_t *pc_token );
+	int ( *PC_SourceFileAndLine )( int handle, char *filename, int *line );
+
 	//start a frame in the bot library
 	int ( *BotLibStartFrame )( float time );
 	//load a new map in the bot library
@@ -459,14 +468,16 @@ botlib_export_t *GetBotLibAPI( int apiVersion, botlib_import_t *import );
 
 name:						default:			module(s):			description:
 
-"basedir"					""					l_utils.c			Quake2 base directory
-"gamedir"					""					l_utils.c			Quake2 game directory
-"cddir"						""					l_utils.c			Quake2 CD directory
+"basedir"					""					-			base directory
+"homedir"					""					be_interface.c			game directory
+"gamedir"					""					be_interface.c			game directory
+"basegame"					""					be_interface.c			game directory
 
 "autolaunchbspc"			"0"					be_aas_load.c		automatically launch (Win)BSPC
 "log"						"0"					l_log.c				enable/disable creating a log file
 "maxclients"				"4"					be_interface.c		maximum number of clients
-"maxentities"				"1024"				be_interface.c		maximum number of entities
+"maxentities"				"2048"				be_interface.c		maximum number of entities
+"bot_developer"				"0"					be_interface.c		bot developer mode (it's "botDeveloper" in C to prevent symbol clash).
 
 "sv_friction"				"6"					be_aas_move.c		ground friction
 "sv_stopspeed"				"100"				be_aas_move.c		stop speed

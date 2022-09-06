@@ -117,6 +117,13 @@ typedef enum {
 } opcode_t;
 
 
+// Max number of arguments to pass from engine to vm's vmMain function.
+// command number + 12 arguments
+#define MAX_VMMAIN_ARGS 13
+
+// Max number of arguments to pass from a vm to engine's syscall handler function for the vm.
+// syscall number + 15 arguments
+#define MAX_VMSYSCALL_ARGS 16
 
 typedef int vmptr_t;
 
@@ -175,7 +182,7 @@ void VM_Compile( vm_t *vm, vmHeader_t *header );
 int VM_CallCompiled( vm_t *vm, int *args );
 
 void VM_PrepareInterpreter( vm_t *vm, vmHeader_t *header );
-int VM_CallInterpreted( vm_t *vm, int *args );
+intptr_t VM_CallInterpreted( vm_t *vm, int *args );
 
 vmSymbol_t *VM_ValueToFunctionSymbol( vm_t *vm, int value );
 int VM_SymbolToValue( vm_t *vm, const char *symbol );

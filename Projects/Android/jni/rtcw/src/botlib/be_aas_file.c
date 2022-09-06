@@ -43,8 +43,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_libvar.h"
 #include "l_utils.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_aas_def.h"
@@ -322,7 +322,7 @@ void AAS_FileInfo( void ) {
 } //end of the function AAS_FileInfo
 #endif //AASFILEDEBUG
 //===========================================================================
-// allocate memory and read a lump of a AAS file
+// allocate memory and read a lump of an AAS file
 //
 // Parameter:				-
 // Returns:					-
@@ -341,7 +341,7 @@ char *AAS_LoadAASLump( fileHandle_t fp, int offset, int length, int *lastoffset 
 			AAS_Error( "can't seek to aas lump\n" );
 			AAS_DumpAASData();
 			botimport.FS_FCloseFile( fp );
-			return 0;
+			return NULL;
 		} //end if
 	} //end if
 	  //allocate memory

@@ -319,16 +319,20 @@ SV_GameSystemCalls
 The module is making a system call
 ====================
 */
-//rcg010207 - see my comments in VM_DllSyscall(), in qcommon/vm.c ...
-//#if ( ( defined __linux__ ) && ( defined __powerpc__ ) )
-#define VMA( x ) ( (void *) args[x] )
-//#else
+
+
+void *VM_ArgPtr( intptr_t intValue );
 //#define VMA( x ) VM_ArgPtr( args[x] )
-//#endif
+#define	VMA(x) VM_ArgPtr(args[x])
+static ID_INLINE float _vmf(intptr_t x)
+{
+	floatint_t fi;
+	fi.i = (int) x;
+	return fi.f;
+}
+#define	VMF(x)	_vmf(args[x])
 
-#define VMF( x )  ( (float *)args )[x]
-
-int SV_GameSystemCalls( int *args ) {
+int SV_GameSystemCalls( intptr_t *args ) {
 	switch ( args[0] ) {
 	case G_PRINT:
 		Com_Printf( "%s", VMA( 1 ) );
@@ -1043,7 +1047,7 @@ void SV_SendMoveSpeedsToGame( int entnum, char *text ) {
 	if ( !gvm ) {
 		return;
 	}
-	VM_Call( gvm, GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT, entnum, text );
+	VM_Call( gvm, GAME_RETRIEVE_MOVESPEEDS_FROM_CLIENT, entnum, LO_ARG(text), HI_ARG(text) );
 }
 
 /*
@@ -1071,5 +1075,5 @@ SV_GetModelInfo
 ===================
 */
 qboolean SV_GetModelInfo( int clientNum, char *modelName, animModelInfo_t **modelInfo ) {
-	return VM_Call( gvm, GAME_GETMODELINFO, clientNum, modelName, modelInfo );
+	return VM_Call( gvm, GAME_GETMODELINFO, clientNum, LO_ARG(modelName), HI_ARG(modelName), LO_ARG(modelInfo), HI_ARG(modelInfo) );
 }

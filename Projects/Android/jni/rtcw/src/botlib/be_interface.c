@@ -43,20 +43,20 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_precomp.h"
 #include "l_struct.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_aas_def.h"
 #include "be_interface.h"
 
-#include "../game/be_ea.h"
+#include "be_ea.h"
 #include "be_ai_weight.h"
-#include "../game/be_ai_goal.h"
-#include "../game/be_ai_move.h"
-#include "../game/be_ai_weap.h"
-#include "../game/be_ai_chat.h"
-#include "../game/be_ai_char.h"
-#include "../game/be_ai_gen.h"
+#include "be_ai_goal.h"
+#include "be_ai_move.h"
+#include "be_ai_weap.h"
+#include "be_ai_chat.h"
+#include "be_ai_char.h"
+#include "be_ai_gen.h"
 
 //library globals in a structure
 botlib_globals_t botlibglobals;
@@ -64,7 +64,7 @@ botlib_globals_t botlibglobals;
 botlib_export_t be_botlib_export;
 botlib_import_t botimport;
 //
-int bot_developer;
+int botDeveloper;
 //qtrue if the library is setup
 int botlibsetup = qfalse;
 
@@ -82,10 +82,7 @@ int botlibsetup = qfalse;
 //===========================================================================
 // Ridah, faster Win32 code
 #ifdef _WIN32
-#undef MAX_PATH     // this is an ugly hack, to temporarily ignore the current definition, since it's also defined in windows.h
 #include <windows.h>
-#undef MAX_PATH
-#define MAX_PATH    MAX_QPATH
 #endif
 
 int Sys_MilliSeconds( void ) {
@@ -159,11 +156,16 @@ qboolean BotLibSetup( char *str ) {
 int Export_BotLibSetup( void ) {
 	int errnum;
 
-	bot_developer = LibVarGetValue( "bot_developer" );
+	botDeveloper = LibVarGetValue("bot_developer");
+ 	memset( &botlibglobals, 0, sizeof(botlibglobals) );
 	//initialize byte swapping (litte endian etc.)
-	Swap_Init();
-	Log_Open( "botlib.log" );
-	//
+//	Swap_Init();
+
+	if( botDeveloper )
+	{
+		Log_Open( "botlib.log" );
+	}
+
 	botimport.Print( PRT_MESSAGE, "------- BotLib Initialization -------\n" );
 	//
 	botlibglobals.maxclients = (int) LibVarValue( "maxclients", "128" );
@@ -247,7 +249,7 @@ int Export_BotLibShutdown( void ) {
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-int Export_BotLibVarSet( char *var_name, char *value ) {
+int Export_BotLibVarSet( const char *var_name, const char *value ) {
 	LibVarSet( var_name, value );
 	return BLERR_NOERROR;
 } //end of the function Export_BotLibVarSet
@@ -257,7 +259,7 @@ int Export_BotLibVarSet( char *var_name, char *value ) {
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-int Export_BotLibVarGet( char *var_name, char *value, int size ) {
+int Export_BotLibVarGet( const char *var_name, char *value, int size ) {
 	char *varvalue;
 
 	varvalue = LibVarGetString( var_name );
@@ -337,7 +339,7 @@ void ElevatorBottomCenter( aas_reachability_t *reach, vec3_t bottomcenter );
 int BotGetReachabilityToGoal( vec3_t origin, int areanum, int entnum,
 							  int lastgoalareanum, int lastareanum,
 							  int *avoidreach, float *avoidreachtimes, int *avoidreachtries,
-							  bot_goal_t *goal, int travelflags, int movetravelflags );
+							  bot_goal_t *goal, int travelflags );
 
 int AAS_PointLight( vec3_t origin, int *red, int *green, int *blue );
 
@@ -904,7 +906,9 @@ GetBotLibAPI
 ============
 */
 botlib_export_t *GetBotLibAPI( int apiVersion, botlib_import_t *import ) {
+	assert(import);
 	botimport = *import;
+	assert(botimport.Print);
 
 	memset( &be_botlib_export, 0, sizeof( be_botlib_export ) );
 

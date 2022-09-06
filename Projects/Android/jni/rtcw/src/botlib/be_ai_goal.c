@@ -44,13 +44,13 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_precomp.h"
 #include "l_struct.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_ai_weight.h"
-#include "../game/be_ai_goal.h"
-#include "../game/be_ai_move.h"
+#include "be_ai_goal.h"
+#include "be_ai_move.h"
 
 //#define DEBUG_AI_GOAL
 #ifdef RANDOMIZE
@@ -137,7 +137,7 @@ typedef struct iteminfo_s
 	int number;                         //number of the item info
 } iteminfo_t;
 
-#define ITEMINFO_OFS( x ) (int)&( ( (iteminfo_t *)0 )->x )
+#define ITEMINFO_OFS(x)	(size_t)&(((iteminfo_t *)0)->x)
 
 fielddef_t iteminfo_fields[] =
 {
@@ -228,6 +228,9 @@ void BotInterbreedGoalFuzzyLogic( int parent1, int parent2, int child ) {
 	p2 = BotGoalStateFromHandle( parent2 );
 	c = BotGoalStateFromHandle( child );
 
+	if (!p1 || !p2 || !c)
+		return;
+
 	InterbreedWeightConfigs( p1->itemweightconfig, p2->itemweightconfig,
 							 c->itemweightconfig );
 } //end of the function BotInterbreedingGoalFuzzyLogic
@@ -238,10 +241,11 @@ void BotInterbreedGoalFuzzyLogic( int parent1, int parent2, int child ) {
 // Changes Globals:		-
 //===========================================================================
 void BotSaveGoalFuzzyLogic( int goalstate, char *filename ) {
-	bot_goalstate_t *gs;
+	//bot_goalstate_t *gs;
 
-	gs = BotGoalStateFromHandle( goalstate );
+	//gs = BotGoalStateFromHandle( goalstate );
 
+	//if (!gs) return;
 	//WriteWeightConfig(filename, gs->itemweightconfig);
 } //end of the function BotSaveGoalFuzzyLogic
 //===========================================================================
@@ -255,6 +259,7 @@ void BotMutateGoalFuzzyLogic( int goalstate, float range ) {
 
 	gs = BotGoalStateFromHandle( goalstate );
 
+	if (!gs) return;
 	EvolveWeightConfig( gs->itemweightconfig );
 } //end of the function BotMutateGoalFuzzyLogic
 //===========================================================================
@@ -266,7 +271,7 @@ void BotMutateGoalFuzzyLogic( int goalstate, float range ) {
 itemconfig_t *LoadItemConfig( char *filename ) {
 	int max_iteminfo;
 	token_t token;
-	char path[MAX_PATH];
+	char path[MAX_QPATH];
 	source_t *source;
 	itemconfig_t *ic;
 	iteminfo_t *ii;
@@ -278,7 +283,7 @@ itemconfig_t *LoadItemConfig( char *filename ) {
 		LibVarSet( "max_iteminfo", "128" );
 	}
 
-	strncpy( path, filename, MAX_PATH );
+	Q_strncpyz( path, filename, sizeof( path ) );
 	source = LoadSourceFile( path );
 	if ( !source ) {
 		botimport.Print( PRT_ERROR, "counldn't load %s\n", path );
@@ -294,7 +299,7 @@ itemconfig_t *LoadItemConfig( char *filename ) {
 	{
 		if ( !strcmp( token.string, "iteminfo" ) ) {
 			if ( ic->numiteminfo >= max_iteminfo ) {
-				SourceError( source, "more than %d item info defined\n", max_iteminfo );
+				SourceError( source, "more than %d item info defined", max_iteminfo );
 				FreeMemory( ic );
 				FreeSource( source );
 				return NULL;
@@ -303,11 +308,11 @@ itemconfig_t *LoadItemConfig( char *filename ) {
 			memset( ii, 0, sizeof( iteminfo_t ) );
 			if ( !PC_ExpectTokenType( source, TT_STRING, 0, &token ) ) {
 				FreeMemory( ic );
-				FreeMemory( source );
+				FreeSource( source );
 				return NULL;
 			} //end if
 			StripDoubleQuotes( token.string );
-			strncpy( ii->classname, token.string, sizeof( ii->classname ) - 1 );
+			Q_strncpyz( ii->classname, token.string, sizeof( ii->classname ) );
 			if ( !ReadStructure( source, &iteminfo_struct, (char *) ii ) ) {
 				FreeMemory( ic );
 				FreeSource( source );
@@ -318,7 +323,7 @@ itemconfig_t *LoadItemConfig( char *filename ) {
 		} //end if
 		else
 		{
-			SourceError( source, "unknown definition %s\n", token.string );
+			SourceError( source, "unknown definition %s", token.string );
 			FreeMemory( ic );
 			FreeSource( source );
 			return NULL;
@@ -512,7 +517,7 @@ void BotInitInfoEntities( void ) {
 			numcampspots++;
 		} //end else if
 	} //end for
-	if ( bot_developer ) {
+	if ( botDeveloper ) {
 		botimport.Print( PRT_MESSAGE, "%d map locations\n", numlocations );
 		botimport.Print( PRT_MESSAGE, "%d camp spots\n", numcampspots );
 	} //end if
@@ -636,13 +641,11 @@ void BotGoalName( int number, char *name, int size ) {
 	for ( li = levelitems; li; li = li->next )
 	{
 		if ( li->number == number ) {
-			strncpy( name, itemconfig->iteminfo[li->iteminfo].name, size - 1 );
-			name[size - 1] = '\0';
+			Q_strncpyz( name, itemconfig->iteminfo[li->iteminfo].name, size );
 			return;
 		} //end for
 	} //end for
 	strcpy( name, "" );
-	return;
 } //end of the function BotGoalName
 //===========================================================================
 //
@@ -788,6 +791,7 @@ int BotGetLevelItemGoal( int index, char *name, bot_goal_t *goal ) {
 			VectorCopy( itemconfig->iteminfo[li->iteminfo].mins, goal->mins );
 			VectorCopy( itemconfig->iteminfo[li->iteminfo].maxs, goal->maxs );
 			goal->number = li->number;
+			goal->iteminfo = li->iteminfo;
 			//botimport.Print(PRT_MESSAGE, "found li %s\n", itemconfig->iteminfo[li->iteminfo].name);
 			return li->number;
 		} //end if
@@ -812,6 +816,9 @@ int BotGetMapLocationGoal( char *name, bot_goal_t *goal ) {
 			goal->entitynum = 0;
 			VectorCopy( mins, goal->mins );
 			VectorCopy( maxs, goal->maxs );
+			goal->number = 0;
+			goal->flags = 0;
+			goal->iteminfo = 0;
 			return qtrue;
 		} //end if
 	} //end for
@@ -840,6 +847,9 @@ int BotGetNextCampSpotGoal( int num, bot_goal_t *goal ) {
 			goal->entitynum = 0;
 			VectorCopy( mins, goal->mins );
 			VectorCopy( maxs, goal->maxs );
+			goal->number = 0;
+			goal->flags = 0;
+			goal->iteminfo = 0;
 			return num + 1;
 		} //end if
 	} //end for
@@ -866,7 +876,7 @@ void BotUpdateEntityItems( void ) {
 	for ( li = levelitems; li; li = nextli )
 	{
 		nextli = li->next;
-		//if it is a item that will time out
+		//if it is an item that will time out
 		if ( li->timeout ) {
 			//timeout the item
 			if ( li->timeout < AAS_Time() ) {

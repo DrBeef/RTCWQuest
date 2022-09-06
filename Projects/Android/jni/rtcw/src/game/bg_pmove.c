@@ -3753,7 +3753,23 @@ void PM_UpdateViewAngles( playerState_t *ps, usercmd_t *cmd, void( trace ) ( tra
 
 	// circularly clamp the angles with deltas
 	for ( i = 0 ; i < 3 ; i++ ) {
-		temp = cmd->angles[i] + (i == YAW ? ps->delta_angles[i] : 0);
+#ifdef CGAMEDLL
+		if (cgVR != NULL && cgVR->clientNum == ps->clientNum)
+#endif
+#ifdef GAMEDLL
+		if (gVR != NULL && gVR->clientNum == ps->clientNum)
+#endif
+		{
+			//Client is the VR player in the singleplayer game
+			temp = cmd->angles[i] + (i == YAW ? ps->delta_angles[i] : 0);
+		}
+		else
+		{
+			//Client is either a BOT or we are running multiplayer, or
+			//the vr player playing on a remote server (since this is shared code by game and cgame)
+			temp = cmd->angles[i] + ps->delta_angles[i];
+		}
+
 		if ( i == PITCH ) {
 			// don't let the player look up or down more than 90 degrees
 			if ( temp > 16000 ) {

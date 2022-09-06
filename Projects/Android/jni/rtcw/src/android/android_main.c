@@ -650,12 +650,12 @@ void *Sys_LoadDll_Wrapped( const char *name,
 						   int ( *systemcalls )( int, ... ) )
 #else
 void *Sys_LoadDll( const char *name,
-				   int( **entryPoint ) ( int, ... ),
-				   int ( *systemcalls )( int, ... ) )
+				   intptr_t( **entryPoint ) ( intptr_t, ... ),
+				   intptr_t ( *systemcalls )( intptr_t, ... ) )
 #endif
 {
 	void *libHandle;
-	void ( *dllEntry )( int ( *syscallptr )( int, ... ) );
+	void ( *dllEntry )( intptr_t ( *syscallptr )( intptr_t, ... ) );
 	char fname[MAX_OSPATH];
 	char  *homepath;
 	char  *basepath;

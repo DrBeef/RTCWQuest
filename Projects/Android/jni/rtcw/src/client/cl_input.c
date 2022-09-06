@@ -29,10 +29,11 @@ If you have questions concerning this license or the applicable additional terms
 // cl.input.c  -- builds an intended movement command to send to the server
 
 #include "client.h"
+#include "../../../RTCWVR/VrClientInfo.h"
 
 unsigned frame_msec;
 int old_com_frameTime;
-
+extern vr_client_info_t vr;
 /*
 ===============================================================================
 
@@ -803,6 +804,8 @@ void CL_FinishMove( usercmd_t *cmd ) {
 	// send the current server time so the amount of movement
 	// can be determined without allowing cheating
 	cmd->serverTime = cl.serverTime;
+
+	vr.clientNum = cl.snap.ps.clientNum;
 
 	for ( i = 0 ; i < 3 ; i++ ) {
 		cmd->angles[i] = ANGLE2SHORT( cl.viewangles[i] );

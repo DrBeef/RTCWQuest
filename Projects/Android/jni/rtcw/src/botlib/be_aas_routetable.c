@@ -42,10 +42,13 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_libvar.h"
 #include "l_utils.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_interface.h"
 #include "be_aas_def.h"
+
+#define	LL(x) x=LittleLong(x)
+#define	LS(x) x=LittleShort(x)
 
 // ugly hack to turn off route-tables, can't find a way to check cvar's
 int disable_routetable = 0;
@@ -103,7 +106,7 @@ void AAS_RT_FreeMemory( void *ptr ) {
 	memorycount -= before - totalmemorysize;
 }
 
-void AAS_RT_PrintMemoryUsage() {
+void AAS_RT_PrintMemoryUsage( void ) {
 #ifdef  AAS_RT_MEMORY_USAGE
 
 	botimport.Print( PRT_MESSAGE, "\n" );
@@ -245,7 +248,7 @@ void AAS_RT_WriteByte( int si, fileHandle_t fp ) {
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-void AAS_RT_WriteRouteTable() {
+void AAS_RT_WriteRouteTable( void ) {
 	int ident, version;
 	unsigned short crc_aas;
 	fileHandle_t fp;
@@ -339,7 +342,7 @@ qboolean AAS_RT_ReadRouteTable( fileHandle_t fp ) {
 
 	// check ident
 	AAS_RT_DBG_Read( &ident, sizeof( ident ), fp );
-	ident = LittleLong( ident );
+	LL( ident );
 
 	if ( ident != RTBID ) {
 		AAS_Error( "File is not an RTB file\n" );
@@ -349,7 +352,7 @@ qboolean AAS_RT_ReadRouteTable( fileHandle_t fp ) {
 
 	// check version
 	AAS_RT_DBG_Read( &version, sizeof( version ), fp );
-	version = LittleLong( version );
+	LL( version );
 
 	if ( version != RTBVERSION ) {
 		AAS_Error( "File is version %i not %i\n", version, RTBVERSION );
@@ -359,7 +362,7 @@ qboolean AAS_RT_ReadRouteTable( fileHandle_t fp ) {
 
 	// read the CRC check on the AAS data
 	AAS_RT_DBG_Read( &crc, sizeof( crc ), fp );
-	crc = LittleShort( crc );
+	LS( crc );
 
 	// calculate a CRC on the AAS areas
 	crc_aas = CRC_ProcessString( (unsigned char *)( *aasworld ).areas, sizeof( aas_area_t ) * ( *aasworld ).numareas );
@@ -484,9 +487,7 @@ void AAS_CreateAllRoutingCache( void );
 
 void AAS_RT_BuildRouteTable( void ) {
 	int i,j,k;
-	aas_area_t *srcarea;
 	aas_areasettings_t  *srcsettings;
-//	vec3_t	vec;
 	unsigned int totalcount;
 	unsigned int noroutecount;
 
@@ -561,7 +562,6 @@ void AAS_RT_BuildRouteTable( void ) {
 	AAS_CreateAllRoutingCache();
 	for ( i = 0; i < ( *aasworld ).numareas; i++ )
 	{
-		srcarea = &( *aasworld ).areas[i];
 		srcsettings = &( *aasworld ).areasettings[i];
 
 #ifdef FILTERAREAS
@@ -592,7 +592,6 @@ void AAS_RT_BuildRouteTable( void ) {
 
 	for ( i = 0; i < childcount; i++ )
 	{
-		srcarea = &( *aasworld ).areas[filtered_areas[i]];
 		srcsettings = &( *aasworld ).areasettings[filtered_areas[i]];
 
 		// allocate memory for this area
@@ -838,15 +837,12 @@ void AAS_RT_BuildRouteTable( void ) {
 		aas_area_parent_t           *apar;
 		aas_parent_link_t           *oplink;
 
-		int localRoutesCount, parentRoutesCount, parentChildrenCount, visibleParentsCount, parentLinkCount, routeIndexesCount;
+		int parentChildrenCount, visibleParentsCount, parentLinkCount;
 
 		rt = ( *aasworld ).routetable;
-		localRoutesCount = 0;
-		parentRoutesCount = 0;
 		parentChildrenCount = 0;
 		visibleParentsCount = 0;
 		parentLinkCount = 0;
-		routeIndexesCount = 0;
 
 		// areaChildIndexes
 		rt->areaChildIndexes = (unsigned short int *) AAS_RT_GetClearedMemory( ( *aasworld ).numareas * sizeof( unsigned short int ) );
@@ -965,7 +961,7 @@ void AAS_RT_BuildRouteTable( void ) {
 		{
 			// kill the parent links
 			next = area_childlocaldata[i]->parentlink;
-			// TTimo: suggest () around assignment used as truth value
+			// TTimo gcc: suggests () around assignment used as truth value
 			while ( ( trav = next ) )
 			{
 				next = next->next;
@@ -1109,7 +1105,7 @@ aas_rt_route_t *AAS_RT_GetRoute( int srcnum, vec3_t origin, int destnum ) {
 // Returns:					-
 // Changes Globals:		-
 //===========================================================================
-#include "../game/be_ai_goal.h"
+#include "be_ai_goal.h"
 int BotGetReachabilityToGoal( vec3_t origin, int areanum, int entnum,
 							  int lastgoalareanum, int lastareanum,
 							  int *avoidreach, float *avoidreachtimes, int *avoidreachtries,
@@ -1386,7 +1382,7 @@ qboolean AAS_RT_GetHidePos( vec3_t srcpos, int srcnum, int srcarea, vec3_t destp
 				if ( !destVisLookup[rt->parentLinks[travChild->startParentLinks].parent] ) {
 					// success ?
 					if ( !botimport.AICast_VisibleFromPos( destpos, destnum, ( *aasworld ).areas[pathArea].center, srcnum, qfalse ) ) {
-						// SUCESS !!
+						// SUCCESS !!
 						travParent = &rt->parents[rt->parentLinks[travChild->startParentLinks].parent];
 						break;
 					}

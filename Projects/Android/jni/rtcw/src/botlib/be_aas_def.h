@@ -35,27 +35,17 @@ If you have questions concerning this license or the applicable additional terms
  *
  *****************************************************************************/
 
+#include "../game/q_shared.h"
+
 //debugging on
 #define AAS_DEBUG
 
-//#define MAX_CLIENTS			128
-//#define	MAX_MODELS			256		// these are sent over the net as 8 bits
-//#define	MAX_SOUNDS			256		// so they cannot be blindly increased
-//#define	MAX_CONFIGSTRINGS	1024
 #define MAX_CONFIGSTRINGS   2048    //----(SA)	upped
-
-//#define	CS_SCORES			32
-//#define	CS_MODELS			(CS_SCORES+MAX_CLIENTS)
-//#define	CS_SOUNDS			(CS_MODELS+MAX_MODELS)
 
 #define DF_AASENTNUMBER( x )      ( x - ( *aasworlds ).entities )
 #define DF_NUMBERAASENT( x )      ( &( *aasworlds ).entities[x] )
 #define DF_AASENTCLIENT( x )      ( x - ( *aasworlds ).entities - 1 )
 #define DF_CLIENTAASENT( x )      ( &( *aasworlds ).entities[x + 1] )
-
-#ifndef MAX_PATH
-	#define MAX_PATH                MAX_QPATH
-#endif
 
 //string index (for model, sound and image index)
 typedef struct aas_stringindex_s
@@ -122,7 +112,6 @@ typedef struct aas_settings_s
 	float sv_maxwaterjump;
 	float sv_maxbarrier;
 	float sv_jumpvel;
-	qboolean sv_allowladders;
 } aas_settings_t;
 
 //routing cache
@@ -139,6 +128,21 @@ typedef struct aas_routingcache_s
 	unsigned char *reachabilities;              //reachabilities used for routing
 	unsigned short int traveltimes[1];          //travel time for every area (variable sized)
 } aas_routingcache_t;
+
+//32bit values for pointers to allow loading cache on non-32 bit platforms
+typedef struct
+{
+	int size;                                   //size of the routing cache
+	float time;                                 //last time accessed or updated
+	int cluster;                                //cluster the cache is for
+	int areanum;                                //area the cache is created for
+	vec3_t origin;                              //origin within the area
+	float starttraveltime;                      //travel time to start with
+	int travelflags;                            //combinations of the travel flags
+	int prev_, next_;
+	int reachabilities_;                        //reachabilities used for routing
+	unsigned short int traveltimes[1];          //travel time for every area (variable sized)
+} aas_routingcache_32_t;
 
 //fields for the routing algorithm
 typedef struct aas_routingupdate_s
@@ -182,8 +186,8 @@ typedef struct aas_s
 	float time;
 	int numframes;
 	//name of the aas file
-	char filename[MAX_PATH];
-	char mapname[MAX_PATH];
+	char filename[MAX_QPATH];
+	char mapname[MAX_QPATH];
 	//bounding boxes
 	int numbboxes;
 	aas_bbox_t *bboxes;

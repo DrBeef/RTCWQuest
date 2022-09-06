@@ -235,6 +235,13 @@ void Sys_PumpEvents( void );
 typedef unsigned char byte;
 
 typedef enum {qfalse, qtrue}    qboolean;
+
+typedef union {
+	float f;
+	int i;
+	unsigned int ui;
+} floatint_t;
+
 #if defined( __MACOS__ )
 #define qboolean int    //DAJ
 #endif
@@ -243,6 +250,12 @@ typedef int qhandle_t;
 typedef int sfxHandle_t;
 typedef int fileHandle_t;
 typedef int clipHandle_t;
+
+#define LO_ARG(x)  ((int)(((intptr_t)(x)) & 0xffffffff))
+#define HI_ARG(x)  ((int)((((intptr_t)(x)) & 0xffffffff00000000) >> 32))
+intptr_t VM_PointerArg(int arg0, int arg1);
+
+#define ARRAY_LEN(x)			(sizeof(x) / sizeof(*(x)))
 
 #ifndef ID_INLINE
 #ifdef _WIN32
@@ -493,6 +506,9 @@ extern vec3_t axisDefault[3];
 
 #define nanmask ( 255 << 23 )
 #define IS_NAN( x ) ( ( ( *(int *)&x ) & nanmask ) == nanmask )
+
+#define PAD(base, alignment)	(((base)+(alignment)-1) & ~((alignment)-1))
+#define PADLEN(base, alignment)	(PAD((base), (alignment)) - (base))
 
 // TTimo
 // handy stuff when tracking isnan problems

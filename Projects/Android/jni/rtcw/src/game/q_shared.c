@@ -278,7 +278,8 @@ void Swap_Init( void ) {
 	byte swaptest[2] = {1,0};
 
 // set the byte swapping variables in a portable manner
-	if ( *(short *)swaptest == 1 ) {
+//	if ( *(short *)swaptest == 1 )
+	{
 		_BigShort = ShortSwap;
 		_LittleShort = ShortNoSwap;
 		_BigLong = LongSwap;
@@ -287,7 +288,7 @@ void Swap_Init( void ) {
 		_LittleLong64 = Long64NoSwap;
 		_BigFloat = FloatSwap;
 		_LittleFloat = FloatNoSwap;
-	} else
+	}/* else
 	{
 		_BigShort = ShortNoSwap;
 		_LittleShort = ShortSwap;
@@ -298,9 +299,16 @@ void Swap_Init( void ) {
 		_BigFloat = FloatNoSwap;
 		_LittleFloat = FloatSwap;
 	}
-
+*/
 }
 
+
+//For 64-bit
+intptr_t VM_PointerArg(int arg0, int arg1)
+{
+	int ptr[2] = {arg0, arg1};
+	return (intptr_t) (*(long *) (ptr));
+}
 
 /*
 ============================================================================

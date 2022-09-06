@@ -331,24 +331,24 @@ Dlls will call this directly
 
 ============
 */
-int QDECL VM_DllSyscall( int arg, ... ) {
-//#if ( ( defined __linux__ ) && ( defined __powerpc__ ) )
+intptr_t QDECL VM_DllSyscall( intptr_t arg, ... ) {
+#if !id386 || defined __clang__
 	// rcg010206 - see commentary above
-	int args[16];
+	intptr_t args[MAX_VMSYSCALL_ARGS];
 	int i;
 	va_list ap;
 
 	args[0] = arg;
 
-	va_start( ap, arg );
-	for ( i = 1; i < sizeof( args ) / sizeof( args[i] ); i++ )
-		args[i] = va_arg( ap, int );
-	va_end( ap );
+	va_start(ap, arg);
+	for (i = 1; i < ARRAY_LEN (args); i++)
+		args[i] = va_arg(ap, intptr_t);
+	va_end(ap);
 
 	return currentVM->systemCall( args );
-//#else // original id code
-//	return currentVM->systemCall( &arg );
-//#endif
+#else // original id code
+	return currentVM->systemCall( &arg );
+#endif
 }
 
 /*
@@ -620,37 +620,37 @@ void VM_Clear( void ) {
 	lastVM = NULL;
 }
 
-void *VM_ArgPtr( int intValue ) {
+void *VM_ArgPtr( intptr_t intValue ) {
 	if ( !intValue ) {
 		return NULL;
 	}
-	// bk001220 - currentVM is missing on reconnect
-	if ( currentVM == NULL ) {
+	// currentVM is missing on reconnect
+	if ( currentVM==NULL )
 		return NULL;
-	}
 
 	if ( currentVM->entryPoint ) {
-		return ( void * )( currentVM->dataBase + intValue );
-	} else {
-		return ( void * )( currentVM->dataBase + ( intValue & currentVM->dataMask ) );
+		return (void *)(currentVM->dataBase + intValue);
+	}
+	else {
+		return (void *)(currentVM->dataBase + (intValue & currentVM->dataMask));
 	}
 }
 
-void *VM_ExplicitArgPtr( vm_t *vm, int intValue ) {
+void *VM_ExplicitArgPtr( vm_t *vm, intptr_t intValue ) {
 	if ( !intValue ) {
 		return NULL;
 	}
 
-	// bk010124 - currentVM is missing on reconnect here as well?
-	if ( currentVM == NULL ) {
+	// currentVM is missing on reconnect here as well?
+	if ( currentVM==NULL )
 		return NULL;
-	}
 
 	//
 	if ( vm->entryPoint ) {
-		return ( void * )( vm->dataBase + intValue );
-	} else {
-		return ( void * )( vm->dataBase + ( intValue & vm->dataMask ) );
+		return (void *)(vm->dataBase + intValue);
+	}
+	else {
+		return (void *)(vm->dataBase + (intValue & vm->dataMask));
 	}
 }
 
@@ -681,7 +681,7 @@ locals from sp
 #define MAX_STACK   256
 #define STACK_MASK  ( MAX_STACK - 1 )
 
-int QDECL VM_Call( vm_t *vm, int callnum, ... ) {
+intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... ) {
 	vm_t    *oldVM;
 	int r;
 	//rcg010207 see dissertation at top of VM_DllSyscall() in this file.

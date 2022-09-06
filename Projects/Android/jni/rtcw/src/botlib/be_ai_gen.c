@@ -43,11 +43,11 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_precomp.h"
 #include "l_struct.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_interface.h"
-#include "../game/be_ai_gen.h"
+#include "be_ai_gen.h"
 
 //===========================================================================
 //
@@ -56,7 +56,7 @@ If you have questions concerning this license or the applicable additional terms
 // Changes Globals:		-
 //===========================================================================
 int GeneticSelection( int numranks, float *rankings ) {
-	float sum, select;
+	float sum;
 	int i, index;
 
 	sum = 0;
@@ -70,7 +70,7 @@ int GeneticSelection( int numranks, float *rankings ) {
 	if ( sum > 0 ) {
 		//select a bot where the ones with the higest rankings have
 		//the highest chance of being selected
-		select = random() * sum;
+		//sum *= random();
 		for ( i = 0; i < numranks; i++ )
 		{
 			if ( rankings[i] < 0 ) {

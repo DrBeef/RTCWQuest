@@ -40,9 +40,11 @@ If you have questions concerning this license or the applicable additional terms
 #include <string.h>
 
 #include "../game/q_shared.h"
-#include "../game/botlib.h"
+#include "../qcommon/qcommon.h"
+#include "botlib.h"
 #include "be_interface.h"            //for botimport.Print
 #include "l_libvar.h"
+#include "l_log.h"
 
 #define MAX_LOGFILENAMESIZE     1024
 
@@ -62,6 +64,8 @@ static logfile_t logfile;
 // Changes Globals:		-
 //===========================================================================
 void Log_AlwaysOpen( char *filename ) {
+	char *ospath;
+
 	if ( !filename || !strlen( filename ) ) {
 		botimport.Print( PRT_MESSAGE, "openlog <filename>\n" );
 		return;
@@ -70,12 +74,13 @@ void Log_AlwaysOpen( char *filename ) {
 		botimport.Print( PRT_ERROR, "log file %s is already opened\n", logfile.filename );
 		return;
 	} //end if
-	logfile.fp = fopen( filename, "wb" );
+	ospath = FS_BuildOSPath( Cvar_VariableString( "fs_homepath" ), Cvar_VariableString( "fs_game" ), filename );
+	logfile.fp = fopen(ospath, "wb");
 	if ( !logfile.fp ) {
 		botimport.Print( PRT_ERROR, "can't open the log file %s\n", filename );
 		return;
 	} //end if
-	strncpy( logfile.filename, filename, MAX_LOGFILENAMESIZE );
+	Q_strncpyz( logfile.filename, filename, MAX_LOGFILENAMESIZE );
 	botimport.Print( PRT_MESSAGE, "Opened log %s\n", logfile.filename );
 } //end of the function Log_Create
 //===========================================================================

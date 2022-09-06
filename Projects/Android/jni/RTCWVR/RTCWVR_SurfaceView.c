@@ -498,18 +498,7 @@ static void ovrFramebuffer_Clear( ovrFramebuffer * frameBuffer )
 
 static bool ovrFramebuffer_Create( ovrFramebuffer * frameBuffer, const GLenum colorFormat, const int width, const int height, const int multisamples )
 {
-    LOAD_GLES2(glBindTexture);
-    LOAD_GLES2(glTexParameteri);
-    LOAD_GLES2(glGenRenderbuffers);
-    LOAD_GLES2(glBindRenderbuffer);
-    LOAD_GLES2(glRenderbufferStorage);
-    LOAD_GLES2(glGenFramebuffers);
-    LOAD_GLES2(glBindFramebuffer);
-    LOAD_GLES2(glFramebufferRenderbuffer);
-    LOAD_GLES2(glFramebufferTexture2D);
-    LOAD_GLES2(glCheckFramebufferStatus);
-
-    frameBuffer->Width = width;
+	frameBuffer->Width = width;
 	frameBuffer->Height = height;
 	frameBuffer->Multisamples = multisamples;
 
@@ -519,68 +508,32 @@ static bool ovrFramebuffer_Create( ovrFramebuffer * frameBuffer, const GLenum co
 	frameBuffer->FrameBuffers = (GLuint *)malloc( frameBuffer->TextureSwapChainLength * sizeof( GLuint ) );
 
 	PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC glRenderbufferStorageMultisampleEXT =
-		(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC)eglGetProcAddress("glRenderbufferStorageMultisampleEXT");
+			(PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC)eglGetProcAddress("glRenderbufferStorageMultisampleEXT");
 	PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT =
-		(PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC)eglGetProcAddress("glFramebufferTexture2DMultisampleEXT");
+			(PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC)eglGetProcAddress("glFramebufferTexture2DMultisampleEXT");
 
 	for ( int i = 0; i < frameBuffer->TextureSwapChainLength; i++ )
 	{
 		// Create the color buffer texture.
 		const GLuint colorTexture = vrapi_GetTextureSwapChainHandle( frameBuffer->ColorTextureSwapChain, i );
-		GLenum colorTextureTarget = GL_TEXTURE_2D;
-		GL( gles_glBindTexture( colorTextureTarget, colorTexture ) );
-        // Just clamp to edge. However, this requires manually clearing the border
-        // around the layer to clear the edge texels.
-        GL( gles_glTexParameteri( colorTextureTarget, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ) );
-        GL( gles_glTexParameteri( colorTextureTarget, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ) );
 
-		GL( gles_glTexParameteri( colorTextureTarget, GL_TEXTURE_MIN_FILTER, GL_LINEAR ) );
-		GL( gles_glTexParameteri( colorTextureTarget, GL_TEXTURE_MAG_FILTER, GL_LINEAR ) );
-		GL( gles_glBindTexture( colorTextureTarget, 0 ) );
+		GL(glGenRenderbuffers(1, &frameBuffer->DepthBuffers[i]));
+		GL(glBindRenderbuffer(GL_RENDERBUFFER, frameBuffer->DepthBuffers[i]));
+		GL(glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, multisamples, GL_DEPTH_COMPONENT24, width, height));
+		GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
 
-		if (multisamples > 1 && glRenderbufferStorageMultisampleEXT != NULL && glFramebufferTexture2DMultisampleEXT != NULL)
+		// Create the frame buffer.
+		GL(glGenFramebuffers(1, &frameBuffer->FrameBuffers[i]));
+		GL(glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer->FrameBuffers[i]));
+		GL(glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0, multisamples));
+		GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, frameBuffer->DepthBuffers[i]));
+
+		GL(GLenum renderFramebufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER));
+		GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		if (renderFramebufferStatus != GL_FRAMEBUFFER_COMPLETE)
 		{
-			// Create multisampled depth buffer.
-			GL(glGenRenderbuffers(1, &frameBuffer->DepthBuffers[i]));
-			GL(glBindRenderbuffer(GL_RENDERBUFFER, frameBuffer->DepthBuffers[i]));
-			GL(glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER, multisamples, GL_DEPTH_COMPONENT24, width, height));
-			GL(glBindRenderbuffer(GL_RENDERBUFFER, 0));
-
-			// Create the frame buffer.
-			GL(glGenFramebuffers(1, &frameBuffer->FrameBuffers[i]));
-			GL(glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer->FrameBuffers[i]));
-			GL(glFramebufferTexture2DMultisampleEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0, multisamples));
-			GL(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, frameBuffer->DepthBuffers[i]));
-			GL(GLenum renderFramebufferStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER));
-			GL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-			if (renderFramebufferStatus != GL_FRAMEBUFFER_COMPLETE)
-			{
-				ALOGE("OVRHelper::Incomplete frame buffer object: %s", GlFrameBufferStatusString(renderFramebufferStatus));
-				return false;
-			}
-		}
-		else
-		{
-			{
-				// Create depth buffer.
-				GL( gles_glGenRenderbuffers( 1, &frameBuffer->DepthBuffers[i] ) );
-				GL( gles_glBindRenderbuffer( GL_RENDERBUFFER, frameBuffer->DepthBuffers[i] ) );
-				GL( gles_glRenderbufferStorage( GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, frameBuffer->Width, frameBuffer->Height ) );
-				GL( gles_glBindRenderbuffer( GL_RENDERBUFFER, 0 ) );
-
-				// Create the frame buffer.
-				GL( gles_glGenFramebuffers( 1, &frameBuffer->FrameBuffers[i] ) );
-				GL( gles_glBindFramebuffer( GL_DRAW_FRAMEBUFFER, frameBuffer->FrameBuffers[i] ) );
-				GL( gles_glFramebufferRenderbuffer( GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, frameBuffer->DepthBuffers[i] ) );
-				GL( gles_glFramebufferTexture2D( GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0 ) );
-				GL( GLenum renderFramebufferStatus = gles_glCheckFramebufferStatus( GL_DRAW_FRAMEBUFFER ) );
-				GL( gles_glBindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 ) );
-				if ( renderFramebufferStatus != GL_FRAMEBUFFER_COMPLETE )
-				{
-					ALOGE( "Incomplete frame buffer object: %s", GlFrameBufferStatusString( renderFramebufferStatus ) );
-					return false;
-				}
-			}
+			ALOGE("OVRHelper::Incomplete frame buffer object: %s", GlFrameBufferStatusString(renderFramebufferStatus));
+			return false;
 		}
 	}
 
@@ -589,11 +542,11 @@ static bool ovrFramebuffer_Create( ovrFramebuffer * frameBuffer, const GLenum co
 
 void ovrFramebuffer_Destroy( ovrFramebuffer * frameBuffer )
 {
-    LOAD_GLES2(glDeleteFramebuffers);
-    LOAD_GLES2(glDeleteRenderbuffers);
+    //LOAD_GLES2(glDeleteFramebuffers);
+    //LOAD_GLES2(glDeleteRenderbuffers);
 
-	GL( gles_glDeleteFramebuffers( frameBuffer->TextureSwapChainLength, frameBuffer->FrameBuffers ) );
-	GL( gles_glDeleteRenderbuffers( frameBuffer->TextureSwapChainLength, frameBuffer->DepthBuffers ) );
+	GL( glDeleteFramebuffers( frameBuffer->TextureSwapChainLength, frameBuffer->FrameBuffers ) );
+	GL( glDeleteRenderbuffers( frameBuffer->TextureSwapChainLength, frameBuffer->DepthBuffers ) );
 
 	vrapi_DestroyTextureSwapChain( frameBuffer->ColorTextureSwapChain );
 
@@ -616,14 +569,14 @@ void GPUWaitSync()
 
 void ovrFramebuffer_SetCurrent( ovrFramebuffer * frameBuffer )
 {
-    LOAD_GLES2(glBindFramebuffer);
-	GL( gles_glBindFramebuffer( GL_DRAW_FRAMEBUFFER, frameBuffer->FrameBuffers[frameBuffer->ProcessingTextureSwapChainIndex] ) );
+    //LOAD_GLES2(glBindFramebuffer);
+	GL( glBindFramebuffer( GL_DRAW_FRAMEBUFFER, frameBuffer->FrameBuffers[frameBuffer->ProcessingTextureSwapChainIndex] ) );
 }
 
 void ovrFramebuffer_SetNone()
 {
-    LOAD_GLES2(glBindFramebuffer);
-	GL( gles_glBindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 ) );
+    //LOAD_GLES2(glBindFramebuffer);
+	GL( glBindFramebuffer( GL_DRAW_FRAMEBUFFER, 0 ) );
 }
 
 void ovrFramebuffer_Resolve( ovrFramebuffer * frameBuffer )
@@ -646,36 +599,36 @@ void ovrFramebuffer_Advance( ovrFramebuffer * frameBuffer )
 
 void ovrFramebuffer_ClearEdgeTexels( ovrFramebuffer * frameBuffer )
 {
-	LOAD_GLES2(glEnable);
-	LOAD_GLES2(glDisable);
-	LOAD_GLES2(glViewport);
-	LOAD_GLES2(glScissor);
-	LOAD_GLES2(glClearColor);
-	LOAD_GLES2(glClear);
+	//LOAD_GLES2(glEnable);
+	//LOAD_GLES2(glDisable);
+	//LOAD_GLES2(glViewport);
+	//LOAD_GLES2(glScissor);
+	//LOAD_GLES2(glClearColor);
+	//LOAD_GLES2(glClear);
 
-	GL( gles_glEnable( GL_SCISSOR_TEST ) );
-	GL( gles_glViewport( 0, 0, frameBuffer->Width, frameBuffer->Height ) );
+	GL( glEnable( GL_SCISSOR_TEST ) );
+	GL( glViewport( 0, 0, frameBuffer->Width, frameBuffer->Height ) );
 
 	// Explicitly clear the border texels to black because OpenGL-ES does not support GL_CLAMP_TO_BORDER.
 	// Clear to fully opaque black.
-	GL( gles_glClearColor( 0.0f, 0.0f, 0.0f, 1.0f ) );
+	GL( glClearColor( 0.0f, 0.0f, 0.0f, 1.0f ) );
 
 	// bottom
-	GL( gles_glScissor( 0, 0, frameBuffer->Width, 1 ) );
-	GL( gles_glClear( GL_COLOR_BUFFER_BIT ) );
+	GL( glScissor( 0, 0, frameBuffer->Width, 1 ) );
+	GL( glClear( GL_COLOR_BUFFER_BIT ) );
 	// top
-	GL( gles_glScissor( 0, frameBuffer->Height - 1, frameBuffer->Width, 1 ) );
-	GL( gles_glClear( GL_COLOR_BUFFER_BIT ) );
+	GL( glScissor( 0, frameBuffer->Height - 1, frameBuffer->Width, 1 ) );
+	GL( glClear( GL_COLOR_BUFFER_BIT ) );
 	// left
-	GL( gles_glScissor( 0, 0, 1, frameBuffer->Height ) );
-	GL( gles_glClear( GL_COLOR_BUFFER_BIT ) );
+	GL( glScissor( 0, 0, 1, frameBuffer->Height ) );
+	GL( glClear( GL_COLOR_BUFFER_BIT ) );
 	// right
-	GL( gles_glScissor( frameBuffer->Width - 1, 0, 1, frameBuffer->Height ) );
-	GL( gles_glClear( GL_COLOR_BUFFER_BIT ) );
+	GL( glScissor( frameBuffer->Width - 1, 0, 1, frameBuffer->Height ) );
+	GL( glClear( GL_COLOR_BUFFER_BIT ) );
 
 
-	GL( gles_glScissor( 0, 0, 0, 0 ) );
-	GL( gles_glDisable( GL_SCISSOR_TEST ) );
+	GL( glScissor( 0, 0, 0, 0 ) );
+	GL( glDisable( GL_SCISSOR_TEST ) );
 }
 
 
@@ -2180,7 +2133,7 @@ JNIEXPORT jlong JNICALL Java_com_drbeef_rtcwquest_GLES3JNILib_onCreate( JNIEnv *
         }
 	}
 
-	initialize_gl4es();
+//	initialize_gl4es();
 
 	ovrAppThread * appThread = (ovrAppThread *) malloc( sizeof( ovrAppThread ) );
 	ovrAppThread_Create( appThread, env, activity, activityClass );

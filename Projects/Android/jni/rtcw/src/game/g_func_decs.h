@@ -987,7 +987,7 @@ extern void trap_Endgame ( void ) ;
 extern void trap_Error ( const char * fmt ) ;
 extern void trap_Printf ( const char * fmt ) ;
 extern int PASSFLOAT ( float x ) ;
-extern void dllEntry ( int ( QDECL * syscallptr ) ( int arg , ... ) ) ;
+extern void dllEntry ( intptr_t ( QDECL * syscallptr ) ( intptr_t arg , ... ) ) ;
 extern void G_RunFrame ( int levelTime ) ;
 extern void G_RunThink ( gentity_t * ent ) ;
 extern void CheckCvars ( void ) ;

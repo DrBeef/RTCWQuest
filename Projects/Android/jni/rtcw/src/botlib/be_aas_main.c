@@ -44,8 +44,8 @@ If you have questions concerning this license or the applicable additional terms
 #include "l_struct.h"
 #include "l_log.h"
 #include "aasfile.h"
-#include "../game/botlib.h"
-#include "../game/be_aas.h"
+#include "botlib.h"
+#include "be_aas.h"
 #include "be_aas_funcs.h"
 #include "be_interface.h"
 #include "be_aas_def.h"
@@ -65,9 +65,9 @@ void QDECL AAS_Error( char *fmt, ... ) {
 	va_list arglist;
 
 	va_start( arglist, fmt );
-	vsprintf( str, fmt, arglist );
+	vsnprintf(str, sizeof(str), fmt, arglist);
 	va_end( arglist );
-	botimport.Print( PRT_FATAL, str );
+	botimport.Print(PRT_FATAL, "%s", str);
 } //end of the function AAS_Error
 
 // Ridah, multiple AAS worlds
@@ -242,7 +242,7 @@ void AAS_ContinueInit( float time ) {
 		}
 		//save the AAS file
 		if ( AAS_WriteAASFile( ( *aasworld ).filename ) ) {
-			botimport.Print( PRT_MESSAGE, "%s written succesfully\n", ( *aasworld ).filename );
+			botimport.Print(PRT_MESSAGE, "%s written successfully\n", ( *aasworld ).filename);
 		} //end if
 		else
 		{
@@ -318,10 +318,9 @@ float AAS_Time( void ) {
 //===========================================================================
 int AAS_LoadFiles( const char *mapname ) {
 	int errnum;
-	char aasfile[MAX_PATH];
-//	char bspfile[MAX_PATH];
+	char aasfile[MAX_QPATH];
 
-	strcpy( ( *aasworld ).mapname, mapname );
+	Q_strncpyz( ( *aasworld ).mapname, mapname, sizeof( ( *aasworld ).mapname ) );
 	//NOTE: first reset the entity links into the AAS areas and BSP leaves
 	// the AAS link heap and BSP link heap are reset after respectively the
 	// AAS file and BSP file are loaded
@@ -332,14 +331,14 @@ int AAS_LoadFiles( const char *mapname ) {
 	AAS_LoadBSPFile();
 
 	//load the aas file
-	Com_sprintf( aasfile, MAX_PATH, "maps/%s.aas", mapname );
+	Com_sprintf( aasfile, sizeof( aasfile ), "maps/%s.aas", mapname );
 	errnum = AAS_LoadAASFile( aasfile );
 	if ( errnum != BLERR_NOERROR ) {
 		return errnum;
 	}
 
 	botimport.Print( PRT_MESSAGE, "loaded %s\n", aasfile );
-	strncpy( ( *aasworld ).filename, aasfile, MAX_PATH );
+	Q_strncpyz( ( *aasworld ).filename, aasfile, sizeof( ( *aasworld ).filename ) );
 	return BLERR_NOERROR;
 } //end of the function AAS_LoadFiles
 //===========================================================================
@@ -353,20 +352,21 @@ int AAS_LoadFiles( const char *mapname ) {
 // Ridah, modified this for multiple AAS files
 
 int AAS_LoadMap( const char *mapname ) {
+#define MAPNAME_LEN 256
 	int errnum;
 	int i;
-	char this_mapname[256], intstr[4];
+	char this_mapname[MAPNAME_LEN], intstr[4];
 	qboolean loaded = qfalse;
-	int missingErrNum = 0;     // TTimo: init
+	int missingErrNum = 0;
 
 	for ( i = 0; i < MAX_AAS_WORLDS; i++ )
 	{
 		AAS_SetCurrentWorld( i );
 
-		strncpy( this_mapname, mapname, 256 );
-		strncat( this_mapname, "_b", 256 );
-		sprintf( intstr, "%i", i );
-		strncat( this_mapname, intstr, 256 );
+		Q_strncpyz( this_mapname, mapname, sizeof( this_mapname ) );
+		Q_strcat( this_mapname, sizeof( this_mapname ) - strlen( this_mapname ) - 1, "_b" );
+		Com_sprintf( intstr, sizeof( intstr ), "%i", i);
+		Q_strcat( this_mapname, sizeof( this_mapname ) - strlen( this_mapname ) - 1, intstr );
 
 		//if no mapname is provided then the string indexes are updated
 		if ( !mapname ) {
@@ -423,7 +423,7 @@ int AAS_Setup( void ) {
 	AAS_SetCurrentWorld( 0 );
 
 	( *aasworlds ).maxclients = (int) LibVarValue( "maxclients", "128" );
-	( *aasworlds ).maxentities = (int) LibVarValue( "maxentities", "1024" );
+	( *aasworlds ).maxentities = (int) LibVarValue( "maxentities", "2048" );
 	//allocate memory for the entities
 	if ( ( *aasworld ).entities ) {
 		FreeMemory( ( *aasworld ).entities );
@@ -480,7 +480,7 @@ void AAS_Shutdown( void ) {
 	}
 
 	//NOTE: as soon as a new .bsp file is loaded the .bsp file memory is
-	// freed an reallocated, so there's no need to free that memory here
+	// freed and reallocated, so there's no need to free that memory here
 	//print shutdown
 	botimport.Print( PRT_MESSAGE, "AAS shutdown.\n" );
 } //end of the function AAS_Shutdown
