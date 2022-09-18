@@ -31,15 +31,15 @@ If you have questions concerning this license or the applicable additional terms
  *
  */
 
-#include "../game/g_local.h"
+#include "g_local.h"
 #include "../game/q_shared.h"
-#include "../game/botlib.h"      //bot lib interface
-#include "../game/be_aas.h"
-#include "../game/be_ea.h"
-#include "../game/be_ai_gen.h"
-#include "../game/be_ai_goal.h"
-#include "../game/be_ai_move.h"
-#include "../botai/botai.h"          //bot ai interface
+#include "../botlib/botlib.h"      //bot lib interface
+#include "../botlib/be_aas.h"
+#include "../botlib/be_ea.h"
+#include "../botlib/be_ai_gen.h"
+#include "../botlib/be_ai_goal.h"
+#include "../botlib/be_ai_move.h"
+#include "../botlib/botai.h"          //bot ai interface
 
 #include "ai_cast.h"
 
@@ -78,54 +78,54 @@ typedef enum {
 } saveFieldtype_t;
 
 typedef struct {
-	int ofs;
+	size_t ofs;
 	saveFieldtype_t type;
 } saveField_t;
 
 //.......................................................................................
 // these are the fields that cannot be saved directly, so they need to be converted
 static saveField_t gentityFields_17[] = {
-	{FOFS( client ),      F_CLIENT},
-	{FOFS( classname ),   F_STRING},
-	{FOFS( model ),       F_STRING},
-	{FOFS( model2 ),      F_STRING},
-	{FOFS( parent ),      F_ENTITY},
-	{FOFS( nextTrain ),   F_ENTITY},
-	{FOFS( prevTrain ),   F_ENTITY},
-	{FOFS( message ),     F_STRING},
-	{FOFS( target ),      F_STRING},
-	{FOFS( targetname ),  F_STRING},
-	{FOFS( team ),        F_STRING},
-	{FOFS( target_ent ),  F_ENTITY},
-	{FOFS( think ),       F_FUNCTION},
-	{FOFS( reached ),     F_FUNCTION},
-	{FOFS( blocked ),     F_FUNCTION},
-	{FOFS( touch ),       F_FUNCTION},
-	{FOFS( use ),         F_FUNCTION},
-	{FOFS( pain ),        F_FUNCTION},
-	{FOFS( die ),         F_FUNCTION},
-	{FOFS( chain ),       F_ENTITY},
-	{FOFS( enemy ),       F_ENTITY},
-	{FOFS( activator ),   F_ENTITY},
-	{FOFS( teamchain ),   F_ENTITY},
-	{FOFS( teammaster ),  F_ENTITY},
-	{FOFS( item ),        F_ITEM},
-	{FOFS( aiAttributes ),F_STRING},
-	{FOFS( aiName ),      F_STRING},
-	{FOFS( AIScript_AlertEntity ), F_FUNCTION},
-	{FOFS( aiSkin ),      F_STRING},
-	{FOFS( aihSkin ),     F_STRING},
-	{FOFS( dl_stylestring ),  F_STRING},
-	{FOFS( dl_shader ),   F_STRING},
-	{FOFS( melee ),       F_ENTITY},
-	{FOFS( spawnitem ),   F_STRING},
-	{FOFS( track ),       F_STRING},
-	{FOFS( scriptName ),  F_STRING},
-	{FOFS( scriptStatus.animatingParams ),    F_STRING},
-	{FOFS( tagName ),     F_STRING},
-	{FOFS( tagParent ),   F_ENTITY},
+		{FOFS( client ),      F_CLIENT},
+		{FOFS( classname ),   F_STRING},
+		{FOFS( model ),       F_STRING},
+		{FOFS( model2 ),      F_STRING},
+		{FOFS( parent ),      F_ENTITY},
+		{FOFS( nextTrain ),   F_ENTITY},
+		{FOFS( prevTrain ),   F_ENTITY},
+		{FOFS( message ),     F_STRING},
+		{FOFS( target ),      F_STRING},
+		{FOFS( targetname ),  F_STRING},
+		{FOFS( team ),        F_STRING},
+		{FOFS( target_ent ),  F_ENTITY},
+		{FOFS( think ),       F_FUNCTION},
+		{FOFS( reached ),     F_FUNCTION},
+		{FOFS( blocked ),     F_FUNCTION},
+		{FOFS( touch ),       F_FUNCTION},
+		{FOFS( use ),         F_FUNCTION},
+		{FOFS( pain ),        F_FUNCTION},
+		{FOFS( die ),         F_FUNCTION},
+		{FOFS( chain ),       F_ENTITY},
+		{FOFS( enemy ),       F_ENTITY},
+		{FOFS( activator ),   F_ENTITY},
+		{FOFS( teamchain ),   F_ENTITY},
+		{FOFS( teammaster ),  F_ENTITY},
+		{FOFS( item ),        F_ITEM},
+		{FOFS( aiAttributes ),F_STRING},
+		{FOFS( aiName ),      F_STRING},
+		{FOFS( AIScript_AlertEntity ), F_FUNCTION},
+		{FOFS( aiSkin ),      F_STRING},
+		{FOFS( aihSkin ),     F_STRING},
+		{FOFS( dl_stylestring ),  F_STRING},
+		{FOFS( dl_shader ),   F_STRING},
+		{FOFS( melee ),       F_ENTITY},
+		{FOFS( spawnitem ),   F_STRING},
+		{FOFS( track ),       F_STRING},
+		{FOFS( scriptName ),  F_STRING},
+		{FOFS( scriptStatus.animatingParams ),    F_STRING},
+		{FOFS( tagName ),     F_STRING},
+		{FOFS( tagParent ),   F_ENTITY},
 
-	{0, 0}
+		{0, 0}
 };
 
 // TTimo
@@ -133,69 +133,69 @@ static saveField_t gentityFields_17[] = {
 // new field for v18 saved games
 // not in gentityField to keep backward compatibility loading v17
 static saveField_t gentityFields_18[] = {
-	{FOFS( targetdeath ), F_STRING},
-	{0, 0}
+		{FOFS( targetdeath ), F_STRING},
+		{0, 0}
 };
 
 
 static saveField_t gclientFields[] = {
-	{CFOFS( hook ),       F_ENTITY},
+		{CFOFS( hook ),       F_ENTITY},
 
-	{0, 0}
+		{0, 0}
 };
 
 static saveField_t castStateFields[] = {
-	{CSFOFS( aifunc ),    F_FUNCTION},
-	{CSFOFS( oldAifunc ), F_FUNCTION},
-	{CSFOFS( painfunc ),  F_FUNCTION},
-	{CSFOFS( deathfunc ), F_FUNCTION},
-	{CSFOFS( sightfunc ), F_FUNCTION},
-	{CSFOFS( sightEnemy ),    F_FUNCTION},
-	{CSFOFS( sightFriend ),   F_FUNCTION},
-	{CSFOFS( activate ),  F_FUNCTION},
-	{CSFOFS( aifuncAttack1 ), F_FUNCTION},
-	{CSFOFS( aifuncAttack2 ), F_FUNCTION},
-	{CSFOFS( aifuncAttack3 ), F_FUNCTION},
+		{CSFOFS( aifunc ),    F_FUNCTION},
+		{CSFOFS( oldAifunc ), F_FUNCTION},
+		{CSFOFS( painfunc ),  F_FUNCTION},
+		{CSFOFS( deathfunc ), F_FUNCTION},
+		{CSFOFS( sightfunc ), F_FUNCTION},
+		{CSFOFS( sightEnemy ),    F_FUNCTION},
+		{CSFOFS( sightFriend ),   F_FUNCTION},
+		{CSFOFS( activate ),  F_FUNCTION},
+		{CSFOFS( aifuncAttack1 ), F_FUNCTION},
+		{CSFOFS( aifuncAttack2 ), F_FUNCTION},
+		{CSFOFS( aifuncAttack3 ), F_FUNCTION},
 
-	{0, 0}
+		{0, 0}
 };
 
 //.......................................................................................
 // this is where we define fields or sections of structures that we should totally ignore
 typedef struct {
-	int ofs;
+	size_t ofs;
 	int len;
 } ignoreField_t;
 
 static ignoreField_t gentityIgnoreFields[] = {
-	// don't process events that have already occured before the game was saved
-	//{FOFS(s.events[0]),		sizeof(int) * MAX_EVENTS},
-	//{FOFS(s.eventParms[0]),	sizeof(int) * MAX_EVENTS},
-	//{FOFS(s.eventSequence),	sizeof(int)},
+		// don't process events that have already occured before the game was saved
+		//{FOFS(s.events[0]),		sizeof(int) * MAX_EVENTS},
+		//{FOFS(s.eventParms[0]),	sizeof(int) * MAX_EVENTS},
+		//{FOFS(s.eventSequence),	sizeof(int)},
 
-	{FOFS( numScriptEvents ), sizeof( int )},
-	{FOFS( scriptEvents ),    sizeof( g_script_event_t * ) },   // gets created upon parsing the script file, this is static while playing
+		{FOFS( numScriptEvents ), sizeof( int )},
+		{FOFS( scriptEvents ),    sizeof( g_script_event_t * ) },   // gets created upon parsing the script file, this is static while playing
 
-	{0, 0}
+		{0, 0}
 };
 
 static ignoreField_t gclientIgnoreFields[] = {
-	// don't process events that have already occured before the game was saved
-	//{CFOFS(ps.events[0]),		sizeof(int) * MAX_EVENTS},
-	//{CFOFS(ps.eventParms[0]),	sizeof(int) * MAX_EVENTS},
-	//{CFOFS(ps.eventSequence),	sizeof(int)},
-	//{CFOFS(ps.oldEventSequence),sizeof(int)},
+		// don't process events that have already occured before the game was saved
+		//{CFOFS(ps.events[0]),		sizeof(int) * MAX_EVENTS},
+		//{CFOFS(ps.eventParms[0]),	sizeof(int) * MAX_EVENTS},
+		//{CFOFS(ps.eventSequence),	sizeof(int)},
+		//{CFOFS(ps.oldEventSequence),sizeof(int)},
 
-	{0, 0}
+		{0, 0}
 };
 
 static ignoreField_t castStateIgnoreFields[] = {
-	{CSFOFS( bs ),    sizeof( bot_state_t * )},
-	{CSFOFS( numCastScriptEvents ),   sizeof( int )},
-	{CSFOFS( castScriptEvents ), sizeof( cast_script_event_t * ) }, // gets created upon parsing the script file, this is static while playing
-	{CSFOFS( weaponInfo ),    sizeof( cast_weapon_info_t * )},
+		{CSFOFS( bs ),    sizeof( bot_state_t * )},
+		{CSFOFS( numCastScriptEvents ),   sizeof( int )},
+		{CSFOFS( castScriptEvents ), sizeof( cast_script_event_t * ) }, // gets created upon parsing the script file, this is static while playing
+		{CSFOFS( weaponInfo ),    sizeof( cast_weapon_info_t * )},
 
-	{0, 0}
+		{0, 0}
 };
 
 
@@ -204,34 +204,34 @@ static ignoreField_t castStateIgnoreFields[] = {
 // persistant data is optionally carried across level changes
 // !! WARNING: cannot save pointer or string variables
 typedef struct {
-	int ofs;
+	size_t ofs;
 	int len;
 } persField_t;
 
 static persField_t gentityPersFields[] = {
-	{FOFS( health ),              sizeof( int )},
-	{0, 0}
+		{FOFS( health ),              sizeof( int )},
+		{0, 0}
 };
 
 static persField_t gclientPersFields[] = {
-	{CFOFS( ps.weapon ),          sizeof( int )},
-	{CFOFS( ps.ammo[0] ),         sizeof( int ) * MAX_WEAPONS},
-	{CFOFS( ps.ammoclip[0] ),     sizeof( int ) * MAX_WEAPONS}, //----(SA)	added for ammo in clip
-	{CFOFS( ps.persistant[0] ),   sizeof( int ) * MAX_PERSISTANT},
-	{CFOFS( ps.stats[0] ),        sizeof( int ) * MAX_STATS},
-	{CFOFS( ps.weapons[0] ),      sizeof( int ) * MAX_WEAPONS / ( sizeof( int ) * 8 )}, // //----(SA)	added.  weapons owned got moved outside stats[]
-	{CFOFS( ps.powerups[0] ),     sizeof( int ) * MAX_POWERUPS},
-	{CFOFS( ps.holdable[0] ),     sizeof( int ) * MAX_HOLDABLE},    //----(SA)	added
-	{CFOFS( ps.holding ),         sizeof( int )},                   //----(SA)	added
+		{CFOFS( ps.weapon ),          sizeof( int )},
+		{CFOFS( ps.ammo[0] ),         sizeof( int ) * MAX_WEAPONS},
+		{CFOFS( ps.ammoclip[0] ),     sizeof( int ) * MAX_WEAPONS}, //----(SA)	added for ammo in clip
+		{CFOFS( ps.persistant[0] ),   sizeof( int ) * MAX_PERSISTANT},
+		{CFOFS( ps.stats[0] ),        sizeof( int ) * MAX_STATS},
+		{CFOFS( ps.weapons[0] ),      sizeof( int ) * MAX_WEAPONS / ( sizeof( int ) * 8 )}, // //----(SA)	added.  weapons owned got moved outside stats[]
+		{CFOFS( ps.powerups[0] ),     sizeof( int ) * MAX_POWERUPS},
+		{CFOFS( ps.holdable[0] ),     sizeof( int ) * MAX_HOLDABLE},    //----(SA)	added
+		{CFOFS( ps.holding ),         sizeof( int )},                   //----(SA)	added
 
-	{0, 0}
+		{0, 0}
 };
 
 static persField_t castStatePersFields[] = {
-	// TODO: will we be transporting AI's between levels?
-	// FIXME: if so, we can't save strings in here, so how are we going to create the new AI
-	// in the next level, with all his strings and pointers attached?
-	{0, 0}
+		// TODO: will we be transporting AI's between levels?
+		// FIXME: if so, we can't save strings in here, so how are we going to create the new AI
+		// in the next level, with all his strings and pointers attached?
+		{0, 0}
 };
 
 
@@ -242,26 +242,12 @@ typedef struct {
 	byte *funcPtr;
 } funcList_t;
 
-//-----------------
-// MSVC likes to needlessly(?) warn about these defines, so disable certain warnings temporarily
-#ifdef _WIN32
-#pragma warning( push )
-#pragma warning( disable : 4054 )
-#endif
-//-----------------
 
 #include "g_func_decs.h" // declare all game functions
 
 funcList_t funcList[] = {
-	#include "g_funcs.h"
+#include "g_funcs.h"
 };
-
-//-----------------
-#ifdef _WIN32
-#pragma warning( pop ) // return previous warning state
-#endif
-//-----------------
-
 
 //=========================================================
 
@@ -328,63 +314,63 @@ void WriteField1( saveField_t *field, byte *base ) {
 	p = ( void * )( base + field->ofs );
 	switch ( field->type )
 	{
-	case F_STRING:
-		if ( *(char **)p ) {
-			len = strlen( *(char **)p ) + 1;
-		} else {
-			len = 0;
-		}
-		*(int *)p = len;
-		break;
-	case F_ENTITY:
-		if ( *(gentity_t **)p == NULL ) {
-			index = -1;
-		} else {
-			index = *(gentity_t **)p - g_entities;
-		}
-		if ( index >= MAX_GENTITIES || index < -1 ) {
-			G_Error( "WriteField1: entity out of range (%i)", index );
-		}
-		*(int *)p = index;
-		break;
-	case F_CLIENT:
-		if ( *(gclient_t **)p == NULL ) {
-			index = -1;
-		} else {
-			index = *(gclient_t **)p - level.clients;
-		}
-		if ( index >= MAX_CLIENTS || index < -1 ) {
-			G_Error( "WriteField1: client out of range (%i)", index );
-		}
-		*(int *)p = index;
-		break;
-	case F_ITEM:
-		if ( *(gitem_t **)p == NULL ) {
-			index = -1;
-		} else {
-			index = *(gitem_t **)p - bg_itemlist;
-		}
-		*(int *)p = index;
-		break;
-
-		//	match this with a function address in the function list, which is built using the
-		//	"extractfuncs.bat" in the utils folder. We then save the string equivalent
-		//	of the function. This effectively gives us cross-version save games.
-	case F_FUNCTION:
-		if ( *(byte **)p == NULL ) {
-			len = 0;
-		} else {
-			func = G_FindFuncAtAddress( *(byte **)p );
-			if ( !func ) {
-				G_Error( "WriteField1: unknown function, cannot save game" );
+		case F_STRING:
+			if ( *(char **)p ) {
+				len = strlen( *(char **)p ) + 1;
+			} else {
+				len = 0;
 			}
-			len = strlen( func->funcStr ) + 1;
-		}
-		*(int *)p = len;
-		break;
+			*(int *)p = len;
+			break;
+		case F_ENTITY:
+			if ( *(gentity_t **)p == NULL ) {
+				index = -1;
+			} else {
+				index = *(gentity_t **)p - g_entities;
+			}
+			if ( index >= MAX_GENTITIES || index < -1 ) {
+				G_Error( "WriteField1: entity out of range (%i)", index );
+			}
+			*(int *)p = index;
+			break;
+		case F_CLIENT:
+			if ( *(gclient_t **)p == NULL ) {
+				index = -1;
+			} else {
+				index = *(gclient_t **)p - level.clients;
+			}
+			if ( index >= MAX_CLIENTS || index < -1 ) {
+				G_Error( "WriteField1: client out of range (%i)", index );
+			}
+			*(int *)p = index;
+			break;
+		case F_ITEM:
+			if ( *(gitem_t **)p == NULL ) {
+				index = -1;
+			} else {
+				index = *(gitem_t **)p - bg_itemlist;
+			}
+			*(int *)p = index;
+			break;
 
-	default:
-		G_Error( "WriteField1: unknown field type" );
+			//	match this with a function address in the function list, which is built using the
+			//	"extractfuncs.bat" in the utils folder. We then save the string equivalent
+			//	of the function. This effectively gives us cross-version save games.
+		case F_FUNCTION:
+			if ( *(byte **)p == NULL ) {
+				len = 0;
+			} else {
+				func = G_FindFuncAtAddress( *(byte **)p );
+				if ( !func ) {
+					G_Error( "WriteField1: unknown function, cannot save game" );
+				}
+				len = strlen( func->funcStr ) + 1;
+			}
+			*(int *)p = len;
+			break;
+
+		default:
+			G_Error( "WriteField1: unknown field type" );
 	}
 }
 
@@ -397,28 +383,28 @@ void WriteField2( fileHandle_t f, saveField_t *field, byte *base ) {
 	p = ( void * )( base + field->ofs );
 	switch ( field->type )
 	{
-	case F_STRING:
-		if ( *(char **)p ) {
-			len = strlen( *(char **)p ) + 1;
-			if ( !G_SaveWrite( *(char **)p, len, f ) ) {
-				G_SaveWriteError();
+		case F_STRING:
+			if ( *(char **)p ) {
+				len = strlen( *(char **)p ) + 1;
+				if ( !G_SaveWrite( *(char **)p, len, f ) ) {
+					G_SaveWriteError();
+				}
 			}
-		}
-		break;
-	case F_FUNCTION:
-		if ( *(byte **)p ) {
-			func = G_FindFuncAtAddress( *(byte **)p );
-			if ( !func ) {
-				G_Error( "WriteField1: unknown function, cannot save game" );
+			break;
+		case F_FUNCTION:
+			if ( *(byte **)p ) {
+				func = G_FindFuncAtAddress( *(byte **)p );
+				if ( !func ) {
+					G_Error( "WriteField1: unknown function, cannot save game" );
+				}
+				len = strlen( func->funcStr ) + 1;
+				if ( !G_SaveWrite( func->funcStr, len, f ) ) {
+					G_SaveWriteError();
+				}
 			}
-			len = strlen( func->funcStr ) + 1;
-			if ( !G_SaveWrite( func->funcStr, len, f ) ) {
-				G_SaveWriteError();
-			}
-		}
-		break;
-	default:
-		break;
+			break;
+		default:
+			break;
 	}
 }
 
@@ -431,67 +417,67 @@ void ReadField( fileHandle_t f, saveField_t *field, byte *base ) {
 	p = ( void * )( base + field->ofs );
 	switch ( field->type )
 	{
-	case F_STRING:
-		len = *(int *)p;
-		if ( !len ) {
-			*(char **)p = NULL;
-		} else
-		{
-			*(char **)p = G_Alloc( len );
-			trap_FS_Read( *(char **)p, len, f );
-		}
-		break;
-	case F_ENTITY:
-		index = *(int *)p;
-		if ( index >= MAX_GENTITIES || index < -1 ) {
-			G_Error( "ReadField: entity out of range (%i)", index );
-		}
-		if ( index == -1 ) {
-			*(gentity_t **)p = NULL;
-		} else {
-			*(gentity_t **)p = &g_entities[index];
-		}
-		break;
-	case F_CLIENT:
-		index = *(int *)p;
-		if ( index >= MAX_CLIENTS || index < -1 ) {
-			G_Error( "ReadField: client out of range (%i)", index );
-		}
-		if ( index == -1 ) {
-			*(gclient_t **)p = NULL;
-		} else {
-			*(gclient_t **)p = &level.clients[index];
-		}
-		break;
-	case F_ITEM:
-		index = *(int *)p;
-		if ( index == -1 ) {
-			*(gitem_t **)p = NULL;
-		} else {
-			*(gitem_t **)p = &bg_itemlist[index];
-		}
-		break;
-
-		//relative to code segment
-	case F_FUNCTION:
-		len = *(int *)p;
-		if ( !len ) {
-			*(byte **)p = NULL;
-		} else
-		{
-			//funcStr = G_Alloc (len);
-			if ( len > sizeof( funcStr ) ) {
-				G_Error( "ReadField: function name is greater than buffer (%i chars)", sizeof( funcStr ) );
+		case F_STRING:
+			len = *(int *)p;
+			if ( !len ) {
+				*(char **)p = NULL;
+			} else
+			{
+				*(char **)p = G_Alloc( len );
+				trap_FS_Read( *(char **)p, len, f );
 			}
-			trap_FS_Read( funcStr, len, f );
-			if ( !( *(byte **)p = G_FindFuncByName( funcStr ) ) ) {
-				G_Error( "ReadField: unknown function '%s'\ncannot load game", funcStr );
+			break;
+		case F_ENTITY:
+			index = *(int *)p;
+			if ( index >= MAX_GENTITIES || index < -1 ) {
+				G_Error( "ReadField: entity out of range (%i)", index );
 			}
-		}
-		break;
+			if ( index == -1 ) {
+				*(gentity_t **)p = NULL;
+			} else {
+				*(gentity_t **)p = &g_entities[index];
+			}
+			break;
+		case F_CLIENT:
+			index = *(int *)p;
+			if ( index >= MAX_CLIENTS || index < -1 ) {
+				G_Error( "ReadField: client out of range (%i)", index );
+			}
+			if ( index == -1 ) {
+				*(gclient_t **)p = NULL;
+			} else {
+				*(gclient_t **)p = &level.clients[index];
+			}
+			break;
+		case F_ITEM:
+			index = *(int *)p;
+			if ( index == -1 ) {
+				*(gitem_t **)p = NULL;
+			} else {
+				*(gitem_t **)p = &bg_itemlist[index];
+			}
+			break;
 
-	default:
-		G_Error( "ReadField: unknown field type" );
+			//relative to code segment
+		case F_FUNCTION:
+			len = *(int *)p;
+			if ( !len ) {
+				*(byte **)p = NULL;
+			} else
+			{
+				//funcStr = G_Alloc (len);
+				if ( len > sizeof( funcStr ) ) {
+					G_Error( "ReadField: function name is greater than buffer (%li chars)", (long unsigned int)sizeof( funcStr ) );
+				}
+				trap_FS_Read( funcStr, len, f );
+				if ( !( *(byte **)p = G_FindFuncByName( funcStr ) ) ) {
+					G_Error( "ReadField: unknown function '%s'\ncannot load game", funcStr );
+				}
+			}
+			break;
+
+		default:
+			G_Error( "ReadField: unknown field type" );
 	}
 }
 
@@ -788,7 +774,7 @@ ReadEntity
 void ReadEntity( fileHandle_t f, gentity_t *ent, int size ) {
 	saveField_t *field;
 	ignoreField_t *ifield;
-	gentity_t temp, backup, backup2;
+	gentity_t temp = {{0}}, backup, backup2;
 	vmCvar_t cvar;
 	int decodedSize;
 
@@ -896,10 +882,11 @@ void ReadEntity( fileHandle_t f, gentity_t *ent, int size ) {
 			}
 		}
 
+/*
 		// set up current episode (for notebook de-briefing tabs)
 		trap_Cvar_Register( &cvar, "g_episode", "0", CVAR_ROM );
-		trap_Cvar_Set( "g_episode", va( "%s", ent->missionLevel ) );
-
+		trap_Cvar_Set( "g_episode", va( "%d", ent->missionLevel ) );
+*/
 	}
 
 }
@@ -1059,9 +1046,9 @@ char *G_Save_TimeStr( void ) {
 }
 
 static char *monthStr[12] =
-{
-	"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
-};
+		{
+				"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
+		};
 
 /*
 ==============
@@ -1144,7 +1131,7 @@ qboolean G_SaveGame( char *username ) {
 	saveByteCount = 0;
 
 	// open the file
-	Com_sprintf( filename, MAX_QPATH, "save\\temp.svg", username );
+	Com_sprintf( filename, MAX_QPATH, "save\\temp.svg" );
 	if ( trap_FS_FOpenFile( filename, &f, FS_WRITE ) < 0 ) {
 		G_Error( "G_SaveGame: cannot open file for saving\n" );
 	}
@@ -1161,7 +1148,7 @@ qboolean G_SaveGame( char *username ) {
 
 	// write the mapname
 	trap_Cvar_Register( &mapname, "mapname", "", CVAR_SERVERINFO | CVAR_ROM );
-	Com_sprintf( mapstr, MAX_QPATH, mapname.string );
+	Com_sprintf( mapstr, MAX_QPATH, "%s", mapname.string );
 	if ( !G_SaveWrite( mapstr, MAX_QPATH, f ) ) {
 		G_SaveWriteError();
 	}
@@ -1280,8 +1267,6 @@ qboolean G_SaveGame( char *username ) {
 		G_SaveWriteError();
 	}
 
-
-
 	// write out the entity structures
 	i = sizeof( gentity_t );
 	if ( !G_SaveWrite( &i, sizeof( i ), f ) ) {
@@ -1346,7 +1331,6 @@ qboolean G_SaveGame( char *username ) {
 		G_SaveWriteError();
 	}
 
-
 	trap_FS_FCloseFile( f );
 
 	// check the byte count
@@ -1370,10 +1354,6 @@ qboolean G_SaveGame( char *username ) {
 	}
 
 	trap_FS_FCloseFile( f );
-#ifdef __MACOS__
-	trap_FS_CopyFile( mapstr, "save\\current.svg" );
-
-#endif
 
 	return qtrue;
 }
@@ -1391,6 +1371,7 @@ G_LoadGame
 */
 void G_LoadGame( char *filename ) {
 	char mapname[MAX_QPATH];
+	char mapstr[MAX_QPATH];
 	fileHandle_t f;
 	int i, leveltime, size, last;
 	gentity_t   *ent;
@@ -1398,6 +1379,7 @@ void G_LoadGame( char *filename ) {
 	cast_state_t    *cs;
 	qtime_t tm;
 	qboolean serverEntityUpdate = qfalse;
+	vmCvar_t episode;
 
 	if ( g_gametype.integer != GT_SINGLE_PLAYER ) {    // don't allow loads in MP
 		return;
@@ -1436,6 +1418,7 @@ void G_LoadGame( char *filename ) {
 
 	// read the mapname (this is only used in the sever exe, so just discard it)
 	trap_FS_Read( mapname, MAX_QPATH, f );
+	Com_sprintf( mapstr, MAX_QPATH, "%s", mapname );
 
 	// read the level time
 	trap_FS_Read( &i, sizeof( i ), f );
@@ -1452,6 +1435,7 @@ void G_LoadGame( char *filename ) {
 	// read the 'episode'
 	if ( ver >= 13 ) {
 		trap_FS_Read( &i, sizeof( i ), f );
+		trap_Cvar_Register( &episode, "g_episode", "0", CVAR_ROM );
 		trap_Cvar_Set( "g_episode", va( "%i", i ) );
 	}
 //----(SA)	end
@@ -1513,7 +1497,6 @@ void G_LoadGame( char *filename ) {
 				}
 				trap_Cvar_Set( "r_savegameFogColor", infoString );
 			}
-
 			trap_SetConfigstring( CS_FOGVARS, infoString );
 		}
 //----(SA)	end
@@ -1528,96 +1511,97 @@ void G_LoadGame( char *filename ) {
 		}
 	}
 
-
-
-
 	// reset all AAS blocking entities
 	trap_AAS_SetAASBlockingEntity( vec3_origin, vec3_origin, -1 );
 
-	// read the entity structures
-	trap_FS_Read( &i, sizeof( i ), f );
-	size = i;
-	last = 0;
-	while ( 1 )
-	{
+	// Don't read in this stuff for mid-game cutscenes
+	if ( !( !Q_stricmpn( mapstr, "cutscene6", 9 ) || !Q_stricmpn( mapstr, "cutscene9", 9 ) || !Q_stricmpn( mapstr, "cutscene11", 10 ) || !Q_stricmpn( mapstr, "cutscene14", 10 ) ) ) {
+		// read the entity structures
 		trap_FS_Read( &i, sizeof( i ), f );
-		if ( i < 0 ) {
-			break;
-		}
-		if ( i >= MAX_GENTITIES ) {
-			trap_FS_FCloseFile( f );
-			G_Error( "G_LoadGame: entitynum out of range (%i, MAX = %i)\n", i, MAX_GENTITIES );
-		}
-		if ( i >= level.num_entities ) {  // notify server
-			level.num_entities = i;
-			serverEntityUpdate = qtrue;
-		}
-		ent = &g_entities[i];
-		ReadEntity( f, ent, size );
-		// free all entities that we skipped
-		for ( ; last < i; last++ ) {
-			if ( g_entities[last].inuse && i != ENTITYNUM_WORLD ) {
-				if ( last < MAX_CLIENTS ) {
-					trap_DropClient( last, "" );
-				} else {
-					G_FreeEntity( &g_entities[last] );
+		size = i;
+		last = 0;
+		while ( 1 )
+		{
+			trap_FS_Read( &i, sizeof( i ), f );
+			if ( i < 0 ) {
+				break;
+			}
+			if ( i >= MAX_GENTITIES ) {
+				trap_FS_FCloseFile( f );
+				G_Error( "G_LoadGame: entitynum out of range (%i, MAX = %i)\n", i, MAX_GENTITIES );
+			}
+			if ( i >= level.num_entities ) {  // notify server
+				level.num_entities = i;
+				serverEntityUpdate = qtrue;
+			}
+			ent = &g_entities[i];
+			ReadEntity( f, ent, size );
+			// free all entities that we skipped
+			for ( ; last < i; last++ ) {
+				if ( g_entities[last].inuse && i != ENTITYNUM_WORLD ) {
+					if ( last < MAX_CLIENTS ) {
+						trap_DropClient( last, "" );
+					} else {
+						G_FreeEntity( &g_entities[last] );
+					}
 				}
 			}
+			last = i + 1;
 		}
-		last = i + 1;
-	}
 
-	// clear all remaining entities
-	for ( ent = &g_entities[last] ; last < MAX_GENTITIES ; last++, ent++ ) {
-		memset( ent, 0, sizeof( *ent ) );
-		ent->classname = "freed";
-		ent->freetime = level.time;
-		ent->inuse = qfalse;
-	}
+		// clear all remaining entities
+		for ( ent = &g_entities[last] ; last < MAX_GENTITIES ; last++, ent++ ) {
+			memset( ent, 0, sizeof( *ent ) );
+			ent->classname = "freed";
+			ent->freetime = level.time;
+			ent->inuse = qfalse;
+		}
 
-	// read the client structures
-	trap_FS_Read( &i, sizeof( i ), f );
-	size = i;
-	while ( 1 )
-	{
+		// read the client structures
 		trap_FS_Read( &i, sizeof( i ), f );
-		if ( i < 0 ) {
-			break;
+		size = i;
+		while ( 1 )
+		{
+			trap_FS_Read( &i, sizeof( i ), f );
+			if ( i < 0 ) {
+				break;
+			}
+			if ( i > MAX_CLIENTS ) {
+				trap_FS_FCloseFile( f );
+				G_Error( "G_LoadGame: clientnum out of range\n" );
+			}
+			cl = &level.clients[i];
+			if ( cl->pers.connected == CON_DISCONNECTED ) {
+				trap_FS_FCloseFile( f );
+				G_Error( "G_LoadGame: client mis-match in savegame" );
+			}
+			ReadClient( f, cl, size );
 		}
-		if ( i > MAX_CLIENTS ) {
-			trap_FS_FCloseFile( f );
-			G_Error( "G_LoadGame: clientnum out of range\n" );
-		}
-		cl = &level.clients[i];
-		if ( cl->pers.connected == CON_DISCONNECTED ) {
-			trap_FS_FCloseFile( f );
-			G_Error( "G_LoadGame: client mis-match in savegame" );
-		}
-		ReadClient( f, cl, size );
-	}
 
-	// read the cast_state structures
-	trap_FS_Read( &i, sizeof( i ), f );
-	size = i;
-	while ( 1 )
-	{
+		// read the cast_state structures
 		trap_FS_Read( &i, sizeof( i ), f );
-		if ( i < 0 ) {
-			break;
+		size = i;
+		while ( 1 )
+		{
+			trap_FS_Read( &i, sizeof( i ), f );
+			if ( i < 0 ) {
+				break;
+			}
+			if ( i > MAX_CLIENTS ) {
+				trap_FS_FCloseFile( f );
+				G_Error( "G_LoadGame: clientnum out of range\n" );
+			}
+			cs = &caststates[i];
+			ReadCastState( f, cs, size );
 		}
-		if ( i > MAX_CLIENTS ) {
-			trap_FS_FCloseFile( f );
-			G_Error( "G_LoadGame: clientnum out of range\n" );
-		}
-		cs = &caststates[i];
-		ReadCastState( f, cs, size );
-	}
 
-	// inform server of entity count if it has increased
-	if ( serverEntityUpdate ) {
-		// let the server system know that there are more entities
-		trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ),
-							 &level.clients[0].ps, sizeof( level.clients[0] ) );
+		// inform server of entity count if it has increased
+		if ( serverEntityUpdate ) {
+			// let the server system know that there are more entities
+			trap_LocateGameData( level.gentities, level.num_entities, sizeof( gentity_t ),
+								 &level.clients[0].ps, sizeof( level.clients[0] ) );
+		}
+
 	}
 
 //----(SA)	moved these up in ver 15
@@ -1636,7 +1620,6 @@ void G_LoadGame( char *filename ) {
 					trap_SetConfigstring( CS_MUSIC_QUEUE, musicString );
 				}
 			}
-
 		}
 
 		if ( ver > 13 ) {
@@ -1648,10 +1631,7 @@ void G_LoadGame( char *filename ) {
 			aicast_skillscale = (float)i / (float)GSKILL_MAX;
 		}
 	}
-
 //----(SA)	end moved
-
-
 
 	trap_FS_FCloseFile( f );
 
