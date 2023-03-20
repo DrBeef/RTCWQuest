@@ -6782,20 +6782,22 @@ void _UI_MouseEvent( int dx, int dy ) {
 UI_MouseEvent
 =================
 */
+const int cursorSize = 16;
 void _UI_MouseEventAbs( int x, int y ) {
 	// update mouse screen position
+    // allow to hide cursor beyond the screen edges
 	uiInfo.uiDC.cursorx = x;
-	if ( uiInfo.uiDC.cursorx < 0 ) {
-		uiInfo.uiDC.cursorx = 0;
-	} else if ( uiInfo.uiDC.cursorx > SCREEN_WIDTH ) {
-		uiInfo.uiDC.cursorx = SCREEN_WIDTH;
+	if ( uiInfo.uiDC.cursorx < -cursorSize ) {
+		uiInfo.uiDC.cursorx = -cursorSize;
+	} else if ( uiInfo.uiDC.cursorx > SCREEN_WIDTH + cursorSize ) {
+		uiInfo.uiDC.cursorx = SCREEN_WIDTH + cursorSize;
 	}
 
 	uiInfo.uiDC.cursory = y;
-	if ( uiInfo.uiDC.cursory < 0 ) {
-		uiInfo.uiDC.cursory = 0;
-	} else if ( uiInfo.uiDC.cursory > SCREEN_HEIGHT ) {
-		uiInfo.uiDC.cursory = SCREEN_HEIGHT;
+	if ( uiInfo.uiDC.cursory < -cursorSize ) {
+		uiInfo.uiDC.cursory = -cursorSize;
+	} else if ( uiInfo.uiDC.cursory > SCREEN_HEIGHT + cursorSize) {
+		uiInfo.uiDC.cursory = SCREEN_HEIGHT + cursorSize;
 	}
 
 	if ( Menu_Count() > 0 ) {

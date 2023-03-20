@@ -228,11 +228,8 @@ int absx=0,absy=0;
 RTCWVR_GetScreenRes(int *width, int *height);
 void PortableMouseAbs(float x,float y)
 {
-    int width;
-    int height;
-    RTCWVR_GetScreenRes(&width, &height);
-	absx = x * width;
-	absy = y * height;
+	absx = x * 640;
+	absy = y * 480;
 }
 
 

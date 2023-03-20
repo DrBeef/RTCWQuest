@@ -132,19 +132,32 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
     //Menu button
 	handleTrackedControllerButton(&leftTrackedRemoteState_new, &leftTrackedRemoteState_old, ovrButton_Enter, K_ESCAPE);
 
-    static qboolean resetCursor = qtrue;
+    static float menuYaw = 0;
+    static bool switchedMenuControls = qfalse;
     if ( RTCWVR_useScreenLayer() )
     {
-        interactWithTouchScreen(resetCursor, pDominantTrackedRemoteNew, pDominantTrackedRemoteOld);
-        resetCursor = qfalse;
-
-        handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton1, K_MOUSE1);
-        handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, ovrButton_Trigger, K_MOUSE1);
-        handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton2, K_ESCAPE);
+        bool controlsLeftHanded = vr_control_scheme->integer >= 10;
+        if ((controlsLeftHanded && !switchedMenuControls) || (!controlsLeftHanded && switchedMenuControls)) {
+            interactWithTouchScreen(menuYaw, vr.offhandangles);
+            handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, offButton1, K_MOUSE1);
+            handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, ovrButton_Trigger, K_MOUSE1);
+            handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, offButton2, K_ESCAPE);
+            if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) != (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger) && (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger)) {
+                switchedMenuControls = !switchedMenuControls;
+            }
+        } else {
+            interactWithTouchScreen(menuYaw, vr.weaponangles);
+            handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton1, K_MOUSE1);
+            handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, ovrButton_Trigger, K_MOUSE1);
+            handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton2, K_ESCAPE);
+            if ((pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) != (pOffTrackedRemoteOld->Buttons & ovrButton_Trigger) && (pOffTrackedRemoteNew->Buttons & ovrButton_Trigger)) {
+                switchedMenuControls = !switchedMenuControls;
+            }
+        }
     }
     else
     {
-        resetCursor = qtrue;
+        menuYaw = vr.hmdorientation[YAW];
 
         float distance = sqrtf(powf(pOff->HeadPose.Pose.Position.x - pWeapon->HeadPose.Pose.Position.x, 2) +
                                powf(pOff->HeadPose.Pose.Position.y - pWeapon->HeadPose.Pose.Position.y, 2) +
