@@ -56,6 +56,10 @@ typedef struct {
 
     vec3_t offhandoffset;
 
+    vec3_t clientviewangles; //orientation in the client - we use this in the cgame
+    float clientview_yaw_last; // Don't use this, it is just for calculating delta!
+    float clientview_yaw_delta;
+
     //
     // Teleport Stuff
     //

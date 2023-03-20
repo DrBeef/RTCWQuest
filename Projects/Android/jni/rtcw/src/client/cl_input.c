@@ -29,6 +29,9 @@ If you have questions concerning this license or the applicable additional terms
 // cl.input.c  -- builds an intended movement command to send to the server
 
 #include "client.h"
+#include "../../../RTCWVR/VrClientInfo.h"
+
+extern vr_client_info_t vr;
 
 unsigned frame_msec;
 int old_com_frameTime;
@@ -445,6 +448,8 @@ void CL_AdjustAngles( void ) {
 	cl.viewangles[PITCH] = new_move.pitch;
 
 	cl.viewangles[ROLL] = new_move.roll;
+
+    VectorCopy(cl.viewangles, vr.clientviewangles);
 }
 
 /*

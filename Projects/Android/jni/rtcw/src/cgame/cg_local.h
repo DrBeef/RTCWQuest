@@ -1471,6 +1471,9 @@ typedef struct {
 	qhandle_t selectCursor;
 	qhandle_t sizeCursor;
 
+	// comfort vignette
+	qhandle_t vignetteShader;
+
 } cgMedia_t;
 
 

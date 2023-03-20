@@ -9,6 +9,7 @@ cvar_t	*vr_lasersight;
 cvar_t	*vr_control_scheme;
 cvar_t	*vr_teleport;
 cvar_t	*vr_virtual_stock;
+cvar_t	*vr_comfort_vignette;
 cvar_t	*vr_switch_sticks;
 cvar_t	*vr_cinematic_stereo;
 cvar_t	*vr_screen_dist;

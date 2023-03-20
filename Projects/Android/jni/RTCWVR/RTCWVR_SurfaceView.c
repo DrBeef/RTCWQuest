@@ -855,6 +855,11 @@ void updateHMDOrientation()
 
 	//Keep this for our records
 	VectorCopy(vr.hmdorientation, vr.hmdorientation_last);
+
+	// View yaw delta
+	float clientview_yaw = vr.clientviewangles[YAW] - vr.hmdorientation[YAW];
+	vr.clientview_yaw_delta = vr.clientview_yaw_last - clientview_yaw;
+	vr.clientview_yaw_last = clientview_yaw;
 }
 
 void setHMDPosition( float x, float y, float z )
@@ -1489,6 +1494,7 @@ void RTCWVR_Init()
 	vr_lasersight = Cvar_Get( "vr_lasersight", "0", CVAR_ARCHIVE);
 	vr_teleport = Cvar_Get( "vr_teleport", "0", CVAR_ARCHIVE);
     vr_virtual_stock = Cvar_Get( "vr_virtual_stock", "0", CVAR_ARCHIVE);
+    vr_comfort_vignette = Cvar_Get ("vr_comfort_vignette", "0.0", CVAR_ARCHIVE);
 
     //Defaults
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
