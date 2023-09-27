@@ -1816,6 +1816,32 @@ void CalcMuzzlePointForActivate( gentity_t *ent, vec3_t forward, vec3_t right, v
 // done.
 
 
+
+void CalcMuzzlePointForHandActivate( gentity_t *ent, qboolean offHand, vec3_t offset, vec3_t forward, vec3_t end ) {
+	vec3_t angles, right, up;
+	if (gVR != NULL)
+	{
+		float worldscale = 0;
+		trap_Cvar_VariableValue("cg_worldScale", &worldscale);
+		float heightAdjust = 0;
+		trap_Cvar_VariableValue("cg_heightAdjust", &heightAdjust);
+		if (offHand) {
+			convertFromVR(worldscale, ent, gVR->offhandoffset, ent->r.currentOrigin, offset);
+			VectorCopy(gVR->offhandangles, angles);
+		} else {
+			convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, offset);
+			VectorCopy(gVR->dominanthandangles, angles);
+		}
+		offset[2] -= 24;
+		offset[2] += (gVR->hmdposition[1] + heightAdjust) * worldscale;
+		angles[YAW] += ent->client->ps.viewangles[YAW] - gVR->hmdorientation[YAW];
+		AngleVectors( angles, forward, right, up );
+		VectorMA( offset, 24, forward, end );
+		// start trace between body and hand to avoid reaching through
+		VectorMA( offset, -8, forward, offset );
+	}
+}
+
 // Ridah
 void CalcMuzzlePoints( gentity_t *ent, int weapon ) {
 	vec3_t viewang;

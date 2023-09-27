@@ -928,14 +928,20 @@ void RTCWVR_Haptic( int duration, int channel, float intensity, char *descriptio
         RTCWVR_HapticEvent("weapon_reload", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
     }
 	else if(strcmp(description,"door_open") == 0) {
-		RTCWVR_HapticEvent("open_door", 0, 0, 100.0f * intensity, yaw, height);
+		// Replaced by "use trigger" haptics
+		// RTCWVR_HapticEvent("open_door", 0, 0, 100.0f * intensity, yaw, height);
 	}
     else if(strcmp(description,"alarm_on") == 0) {
-        RTCWVR_HapticEvent("heartbeat", 0, 0, 100.0f * intensity, yaw, height);
+		// Replaced by "use trigger" haptics
+		// RTCWVR_HapticEvent("heartbeat", 0, 0, 100.0f * intensity, yaw, height);
     }
     else if(strcmp(description,"end_alarm") == 0) {
-        RTCWVR_HapticStopEvent("heartbeat");
-    }
+		// Replaced by "use trigger" haptics
+		// RTCWVR_HapticStopEvent("heartbeat");
+	}
+	else if(strcmp(description,"use_trigger") == 0) {
+		RTCWVR_HapticEvent("use_trigger", channel == 1 ? 2 : 1, 0, 100.0f * intensity, yaw, height);
+	}
 	else if(strcmp(description,"switch_weapon") == 0 || strcmp(description,"pickup_item") == 0) {
 		RTCWVR_HapticEvent(description, channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
 	}
@@ -1493,8 +1499,10 @@ void RTCWVR_Init()
 	vr_weapon_pitchadjust = Cvar_Get( "vr_weapon_pitchadjust", "-20.0", CVAR_ARCHIVE);
 	vr_lasersight = Cvar_Get( "vr_lasersight", "0", CVAR_ARCHIVE);
 	vr_teleport = Cvar_Get( "vr_teleport", "0", CVAR_ARCHIVE);
-    vr_virtual_stock = Cvar_Get( "vr_virtual_stock", "0", CVAR_ARCHIVE);
-    vr_comfort_vignette = Cvar_Get ("vr_comfort_vignette", "0.0", CVAR_ARCHIVE);
+	vr_virtual_stock = Cvar_Get( "vr_virtual_stock", "0", CVAR_ARCHIVE);
+	vr_comfort_vignette = Cvar_Get ("vr_comfort_vignette", "0.0", CVAR_ARCHIVE);
+	vr_gesture_triggered_use = Cvar_Get ("vr_gesture_triggered_use", "1", CVAR_ARCHIVE);
+	vr_use_gesture_boundary = Cvar_Get ("vr_use_gesture_boundary", "0.35", CVAR_ARCHIVE);
 
     //Defaults
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);

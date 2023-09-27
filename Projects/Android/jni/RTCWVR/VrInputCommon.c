@@ -173,7 +173,7 @@ inline float clamp(float _min, float _val, float _max)
 
 void interactWithTouchScreen(float menuYaw, vec3_t controllerAngles) {
     float cursorX = -sinf(DEG2RAD(controllerAngles[YAW] - menuYaw)) + 0.5f;
-    float cursorY = (float)(controllerAngles[PITCH] / 90.0) + 0.5f;
+    float cursorY = (float)((controllerAngles[PITCH] - 15) / 90.0) + 0.5f;
 
     PortableMouseAbs(cursorX, cursorY);
 }

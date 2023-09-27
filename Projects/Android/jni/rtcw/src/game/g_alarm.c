@@ -163,8 +163,8 @@ void alarmbox_use( gentity_t *ent, gentity_t *other, gentity_t *foo ) {
 	alarmbox_updateparts( ent, qtrue );
 	if ( other->client ) {
 		G_AddEvent( ent, EV_GENERAL_SOUND, ent->soundPos3 );
-		//TODO GB Add heartbeat
-		trap_Haptic(1, 0, 1.0f, "alarm_on", 0.0f, 0.0f);
+		// Replaced by "use trigger" haptics
+		//trap_Haptic(1, 0, 1.0f, "alarm_on", 0.0f, 0.0f);
 	}
 //	G_Printf("touched alarmbox\n");
 
@@ -185,7 +185,8 @@ void alarmbox_die( gentity_t *ent, gentity_t *inflictor, gentity_t *attacker, in
 	ent->takedamage = qfalse;
 	alarmbox_updateparts( ent, qtrue );
 
-	trap_Haptic(1, 0, 1.0f, "end_alarm", 0.0f, 0.0f);
+	// Replaced by "use trigger" haptics
+	//trap_Haptic(1, 0, 1.0f, "end_alarm", 0.0f, 0.0f);
 
 	// fire 'death' targets
 	if ( ent->targetdeath ) {

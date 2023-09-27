@@ -1366,10 +1366,36 @@ Cmd_Activate_f
 ==================
 */
 void Cmd_Activate_f( gentity_t *ent ) {
+	vec3_t forward, right, up, offset, end;
+
+	if (ent->s.number == 0 && trap_Cvar_VariableIntegerValue("vr_gesture_triggered_use")) {
+		CalcMuzzlePointForHandActivate(ent, qfalse, offset, forward, end);
+		Cmd_ActivateInternal_f(ent, offset, forward, end, qfalse);
+	} else {
+		AngleVectors( ent->client->ps.viewangles, forward, right, up );
+		CalcMuzzlePointForActivate( ent, forward, right, up, offset );
+		VectorMA( offset, 96, forward, end );
+		Cmd_ActivateInternal_f(ent, offset, forward, end, qfalse);
+	}
+}
+
+void Cmd_Activate2_f( gentity_t *ent ) {
+	vec3_t forward, right, up, offset, end;
+
+	if (ent->s.number == 0 && trap_Cvar_VariableIntegerValue("vr_gesture_triggered_use")) {
+		CalcMuzzlePointForHandActivate(ent, qtrue, offset, forward, end);
+		Cmd_ActivateInternal_f(ent, offset, forward, end, qtrue);
+	} else {
+		AngleVectors( ent->client->ps.viewangles, forward, right, up );
+		CalcMuzzlePointForActivate( ent, forward, right, up, offset );
+		VectorMA( offset, 96, forward, end );
+		Cmd_ActivateInternal_f(ent, offset, forward, end, qfalse);
+	}
+}
+
+void Cmd_ActivateInternal_f( gentity_t *ent, vec3_t offset, vec3_t forward, vec3_t end, qboolean offhand ) {
 	trace_t tr;
-	vec3_t end;
 	gentity_t   *traceEnt;
-	vec3_t forward, right, up, offset;
 	static int oldactivatetime = 0;
 	int activatetime = level.time;
 	qboolean walking = qfalse;
@@ -1377,12 +1403,6 @@ void Cmd_Activate_f( gentity_t *ent ) {
 	if ( ent->client->pers.cmd.buttons & BUTTON_WALKING ) {
 		walking = qtrue;
 	}
-
-	AngleVectors( ent->client->ps.viewangles, forward, right, up );
-
-	CalcMuzzlePointForActivate( ent, forward, right, up, offset );
-
-	VectorMA( offset, 96, forward, end );
 
 	trap_Trace( &tr, offset, NULL, NULL, end, ent->s.number, ( CONTENTS_SOLID | CONTENTS_BODY | CONTENTS_CORPSE | CONTENTS_TRIGGER ) );
 
@@ -1395,9 +1415,15 @@ void Cmd_Activate_f( gentity_t *ent ) {
 	traceEnt = &g_entities[ tr.entityNum ];
 
 	// G_Printf( "%s activate %s\n", ent->classname, traceEnt->classname);
+	int controlScheme = trap_Cvar_VariableIntegerValue("vr_control_scheme");
+	qboolean rightHanded = controlScheme < 10 || controlScheme == 99;
+	int hapticChannel = offhand ? (rightHanded ? 0 : 1) : (rightHanded ? 1 : 0);
 
 	// Ridah, check for using a friendly AI
 	if ( traceEnt->aiCharacter ) {
+		if (ent->s.number == 0) { 
+			trap_Vibrate(1, hapticChannel, 0.5f, "use_trigger", 0, 0);
+		}
 		AICast_Activate( ent->s.number, traceEnt->s.number );
 		return;
 	}
@@ -1411,11 +1437,17 @@ void Cmd_Activate_f( gentity_t *ent ) {
 			if ( walking || 1 == 1) {
 				traceEnt->flags |= FL_SOFTACTIVATE;     // no noise
 			}
+			if (ent->s.number == 0) { 
+				trap_Vibrate(1, hapticChannel, 0.5f, "use_trigger", 0, 0);
+			}
 			G_TryDoor( traceEnt, ent, ent );      // (door,other,activator)
 //----(SA)	end
 		} else if ( ( Q_stricmp( traceEnt->classname, "func_button" ) == 0 )
 					&& ( traceEnt->s.apos.trType == TR_STATIONARY && traceEnt->s.pos.trType == TR_STATIONARY )
 					&& traceEnt->active == qfalse ) {
+			if (ent->s.number == 0) { 
+				trap_Vibrate(1, hapticChannel, 0.5f, "use_trigger", 0, 0);
+			}
 			G_TryDoor( traceEnt, ent, ent );      // (door,other,activator)
 //			Use_BinaryMover (traceEnt, ent, ent);
 //			traceEnt->active = qtrue;
@@ -1423,10 +1455,19 @@ void Cmd_Activate_f( gentity_t *ent ) {
 			if ( walking || 1 == 1) {
 				traceEnt->flags |= FL_SOFTACTIVATE;     // no noise
 			}
+			if (ent->s.number == 0) { 
+				trap_Vibrate(1, hapticChannel, 0.5f, "use_trigger", 0, 0);
+			}
 			traceEnt->use( traceEnt, ent, ent );
 		} else if ( !Q_stricmp( traceEnt->classname, "props_footlocker" ) )     {
+			if (ent->s.number == 0) { 
+				trap_Vibrate(1, hapticChannel, 0.5f, "use_trigger", 0, 0);
+			}
 			traceEnt->use( traceEnt, ent, ent );
 		} else if ( !Q_stricmp( traceEnt->classname, "script_mover" ) )     {
+			if (ent->s.number == 0) { 
+				trap_Vibrate(1, hapticChannel, 0.5f, "use_trigger", 0, 0);
+			}
 			G_Script_ScriptEvent( traceEnt, "activate", ent->aiName );
 		} else if ( traceEnt->s.eType == ET_ALARMBOX )     {
 			trace_t trace;
@@ -1438,6 +1479,9 @@ void Cmd_Activate_f( gentity_t *ent ) {
 			memset( &trace, 0, sizeof( trace ) );
 
 			if ( traceEnt->use ) {
+				if (ent->s.number == 0) { 
+					trap_Vibrate(1, hapticChannel, 0.5f, "use_trigger", 0, 0);
+				}
 				traceEnt->use( traceEnt, ent, 0 );
 			}
 		} else if ( traceEnt->s.eType == ET_ITEM )     {
@@ -1452,6 +1496,9 @@ void Cmd_Activate_f( gentity_t *ent ) {
 			if ( traceEnt->touch ) {
 				if ( ent->client->pers.autoActivate == PICKUP_ACTIVATE ) {
 					ent->client->pers.autoActivate = PICKUP_FORCE;      //----(SA) force the pickup of a normally autoactivate only item
+				}
+				if (ent->s.number == 0) { 
+					trap_Vibrate(1, hapticChannel, 0.5f, "use_trigger", 0, 0);
 				}
 				traceEnt->active = qtrue;
 				traceEnt->touch( traceEnt, ent, &trace );
@@ -1489,6 +1536,9 @@ void Cmd_Activate_f( gentity_t *ent ) {
 						VectorCopy( traceEnt->s.angles, traceEnt->TargetAngles );
 
 						if ( !( ent->r.svFlags & SVF_CASTAI ) ) {
+							if (ent->s.number == 0) { 
+								trap_Vibrate(1, hapticChannel, 0.5f, "use_trigger", 0, 0);
+							}
 							G_UseTargets( traceEnt, ent );   //----(SA)	added for Mike so mounting an MG42 can be a trigger event (let me know if there's any issues with this)
 
 						}

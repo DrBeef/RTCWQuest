@@ -540,6 +540,9 @@ void SpectatorThink( gentity_t *ent, usercmd_t *ucmd ) {
 		if ( client->latched_buttons & BUTTON_ACTIVATE ) {
 			Cmd_Activate_f( ent );
 		}
+		if ( client->latched_wbuttons & WBUTTON_ACTIVATE2 ) {
+			Cmd_Activate2_f( ent );
+		}
 
 		// save results of pmove
 		VectorCopy( client->ps.origin, ent->s.origin );
@@ -1510,6 +1513,9 @@ void ClientThink_real( gentity_t *ent ) {
 	// Ridah, made it a latched event (occurs on keydown only)
 	if ( client->latched_buttons & BUTTON_ACTIVATE ) {
 		Cmd_Activate_f( ent );
+	}
+	if ( client->latched_wbuttons & WBUTTON_ACTIVATE2 ) {
+		Cmd_Activate2_f( ent );
 	}
 
 	if ( ent->flags & FL_NOFATIGUE ) {

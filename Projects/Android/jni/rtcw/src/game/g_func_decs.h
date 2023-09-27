@@ -1108,6 +1108,7 @@ extern void Cmd_ClientDamage_f ( gentity_t * clent ) ;
 extern void ClientDamage ( gentity_t * clent , int entnum , int enemynum , int id ) ;
 extern int Cmd_WolfKick_f ( gentity_t * ent ) ;
 extern void Cmd_Activate_f ( gentity_t * ent ) ;
+extern void Cmd_Activate2_f ( gentity_t * ent ) ;
 extern qboolean G_ThrowChair ( gentity_t * ent , vec3_t dir , qboolean force ) ;
 extern void Cmd_InterruptCamera_f ( gentity_t * ent ) ;
 extern void Cmd_SetCameraOrigin_f ( gentity_t * ent ) ;

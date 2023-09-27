@@ -2001,6 +2001,14 @@ void CG_CalculateVRWeaponPosition( int weaponNum, vec3_t origin, vec3_t angles )
     angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
 }
 
+void CG_CalculateVROffHandPosition( vec3_t origin, vec3_t angles ) {
+    convertFromVR(cgVR->offhandoffset, cg.refdef.vieworg, origin);
+    origin[2] -= 64;
+    origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
+    VectorCopy(cgVR->offhandangles, angles);
+    angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
+}
+
 /*
 ==============
 CG_CalculateWeaponPositionAndScale
@@ -3711,6 +3719,24 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	CG_LaserSight(ps);
 
 	cg.predictedPlayerEntity.lastWeaponClientFrame = cg.clientFrame;
+}
+
+void CG_AddViewHand( playerState_t *ps ) {
+	vec3_t end, forward, angles;
+	refEntity_t handEnt;
+	memset( &handEnt, 0, sizeof(refEntity_t) );
+	CG_CalculateVROffHandPosition( handEnt.origin, angles );
+
+	vec3_t axis[3];
+	AnglesToAxis(angles, handEnt.axis);
+	for ( int i = 0; i < 3; i++ ) {
+		VectorScale( handEnt.axis[i], (cgVR->right_handed || i != 1) ? 1.0f : -1.0f, handEnt.axis[i] );
+	}
+
+	handEnt.renderfx = RF_DEPTHHACK; //| RF_VRVIEWMODEL;
+	handEnt.hModel = cgs.media.handModel;
+
+	trap_R_AddRefEntityToScene( &handEnt );
 }
 
 /*

@@ -4,6 +4,9 @@
 #define NUM_WEAPON_SAMPLES      10
 #define WEAPON_RECOIL           15.0f;
 
+#define USE_GESTURE_OFF_HAND      1
+#define USE_GESTURE_WEAPON_HAND   2
+
 typedef struct {
     qboolean screen;
     float  fov;
@@ -29,6 +32,7 @@ typedef struct {
     vec3_t weaponangles;
     vec3_t weaponangles_last; // Don't use this, it is just for calculating delta!
     vec3_t weaponangles_delta;
+    vec3_t dominanthandangles;
 
     float weapon_recoil;            // recoil effect to improve the default
 
@@ -69,7 +73,7 @@ typedef struct {
     vec3_t   teleportdest; // teleport destination
     qboolean teleportexecute; // execute the teleport
 
-
+    int     useGestureState;
 
     //////////////////////////////////////
     //    Test stuff for weapon alignment

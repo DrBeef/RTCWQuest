@@ -1568,6 +1568,7 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.selectCursor = trap_R_RegisterShaderNoMip( "ui/assets/selectcursor.tga" );
 
 	cgs.media.vignetteShader = trap_R_RegisterShaderNoMip( "gfx/vignette" );
+	cgs.media.handModel = trap_R_RegisterModel("models/players/bj/hand.md3");
 
 	CG_LoadingString( " - game media done" );
 

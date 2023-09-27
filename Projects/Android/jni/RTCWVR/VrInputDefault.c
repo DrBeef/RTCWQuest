@@ -107,6 +107,8 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
     {
         //Set gun angles - We need to calculate all those we might need (including adjustments) for the client to then take its pick
         vec3_t rotation = {0};
+        rotation[PITCH] = -25;
+        QuatToYawPitchRoll(pDominantTracking->HeadPose.Pose.Orientation, rotation, vr.dominanthandangles);
         rotation[PITCH] = 30;
         QuatToYawPitchRoll(pWeapon->HeadPose.Pose.Orientation, rotation, vr.weaponangles_knife);
         rotation[PITCH] = vr_weapon_pitchadjust->value +
@@ -122,7 +124,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
         //GB Also set offhand angles just in case we want to use those.
         vec3_t rotation_off = {0};
-        rotation_off[PITCH] = vr_weapon_pitchadjust->value;
+        rotation_off[PITCH] = -25;
         QuatToYawPitchRoll(pOff->HeadPose.Pose.Orientation, rotation_off, vr.offhandangles);
 
         VectorSubtract(vr.offhandangles_last, vr.offhandangles, vr.offhandangles_delta);
@@ -146,7 +148,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                 switchedMenuControls = !switchedMenuControls;
             }
         } else {
-            interactWithTouchScreen(menuYaw, vr.weaponangles);
+            interactWithTouchScreen(menuYaw, vr.dominanthandangles);
             handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton1, K_MOUSE1);
             handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, ovrButton_Trigger, K_MOUSE1);
             handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton2, K_ESCAPE);
@@ -368,6 +370,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                 vr.offhandoffset[2] = pOff->HeadPose.Pose.Position.z - vr.hmdposition[2];
 
                 vec3_t rotation = {0};
+                rotation[PITCH] = -25;
                 QuatToYawPitchRoll(pOff->HeadPose.Pose.Orientation, rotation, vr.offhandangles);
 
                 if (vr_walkdirection->value == 0) {
@@ -810,6 +813,46 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
         }
 
         updateScopeAngles();
+    }
+
+    // Process "use" gesture
+    if (vr_gesture_triggered_use->integer) {
+        int thirdPersonActive = Cvar_VariableIntegerValue("cg_thirdPerson");
+        bool gestureUseAllowed = !vr.weapon_stabilised && !vr.mountedgun && !vr.scopeengaged && !thirdPersonActive;
+        // Off-hand gesture
+        float distanceToBody = sqrt(vr.offhandoffset[0]*vr.offhandoffset[0] + vr.offhandoffset[2]*vr.offhandoffset[2]);
+        if (gestureUseAllowed && (distanceToBody > vr_use_gesture_boundary->value)) {
+            if (!(vr.useGestureState & USE_GESTURE_OFF_HAND)) {
+                sendButtonAction("+activate2", true);
+            }
+            vr.useGestureState |= USE_GESTURE_OFF_HAND;
+        } else {
+            if (vr.useGestureState & USE_GESTURE_OFF_HAND) {
+                sendButtonAction("+activate2", false);
+            }
+            vr.useGestureState &= ~USE_GESTURE_OFF_HAND;
+        }
+        // Weapon-hand gesture
+        distanceToBody = sqrt(vr.current_weaponoffset[0]*vr.current_weaponoffset[0] + vr.current_weaponoffset[2]*vr.current_weaponoffset[2]);
+        if (gestureUseAllowed && (distanceToBody > vr_use_gesture_boundary->value)) {
+            if (!(vr.useGestureState & USE_GESTURE_WEAPON_HAND)) {
+                sendButtonAction("+activate", true);
+            }
+            vr.useGestureState |= USE_GESTURE_WEAPON_HAND;
+        } else {
+            if (vr.useGestureState & USE_GESTURE_WEAPON_HAND) {
+                sendButtonAction("+activate", false);
+            }
+            vr.useGestureState &= ~USE_GESTURE_WEAPON_HAND;
+        }
+    } else {
+        if (vr.useGestureState & USE_GESTURE_OFF_HAND) {
+            sendButtonAction("+activate2", false);
+        }
+        if (vr.useGestureState & USE_GESTURE_WEAPON_HAND) {
+            sendButtonAction("+activate", false);
+        }
+        vr.useGestureState = 0;
     }
 
     //Save state
