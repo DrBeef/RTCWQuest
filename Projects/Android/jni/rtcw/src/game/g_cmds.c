@@ -100,10 +100,10 @@ CheatsOk
 ==================
 */
 qboolean    CheatsOk( gentity_t *ent ) {
-	if ( !g_cheats.integer ) {
-		trap_SendServerCommand( ent - g_entities, va( "print \"Cheats are not enabled on this server.\n\"" ) );
-		return qfalse;
-	}
+	//if ( !g_cheats.integer ) {
+	//	trap_SendServerCommand( ent - g_entities, va( "print \"Cheats are not enabled on this server.\n\"" ) );
+	//	return qfalse;
+	//}
 	if ( ent->health <= 0 ) {
 		trap_SendServerCommand( ent - g_entities, va( "print \"You must be alive to use this command.\n\"" ) );
 		return qfalse;
