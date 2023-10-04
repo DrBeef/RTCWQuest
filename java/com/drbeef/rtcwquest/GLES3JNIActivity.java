@@ -263,6 +263,15 @@ import static android.system.Os.setenv;
 
 		//and some additional vr assets
 		copy_asset("/sdcard/RTCWQuest/Main", "z_vr_assets.pk3", true);
+		// (also delete pak from previous version)
+		File oldAssetPak = new File("/sdcard/RTCWQuest/Main/z_rtcwquest_vrmenu.pk3");
+		if (oldAssetPak.exists()) {
+			try {
+				oldAssetPak.delete();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
 		//and the venom scripting improvements pak (thank-you _HELLBARON_ !!)
 		copy_asset("/sdcard/RTCWQuest/Main", "sp_vpak8.pk3", false);
