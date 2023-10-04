@@ -1283,6 +1283,61 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.backTileShader = trap_R_RegisterShader( "gfx/2d/backtile" );
 	cgs.media.noammoShader = trap_R_RegisterShader( "icons/noammo" );
 
+	cgs.media.arrowIcon = trap_R_RegisterShader( "icons/arrow" );
+	cgs.media.binocularsIcon = trap_R_RegisterShader( "icons/binoculars" );
+	cgs.media.wine1Icon = trap_R_RegisterShader( "icons/wine_notselect" );
+	cgs.media.wine2Icon = trap_R_RegisterShader( "icons/wine2_notselect" );
+	cgs.media.wine3Icon = trap_R_RegisterShader( "icons/wine3_notselect" );
+	cgs.media.staminaIcon = trap_R_RegisterShader( "icons/stamina_notselect" );
+	cgs.media.pbookIcon = trap_R_RegisterShader( "icons/icon_pbook_notselect" );
+	cgs.media.vbookIcon = trap_R_RegisterShader( "icons/icon_vbook_notselect" );
+	cgs.media.zbookIcon = trap_R_RegisterShader( "icons/icon_zbook_notselect" );
+	cgs.media.exitIcon = trap_R_RegisterShader( "icons/exit" );
+	cgs.media.loadIcon = trap_R_RegisterShader( "icons/load" );
+	cgs.media.saveIcon = trap_R_RegisterShader( "icons/save" );
+	cgs.media.binocularsIconSelect = trap_R_RegisterShader( "icons/binoculars_select" );
+	cgs.media.wine1IconSelect = trap_R_RegisterShader( "icons/wine" );
+	cgs.media.wine2IconSelect = trap_R_RegisterShader( "icons/wine2" );
+	cgs.media.wine3IconSelect = trap_R_RegisterShader( "icons/wine3" );
+	cgs.media.staminaIconSelect = trap_R_RegisterShader( "icons/stamina" );
+	cgs.media.pbookIconSelect = trap_R_RegisterShader( "icons/icon_pbook" );
+	cgs.media.vbookIconSelect = trap_R_RegisterShader( "icons/icon_vbook" );
+	cgs.media.zbookIconSelect = trap_R_RegisterShader( "icons/icon_zbook" );
+	cgs.media.exitIconSelect = trap_R_RegisterShader( "icons/exit_select" );
+	cgs.media.loadIconSelect = trap_R_RegisterShader( "icons/load_select" );
+	cgs.media.saveIconSelect = trap_R_RegisterShader( "icons/save_select" );
+
+	// Z-order of icon rendering is based on order they were registered, not based on depth
+	// they are rendered at. So we are registering weapon icons again so they are properly
+	// rendered on weapon wheel including no-ammo overlay icon
+	cgs.media.weaponIcons[0] = trap_R_RegisterShader( "icons/iconw_knife_1.tga" );
+	cgs.media.weaponIcons[1] = trap_R_RegisterShader( "icons/iconw_luger_1.tga" );
+	cgs.media.weaponIcons[2] = trap_R_RegisterShader( "icons/iconw_colt_1.tga" );
+	cgs.media.weaponIcons[3] = trap_R_RegisterShader( "icons/iconw_MP40_1.tga" );
+	cgs.media.weaponIcons[4] = trap_R_RegisterShader( "icons/iconw_thompson_1.tga" );
+	cgs.media.weaponIcons[5] = trap_R_RegisterShader( "icons/iconw_sten_1.tga" );
+	cgs.media.weaponIcons[6] = trap_R_RegisterShader( "icons/iconw_mauser_1.tga" );
+	cgs.media.weaponIcons[7] = trap_R_RegisterShader( "icons/iconw_garand_1.tga" );
+	cgs.media.weaponIcons[8] = trap_R_RegisterShader( "icons/iconw_fg42_1.tga" );
+	cgs.media.weaponIcons[9] = trap_R_RegisterShader( "icons/iconw_panzerfaust_1.tga" );
+	cgs.media.weaponIcons[10] = trap_R_RegisterShader( "icons/iconw_venom_1.tga" );
+	cgs.media.weaponIcons[11] = trap_R_RegisterShader( "icons/iconw_flamethrower_1.tga" );
+	cgs.media.weaponIcons[12] = trap_R_RegisterShader( "icons/iconw_tesla_1.tga" );
+	cgs.media.weaponIconsSelect[0] = trap_R_RegisterShader( "icons/iconw_knife_1_select.tga" );
+	cgs.media.weaponIconsSelect[1] = trap_R_RegisterShader( "icons/iconw_luger_1_select.tga" );
+	cgs.media.weaponIconsSelect[2] = trap_R_RegisterShader( "icons/iconw_colt_1_select.tga" );
+	cgs.media.weaponIconsSelect[3] = trap_R_RegisterShader( "icons/iconw_MP40_1_select.tga" );
+	cgs.media.weaponIconsSelect[4] = trap_R_RegisterShader( "icons/iconw_thompson_1_select.tga" );
+	cgs.media.weaponIconsSelect[5] = trap_R_RegisterShader( "icons/iconw_sten_1_select.tga" );
+	cgs.media.weaponIconsSelect[6] = trap_R_RegisterShader( "icons/iconw_mauser_1_select.tga" );
+	cgs.media.weaponIconsSelect[7] = trap_R_RegisterShader( "icons/iconw_garand_1_select.tga" );
+	cgs.media.weaponIconsSelect[8] = trap_R_RegisterShader( "icons/iconw_fg42_1_select.tga" );
+	cgs.media.weaponIconsSelect[9] = trap_R_RegisterShader( "icons/iconw_panzerfaust_1_select.tga" );
+	cgs.media.weaponIconsSelect[10] = trap_R_RegisterShader( "icons/iconw_venom_1_select.tga" );
+	cgs.media.weaponIconsSelect[11] = trap_R_RegisterShader( "icons/iconw_flamethrower_1_select.tga" );
+	cgs.media.weaponIconsSelect[12] = trap_R_RegisterShader( "icons/iconw_tesla_1_select.tga" );
+	cgs.media.noammoIcon = trap_R_RegisterShader( "icons/noammo2" );
+
 	// powerup shaders
 //	cgs.media.quadShader = trap_R_RegisterShader("powerups/quad" );
 //	cgs.media.quadWeaponShader = trap_R_RegisterShader("powerups/quadWeapon" );

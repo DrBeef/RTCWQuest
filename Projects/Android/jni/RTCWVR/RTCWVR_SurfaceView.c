@@ -1522,6 +1522,8 @@ void RTCWVR_Init()
 	vr.teleportseek = qfalse;
 	vr.teleportenabled = qfalse;
 	vr.teleportready = qfalse;
+
+	vr.menu_right_handed = vr_control_scheme->integer == 0;
 }
 
 

@@ -2001,12 +2001,32 @@ void CG_CalculateVRWeaponPosition( int weaponNum, vec3_t origin, vec3_t angles )
     angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
 }
 
+void CG_CalculateVRDominantHandPosition( vec3_t origin, vec3_t angles ) {
+	convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, origin);
+	origin[2] -= 64;
+	origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
+	VectorCopy(cgVR->dominanthandangles, angles);
+	angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
+}
+
 void CG_CalculateVROffHandPosition( vec3_t origin, vec3_t angles ) {
     convertFromVR(cgVR->offhandoffset, cg.refdef.vieworg, origin);
     origin[2] -= 64;
     origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
     VectorCopy(cgVR->offhandangles, angles);
     angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
+}
+
+void CG_CalculateVRPositionInWorld( const vec3_t in_position,  vec3_t in_offset, vec3_t in_orientation, vec3_t origin, vec3_t angles )
+{
+	vec3_t offset;
+	VectorCopy(in_offset, offset);
+	offset[1] = 0; // up/down is index 1 in this case
+	convertFromVR(offset, cg.refdef.vieworg, origin);
+	origin[2] -= 64;
+	origin[2] += (in_position[1] + cg_heightAdjust.value) * cg_worldScale.value;
+	VectorCopy(in_orientation, angles);
+	angles[YAW] += (cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW]);
 }
 
 /*
@@ -2040,7 +2060,7 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
 
         CG_CenterPrint( cgVR->test_name, SCREEN_HEIGHT * 0.45, SMALLCHAR_WIDTH );
     } else {
-        if (cgVR->backpackitemactive == 3)
+        if (cgVR->backpackitemactive == 3 || cgVR->binocularsActive)
         {
             scale = 0.5f;
             VectorSet(offset, 1, -3, 0);
@@ -2993,7 +3013,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	}
 
 	if ( ps ) {
-		if (cgVR->backpackitemactive == 3)
+		if (cgVR->backpackitemactive == 3 || cgVR->binocularsActive)
 		{
 			gun.hModel = binocularModel;
             CG_PositionEntityOnTag( &gun, parent, "tag_weapon", 0, NULL );
@@ -3464,7 +3484,7 @@ void CG_AddPlayerFoot( refEntity_t *parent, playerState_t *ps, centity_t *cent )
 void CG_LaserSight(const playerState_t *ps) {
 
 	if (trap_Cvar_VariableIntegerValue("vr_lasersight") != 0 &&
-	    cgVR->backpackitemactive == 0 &&
+	    cgVR->backpackitemactive == 0 && !cgVR->binocularsActive &&
 	    cg.predictedPlayerState.stats[STAT_HEALTH] > 0 &&
 		!cgVR->screen &&
 		!cgVR->scopeengaged)
@@ -3622,7 +3642,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 			CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );   //----(SA)	changed
 		}
 
-		if (cgVR->backpackitemactive != 3)
+		if (cgVR->backpackitemactive != 3 && !cgVR->binocularsActive)
 		{
 			hand.hModel = weapon->handsModel;
 		}
@@ -3993,6 +4013,19 @@ static qboolean CG_WeaponHasAmmo( int i ) {
 	return qtrue;
 }
 
+/*
+==============
+CG_WeaponAvailable
+	check if player has weapon
+==============
+*/
+static qboolean CG_WeaponAvailable( int i ) {
+	if ( !( COM_BitCheck( cg.predictedPlayerState.weapons, i ) ) ) {
+		return qfalse;
+	}
+
+	return qtrue;
+}
 
 /*
 ===============
@@ -4363,6 +4396,614 @@ void CG_WeaponSuggest( int weap ) {
 
 }
 
+void GC_HandleWheelSelector(vec3_t beamColor, selectorWheelEntity_t selectorWheelItems[] , int selectorWheelItemNum )
+{
+	if (cg.wheelSelectorTime == 0)
+	{
+		cg.wheelSelectorTime = cg.time;
+		convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, cg.wheelSelectorOrigin);
+		VectorCopy(cgVR->calculated_weaponoffset, cg.wheelSelectorOffset);
+	}
+
+	float dist = 10.0f;
+	float radius = 4.4f;
+	float scale = 0.05f;
+
+	float frac = (cg.time - cg.wheelSelectorTime) / 20.0f;
+	if (frac > 1.0f)
+	{
+		frac = 1.0f;
+	}
+	trap_Cvar_Set("timescale", "0.22");
+
+	vec3_t controllerOrigin, controllerAngles, controllerOffset, selectorOrigin, weaponPosition;
+	CG_CalculateVRDominantHandPosition(controllerOrigin, controllerAngles);
+	convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, weaponPosition);
+	VectorSubtract(weaponPosition, cg.wheelSelectorOrigin, controllerOffset);
+
+	vec3_t wheelAngles, wheelOrigin, beamOrigin, wheelForward, wheelRight, wheelUp;
+	vec3_t angles;
+	VectorClear(angles);
+	angles[YAW] = cgVR->hmdorientation[YAW];
+	CG_CalculateVRPositionInWorld(cg.wheelSelectorOrigin, cg.wheelSelectorOffset, angles, wheelOrigin, wheelAngles);
+	AngleVectors(wheelAngles, wheelForward, wheelRight, wheelUp);
+	VectorCopy(controllerOrigin, wheelOrigin);
+	VectorCopy(wheelOrigin, beamOrigin);
+	VectorMA(wheelOrigin, (dist * frac), wheelForward, wheelOrigin);
+	VectorCopy(wheelOrigin, selectorOrigin);
+
+	vec3_t pos;
+	memset(&pos, 0, sizeof pos);
+	{
+		pos[0] = (sinf(DEG2RAD(wheelAngles[YAW] - controllerAngles[YAW])) / sinf(DEG2RAD(22.5f)));
+		pos[1] = ((wheelAngles[PITCH] - controllerAngles[PITCH]) / 22.5f);
+		float len = VectorLength(pos);
+		if (len > 1.0f)
+		{
+			pos[0] *= (1.0f / len);
+			pos[1] *= (1.0f / len);
+		}
+	}
+
+	VectorMA(selectorOrigin, radius * pos[0], wheelRight, selectorOrigin);
+	VectorMA(selectorOrigin, radius * pos[1], wheelUp, selectorOrigin);
+
+	for (int s = -1; s < 2; s += 2) {
+		refEntity_t arrowIcon;
+		memset(&arrowIcon, 0, sizeof(arrowIcon));
+		vec3_t right;
+		AngleVectors(wheelAngles, NULL, right, NULL);
+		float offset = ((float) s * 7.0f) + (((float) s * 0.3f) *
+				sinf(DEG2RAD(AngleNormalize360(cg.time - cg.wheelSelectorTime))));
+		VectorMA(wheelOrigin, offset, right, arrowIcon.origin);
+		arrowIcon.reType = RT_SPRITE;
+		arrowIcon.customShader = cgs.media.arrowIcon;
+		arrowIcon.radius = 0.3f;
+		arrowIcon.rotation = 180.0f * ((s - 1.0f) / 2.0f);
+		memset(arrowIcon.shaderRGBA, 0xff, 4);
+		trap_R_AddRefEntityToScene(&arrowIcon);
+	}
+
+	clientInfo_t ci;
+	ci.health = 1;
+	ci.handicap = 96; // value out of 255 for  alpha channel
+	VectorSet(ci.color, beamColor[0], beamColor[1], beamColor[2]);
+	CG_RailTrail2(&ci, beamOrigin, selectorOrigin);
+
+	if (selectorWheelItemNum == 0) {
+		cg.wheelSelectorSelection = WP_NONE;
+		return;
+	}
+
+	qboolean selected = qfalse;
+	for (int i = 0; i < selectorWheelItemNum; i++) {
+		selectorWheelEntity_t item = selectorWheelItems[i];
+
+		//first calculate wheel slot position
+		vec3_t angles, iconOrigin, notSelectableLabelOrigin, selectorFrameOrigin, selectedIconOrigin;
+		VectorClear(angles);
+		angles[YAW] = wheelAngles[YAW];
+		angles[PITCH] = wheelAngles[PITCH];
+		angles[ROLL] = (float)(360 / selectorWheelItemNum) * i;
+		vec3_t forward, up;
+		AngleVectors(angles, forward, NULL, up);
+		VectorMA(wheelOrigin, (radius * frac), up, iconOrigin);
+		VectorMA(iconOrigin, -0.2f, forward, notSelectableLabelOrigin);
+		VectorMA(iconOrigin, -0.2f, forward, selectorFrameOrigin);
+		VectorMA(iconOrigin, -0.4f, forward, selectedIconOrigin);
+
+		vec3_t diff;
+		VectorSubtract(selectorOrigin, iconOrigin, diff);
+		float length = VectorLength(diff);
+		if (length <= 1.0f && frac == 1.0f && !item.notSelectable) {
+
+			selected = qtrue;
+			cg.wheelSelectorSelection = item.itemId;
+
+			refEntity_t selectorFrame;
+			memset(&selectorFrame, 0, sizeof(selectorFrame));
+			selectorFrame.reType = RT_SPRITE;
+			selectorFrame.customShader = cgs.media.selectShader;
+			float radius = 1.4f + (0.2f * sinf(DEG2RAD(AngleNormalize360(cg.time - cg.wheelSelectorTime))));
+			selectorFrame.radius = radius;
+			memset(selectorFrame.shaderRGBA, 0xff, 4);
+			VectorCopy(selectorFrameOrigin, selectorFrame.origin);
+			trap_R_AddRefEntityToScene(&selectorFrame);
+
+			VectorCopy(selectedIconOrigin, item.iconSelected.origin);
+			trap_R_AddRefEntityToScene(&item.iconSelected);
+
+			trap_Haptic(1, cgVR->right_handed ? 1 : 0, 0.7f, "switch_weapon", 0.0f, 0.0f);
+
+		} else {
+
+			VectorCopy(iconOrigin, item.icon.origin);
+			trap_R_AddRefEntityToScene(&item.icon);
+
+			if (item.notSelectable) {
+				VectorCopy(notSelectableLabelOrigin, item.labelNotSelectable.origin);
+				trap_R_AddRefEntityToScene(&item.labelNotSelectable);
+			}
+
+		}
+	}
+
+	if (!selected)
+	{
+		cg.wheelSelectorSelection = -1;
+	}
+}
+
+void CG_DrawWheelSelector( void )
+{
+	if (cg.predictedPlayerState.stats[STAT_HEALTH] <= 0)
+	{
+		return;
+	}
+
+	vec3_t beamColor;
+	selectorWheelEntity_t selectorWheelItems[32];
+	int selectorWheelItemNum = 0;
+
+	if (cg.wheelSelectorType == WST_WEAPON) {
+
+		beamColor[0] = 1.0f;
+		beamColor[1] = 0.8f;
+		beamColor[2] = 0.2f;
+
+		int availableWeapons[SELECTABLE_WEAPONS_NUM];
+		int weaponCount = 0;
+		for (int i = 0; i < SELECTABLE_WEAPONS_NUM; i++) {
+			int weaponNum = SELECTABLE_WEAPONS[i];
+			if (CG_WeaponAvailable(weaponNum)) {
+				CG_RegisterWeapon(weaponNum);
+
+				selectorWheelEntity_t item;
+				memset(&item, 0, sizeof(item));
+				if (weaponNum == WP_LUGER && CG_WeaponAvailable(WP_SILENCER)) {
+					item.itemId = WP_SILENCER;
+				} else {
+					item.itemId = weaponNum;   
+				}
+
+				refEntity_t icon;
+				memset(&icon, 0, sizeof(icon));
+				icon.reType = RT_SPRITE;
+				icon.customShader = cgs.media.weaponIcons[i];
+				icon.radius = 0.8f;
+				memset(icon.shaderRGBA, 0xff, 4);
+				item.icon = icon;
+
+				refEntity_t iconSelected;
+				memset(&iconSelected, 0, sizeof(iconSelected));
+				iconSelected.reType = RT_SPRITE;
+				iconSelected.customShader = cgs.media.weaponIconsSelect[i];
+				iconSelected.radius = 1.3f;
+				memset(iconSelected.shaderRGBA, 0xff, 4);
+				item.iconSelected = iconSelected;
+
+				if (!CG_WeaponHasAmmo(weaponNum)) {
+					item.notSelectable = qtrue;
+					refEntity_t labelNotSelectable;
+					memset(&labelNotSelectable, 0, sizeof(labelNotSelectable));
+					labelNotSelectable.reType = RT_SPRITE;
+					labelNotSelectable.customShader = cgs.media.noammoIcon;
+					labelNotSelectable.radius = 0.5f;
+					memset(labelNotSelectable.shaderRGBA, 0xff, 4);
+					item.labelNotSelectable = labelNotSelectable;
+				}
+
+				selectorWheelItems[selectorWheelItemNum++] = item;
+			}
+
+		}
+
+	} else if (cg.wheelSelectorType == WST_ITEM) {
+
+		beamColor[0] = 0.0f;
+		beamColor[1] = 1.0f;
+		beamColor[2] = 0.0f;
+
+		if (cgVR->hasbinoculars) {
+			selectorWheelEntity_t binocularsItem;
+			memset(&binocularsItem, 0, sizeof(binocularsItem));
+			binocularsItem.itemId = WSI_BINOCULARS;
+			refEntity_t binocularsIcon;
+            memset(&binocularsIcon, 0, sizeof(binocularsIcon));
+			binocularsIcon.reType = RT_SPRITE;
+			binocularsIcon.customShader = cgs.media.binocularsIcon;
+			binocularsIcon.radius = 0.6f;
+			memset(binocularsIcon.shaderRGBA, 0xff, 4);
+			binocularsItem.icon = binocularsIcon;
+			refEntity_t binocularsIconSelected;
+			memset(&binocularsIconSelected, 0, sizeof(binocularsIconSelected));
+			binocularsIconSelected.reType = RT_SPRITE;
+			binocularsIconSelected.customShader = cgs.media.binocularsIconSelect;
+            binocularsIconSelected.radius = 1.3f;
+			memset(binocularsIconSelected.shaderRGBA, 0xff, 4);
+			binocularsItem.iconSelected = binocularsIconSelected;
+			selectorWheelItems[selectorWheelItemNum++] = binocularsItem;
+		}
+
+		if (CG_WeaponAvailable(WP_GRENADE_LAUNCHER) && CG_WeaponHasAmmo(WP_GRENADE_LAUNCHER)) {
+			selectorWheelEntity_t grenadeItem;
+			memset(&grenadeItem, 0, sizeof(grenadeItem));
+			grenadeItem.itemId = WSI_GRENADE;
+			refEntity_t grenadeIcon;
+			memset(&grenadeIcon, 0, sizeof(grenadeIcon));
+			grenadeIcon.reType = RT_SPRITE;
+			grenadeIcon.customShader = cg_weapons[WP_GRENADE_LAUNCHER].weaponIcon[0];
+			grenadeIcon.radius = 0.8f;
+			memset(grenadeIcon.shaderRGBA, 0xff, 4);
+			grenadeItem.icon = grenadeIcon;
+			refEntity_t grenadeIconSelected;
+			memset(&grenadeIconSelected, 0, sizeof(grenadeIconSelected));
+			grenadeIconSelected.reType = RT_SPRITE;
+            grenadeIconSelected.customShader = cg_weapons[WP_GRENADE_LAUNCHER].weaponIcon[1];
+			grenadeIconSelected.radius = 1.3f;
+			memset(grenadeIconSelected.shaderRGBA, 0xff, 4);
+			grenadeItem.iconSelected = grenadeIconSelected;
+			selectorWheelItems[selectorWheelItemNum++] = grenadeItem;
+		}
+
+		if (CG_WeaponAvailable(WP_GRENADE_PINEAPPLE) && CG_WeaponHasAmmo(WP_GRENADE_PINEAPPLE)) {
+			selectorWheelEntity_t pineappleItem;
+			memset(&pineappleItem, 0, sizeof(pineappleItem));
+			pineappleItem.itemId = WSI_PINEAPPLE;
+			refEntity_t pineappleIcon;
+			memset(&pineappleIcon, 0, sizeof(pineappleIcon));
+			pineappleIcon.reType = RT_SPRITE;
+			pineappleIcon.customShader = cg_weapons[WP_GRENADE_PINEAPPLE].weaponIcon[0];
+			pineappleIcon.radius = 0.8f;
+			memset(pineappleIcon.shaderRGBA, 0xff, 4);
+			pineappleItem.icon = pineappleIcon;
+			refEntity_t pineappleIconSelected;
+			memset(&pineappleIconSelected, 0, sizeof(pineappleIconSelected));
+			pineappleIconSelected.reType = RT_SPRITE;
+			pineappleIconSelected.customShader = cg_weapons[WP_GRENADE_PINEAPPLE].weaponIcon[1];
+			pineappleIconSelected.radius = 1.3f;
+			memset(pineappleIconSelected.shaderRGBA, 0xff, 4);
+			pineappleItem.iconSelected = pineappleIconSelected;
+			selectorWheelItems[selectorWheelItemNum++] = pineappleItem;
+		}
+
+		if (CG_WeaponAvailable(WP_DYNAMITE) && CG_WeaponHasAmmo(WP_DYNAMITE)) {
+			selectorWheelEntity_t dynamiteItem;
+			memset(&dynamiteItem, 0, sizeof(dynamiteItem));
+			dynamiteItem.itemId = WSI_DYNAMITE;
+			refEntity_t dynamiteIcon;
+			memset(&dynamiteIcon, 0, sizeof(dynamiteIcon));
+			dynamiteIcon.reType = RT_SPRITE;
+			dynamiteIcon.customShader = cg_weapons[WP_DYNAMITE].weaponIcon[0];
+			dynamiteIcon.radius = 0.8f;
+			memset(dynamiteIcon.shaderRGBA, 0xff, 4);
+			dynamiteItem.icon = dynamiteIcon;
+			refEntity_t dynamiteIconSelected;
+			memset(&dynamiteIconSelected, 0, sizeof(dynamiteIconSelected));
+			dynamiteIconSelected.reType = RT_SPRITE;
+			dynamiteIconSelected.customShader = cg_weapons[WP_DYNAMITE].weaponIcon[1];
+			dynamiteIconSelected.radius = 1.3f;
+			memset(dynamiteIconSelected.shaderRGBA, 0xff, 4);
+			dynamiteItem.iconSelected = dynamiteIconSelected;
+			selectorWheelItems[selectorWheelItemNum++] = dynamiteItem;
+		}
+
+		gitem_t *wine = BG_FindItemForHoldable(HI_WINE);
+		if (wine) {
+			int quantity = cg.predictedPlayerState.holdable[HI_WINE];
+			if (quantity) {
+				selectorWheelEntity_t wineItem;
+				memset(&wineItem, 0, sizeof(wineItem));
+				wineItem.itemId = WSI_WINE;
+				refEntity_t wineIcon;
+				memset(&wineIcon, 0, sizeof(wineIcon));
+				wineIcon.reType = RT_SPRITE;
+				if (quantity >= 3) {
+					wineIcon.customShader = cgs.media.wine1Icon;    
+				} else if (quantity == 2) {
+					wineIcon.customShader = cgs.media.wine2Icon;
+				} else {
+					wineIcon.customShader = cgs.media.wine3Icon;
+				}
+				wineIcon.radius = 0.8f;
+				memset(wineIcon.shaderRGBA, 0xff, 4);
+				wineItem.icon = wineIcon;
+				refEntity_t wineIconSelected;
+				memset(&wineIconSelected, 0, sizeof(wineIconSelected));
+				wineIconSelected.reType = RT_SPRITE;
+				if (quantity >= 3) {
+					wineIconSelected.customShader = cgs.media.wine1IconSelect;    
+				} else if (quantity == 2) {
+					wineIconSelected.customShader = cgs.media.wine2IconSelect;
+				} else {
+					wineIconSelected.customShader = cgs.media.wine3IconSelect;
+				}
+				wineIconSelected.radius = 1.3f;
+				memset(wineIconSelected.shaderRGBA, 0xff, 4);
+				wineItem.iconSelected = wineIconSelected;
+				selectorWheelItems[selectorWheelItemNum++] = wineItem;
+			}
+		}
+
+		gitem_t *stamina = BG_FindItemForHoldable(HI_STAMINA);
+		if (stamina) {
+			int quantity = cg.predictedPlayerState.holdable[HI_STAMINA];
+			if (quantity) {
+				selectorWheelEntity_t staminaItem;
+				memset(&staminaItem, 0, sizeof(staminaItem));
+				staminaItem.itemId = WSI_STAMINA;
+				refEntity_t staminaIcon;
+				memset(&staminaIcon, 0, sizeof(staminaIcon));
+				staminaIcon.reType = RT_SPRITE;
+				staminaIcon.customShader = cgs.media.staminaIcon;    
+				staminaIcon.radius = 0.8f;
+				memset(staminaIcon.shaderRGBA, 0xff, 4);
+				staminaItem.icon = staminaIcon;
+				refEntity_t staminaIconSelected;
+				memset(&staminaIconSelected, 0, sizeof(staminaIconSelected));
+				staminaIconSelected.reType = RT_SPRITE;
+				staminaIconSelected.customShader = cgs.media.staminaIconSelect;    
+				staminaIconSelected.radius = 1.3f;
+				memset(staminaIconSelected.shaderRGBA, 0xff, 4);
+				staminaItem.iconSelected = staminaIconSelected;
+				selectorWheelItems[selectorWheelItemNum++] = staminaItem;
+			}
+		}
+
+		gitem_t *vbook = BG_FindItemForHoldable(HI_BOOK1);
+		if (vbook) {
+			int quantity = cg.predictedPlayerState.holdable[HI_BOOK1];
+			if (quantity) {
+				selectorWheelEntity_t vbookItem;
+				memset(&vbookItem, 0, sizeof(vbookItem));
+				vbookItem.itemId = WSI_VBOOK;
+				refEntity_t vbookIcon;
+				memset(&vbookIcon, 0, sizeof(vbookIcon));
+				vbookIcon.reType = RT_SPRITE;
+				vbookIcon.customShader = cgs.media.vbookIcon;    
+				vbookIcon.radius = 0.8f;
+				memset(vbookIcon.shaderRGBA, 0xff, 4);
+				vbookItem.icon = vbookIcon;
+				refEntity_t vbookIconSelected;
+				memset(&vbookIconSelected, 0, sizeof(vbookIconSelected));
+				vbookIconSelected.reType = RT_SPRITE;
+				vbookIconSelected.customShader = cgs.media.vbookIconSelect;    
+				vbookIconSelected.radius = 1.3f;
+				memset(vbookIconSelected.shaderRGBA, 0xff, 4);
+				vbookItem.iconSelected = vbookIconSelected;
+				selectorWheelItems[selectorWheelItemNum++] = vbookItem;
+			}
+		}
+
+		gitem_t *pbook = BG_FindItemForHoldable(HI_BOOK2);
+		if (pbook) {
+			int quantity = cg.predictedPlayerState.holdable[HI_BOOK2];
+			if (quantity) {
+				selectorWheelEntity_t pbookItem;
+				memset(&pbookItem, 0, sizeof(pbookItem));
+				pbookItem.itemId = WSI_PBOOK;
+				refEntity_t pbookIcon;
+				memset(&pbookIcon, 0, sizeof(pbookIcon));
+				pbookIcon.reType = RT_SPRITE;
+				pbookIcon.customShader = cgs.media.pbookIcon;    
+				pbookIcon.radius = 0.8f;
+				memset(pbookIcon.shaderRGBA, 0xff, 4);
+				pbookItem.icon = pbookIcon;
+				refEntity_t pbookIconSelected;
+				memset(&pbookIconSelected, 0, sizeof(pbookIconSelected));
+				pbookIconSelected.reType = RT_SPRITE;
+				pbookIconSelected.customShader = cgs.media.pbookIconSelect;    
+				pbookIconSelected.radius = 1.3f;
+				memset(pbookIconSelected.shaderRGBA, 0xff, 4);
+				pbookItem.iconSelected = pbookIconSelected;
+				selectorWheelItems[selectorWheelItemNum++] = pbookItem;
+			}
+		}
+
+		gitem_t *zbook = BG_FindItemForHoldable(HI_BOOK3);
+		if (zbook) {
+			int quantity = cg.predictedPlayerState.holdable[HI_BOOK3];
+			if (quantity) {
+				selectorWheelEntity_t zbookItem;
+				memset(&zbookItem, 0, sizeof(zbookItem));
+				zbookItem.itemId = WSI_ZBOOK;
+				refEntity_t zbookIcon;
+				memset(&zbookIcon, 0, sizeof(zbookIcon));
+				zbookIcon.reType = RT_SPRITE;
+				zbookIcon.customShader = cgs.media.zbookIcon;    
+				zbookIcon.radius = 0.8f;
+				memset(zbookIcon.shaderRGBA, 0xff, 4);
+				zbookItem.icon = zbookIcon;
+				refEntity_t zbookIconSelected;
+				memset(&zbookIconSelected, 0, sizeof(zbookIconSelected));
+				zbookIconSelected.reType = RT_SPRITE;
+				zbookIconSelected.customShader = cgs.media.zbookIconSelect;    
+				zbookIconSelected.radius = 1.3f;
+				memset(zbookIconSelected.shaderRGBA, 0xff, 4);
+				zbookItem.iconSelected = zbookIconSelected;
+				selectorWheelItems[selectorWheelItemNum++] = zbookItem;
+			}
+		}
+
+	} else if (cg.wheelSelectorType == WST_SYSTEM) {
+
+		beamColor[0] = 1.0f;
+		beamColor[1] = 1.0f;
+		beamColor[2] = 1.0f;
+
+		selectorWheelEntity_t exitItem;
+		memset(&exitItem, 0, sizeof(exitItem));
+		exitItem.itemId = WSI_EXIT_MENU;
+
+		refEntity_t exitIcon;
+		memset(&exitIcon, 0, sizeof(exitIcon));
+		exitIcon.reType = RT_SPRITE;
+		exitIcon.customShader = cgs.media.exitIcon;
+		exitIcon.radius = 0.6f;
+		memset(exitIcon.shaderRGBA, 0xff, 4);
+		exitItem.icon = exitIcon;
+
+		refEntity_t exitIconSelected;
+		memset(&exitIconSelected, 0, sizeof(exitIconSelected));
+		exitIconSelected.reType = RT_SPRITE;
+		exitIconSelected.customShader = cgs.media.exitIconSelect;
+		exitIconSelected.radius = 1.3f;
+		memset(exitIconSelected.shaderRGBA, 0xff, 4);
+		exitItem.iconSelected = exitIconSelected;
+
+		selectorWheelItems[selectorWheelItemNum++] = exitItem;
+
+		selectorWheelEntity_t loadItem;
+		memset(&loadItem, 0, sizeof(loadItem));
+		loadItem.itemId = WSI_QUICK_LOAD;
+
+		refEntity_t loadIcon;
+		memset(&loadIcon, 0, sizeof(loadIcon));
+		loadIcon.reType = RT_SPRITE;
+		loadIcon.customShader = cgs.media.loadIcon;
+		loadIcon.radius = 0.6f;
+		memset(loadIcon.shaderRGBA, 0xff, 4);
+		loadItem.icon = loadIcon;
+
+		refEntity_t loadIconSelected;
+		memset(&loadIconSelected, 0, sizeof(loadIconSelected));
+		loadIconSelected.reType = RT_SPRITE;
+		loadIconSelected.customShader = cgs.media.loadIconSelect;
+		loadIconSelected.radius = 1.3f;
+		memset(loadIconSelected.shaderRGBA, 0xff, 4);
+		loadItem.iconSelected = loadIconSelected;
+
+		selectorWheelItems[selectorWheelItemNum++] = loadItem;
+
+		selectorWheelEntity_t saveItem;
+		memset(&saveItem, 0, sizeof(saveItem));
+		saveItem.itemId = WSI_QUICK_SAVE;
+
+		refEntity_t saveIcon;
+		memset(&saveIcon, 0, sizeof(saveIcon));
+		saveIcon.reType = RT_SPRITE;
+		saveIcon.customShader = cgs.media.saveIcon;
+		saveIcon.radius = 0.6f;
+		memset(saveIcon.shaderRGBA, 0xff, 4);
+		saveItem.icon = saveIcon;
+
+		refEntity_t saveIconSelected;
+		memset(&saveIconSelected, 0, sizeof(saveIconSelected));
+		saveIconSelected.reType = RT_SPRITE;
+		saveIconSelected.customShader = cgs.media.saveIconSelect;
+		saveIconSelected.radius = 1.3f;
+		memset(saveIconSelected.shaderRGBA, 0xff, 4);
+		saveItem.iconSelected = saveIconSelected;
+
+		selectorWheelItems[selectorWheelItemNum++] = saveItem;
+	}
+
+	GC_HandleWheelSelector(beamColor, selectorWheelItems, selectorWheelItemNum);
+}
+
+void CG_WheelSelectorSelect_f( void )
+{
+	trap_Cvar_Set("timescale", "1.0");
+
+	if (cg.wheelSelectorSelection != -1) {
+		if (cg.wheelSelectorType == WST_WEAPON) {
+
+			cgVR->binocularsActive = qfalse;
+			if (cg.wheelSelectorSelection != cg.weaponSelect) {
+				cg.weaponSelectTime = cg.time;
+				cg.weaponSelect = cg.wheelSelectorSelection;
+			}
+
+		}
+		else if (cg.wheelSelectorType == WST_ITEM) {
+
+			if (cg.wheelSelectorSelection == WSI_BINOCULARS) {
+				cgVR->binocularsActive = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_GRENADE) {
+				cgVR->binocularsActive = qfalse;
+				cg.weaponSelectTime = cg.time;
+				cg.weaponSelect = WP_GRENADE_LAUNCHER;
+			}
+			else if (cg.wheelSelectorSelection == WSI_PINEAPPLE) {
+				cgVR->binocularsActive = qfalse;
+				cg.weaponSelectTime = cg.time;
+				cg.weaponSelect = WP_GRENADE_PINEAPPLE;
+			}
+			else if (cg.wheelSelectorSelection == WSI_DYNAMITE) {
+				cgVR->binocularsActive = qfalse;
+				cg.weaponSelectTime = cg.time;
+				cg.weaponSelect = WP_DYNAMITE;
+			}
+			else if (cg.wheelSelectorSelection == WSI_WINE) {
+				cg.holdableSelectTime = cg.time;
+				cg.holdableSelect = HI_WINE;
+				cgVR->useHoldableItem = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_STAMINA) {
+				cg.holdableSelectTime = cg.time;
+				cg.holdableSelect = HI_STAMINA;
+				cgVR->useHoldableItem = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_VBOOK) {
+				cg.holdableSelectTime = cg.time;
+				cg.holdableSelect = HI_BOOK1;
+				cgVR->useHoldableItem = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_PBOOK) {
+				cg.holdableSelectTime = cg.time;
+				cg.holdableSelect = HI_BOOK2;
+				cgVR->useHoldableItem = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_ZBOOK) {
+				cg.holdableSelectTime = cg.time;
+				cg.holdableSelect = HI_BOOK3;
+				cgVR->useHoldableItem = qtrue;
+			}
+
+		}
+		else if (cg.wheelSelectorType == WST_SYSTEM) {
+
+			if (cg.wheelSelectorSelection == WSI_EXIT_MENU) {
+				//  TODO Why this does not work?
+				//  trap_SendConsoleCommand("togglemenu\n");
+				cgVR->toggleMainMenu = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_QUICK_SAVE) {
+				trap_SendConsoleCommand("savegame quicksave\n");
+			}
+			else if (cg.wheelSelectorSelection == WSI_QUICK_LOAD) {
+				trap_SendConsoleCommand("loadgame quicksave\n");
+			}
+
+		}
+	}
+
+	//reset ready for next time
+	cg.wheelSelectorSelection = -1;
+	cg.wheelSelectorType = 0;
+	cg.wheelSelectorTime = 0;
+}
+
+void CG_WheelSelectorNext_f( void )
+{
+	cg.wheelSelectorType++;
+	if (cg.wheelSelectorType >= NUM_WST) {
+		cg.wheelSelectorType = 0;
+	}
+	cg.wheelSelectorTime = cg.time;
+	cg.wheelSelectorSelection = -1;
+}
+
+void CG_WheelSelectorPrev_f( void )
+{
+	cg.wheelSelectorType--;
+	if (cg.wheelSelectorType < 0) {
+		cg.wheelSelectorType = NUM_WST - 1;
+	}
+	cg.wheelSelectorTime = cg.time;
+	cg.wheelSelectorSelection = -1;  
+}
 
 /*
 ==============

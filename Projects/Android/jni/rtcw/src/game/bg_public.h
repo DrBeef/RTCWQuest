@@ -615,6 +615,51 @@ typedef struct ammotable_s {
 extern ammotable_t ammoTable[];     // defined in bg_misc.c
 extern int weapAlts[];  // defined in bg_misc.c
 
+static const int SELECTABLE_WEAPONS_NUM = 13;
+static const int SELECTABLE_WEAPONS[] = {
+	// order matches prev/next selector
+	WP_KNIFE,
+	WP_LUGER,
+	WP_COLT,
+	WP_MP40,
+	WP_THOMPSON,
+	WP_STEN,
+	WP_MAUSER,
+	WP_GARAND,
+	WP_FG42,
+	WP_PANZERFAUST,
+	WP_VENOM,
+	WP_FLAMETHROWER,
+	WP_TESLA
+};
+
+typedef enum
+{
+	WST_WEAPON,
+	WST_ITEM,
+	WST_SYSTEM,
+	NUM_WST
+} wheelSelectorType_t;
+
+typedef enum
+{
+	WSI_BINOCULARS,
+	WSI_GRENADE,
+	WSI_PINEAPPLE,
+	WSI_DYNAMITE,
+	WSI_WINE,
+	WSI_STAMINA,
+	WSI_VBOOK,
+	WSI_PBOOK,
+	WSI_ZBOOK
+} itemSelectorItems_t;
+
+typedef enum
+{
+	WSI_EXIT_MENU,
+	WSI_QUICK_SAVE,
+	WSI_QUICK_LOAD
+} systemSelectorItems_t;
 
 //----(SA)
 // for routines that need to check if a WP_ is </=/> a given set of weapons

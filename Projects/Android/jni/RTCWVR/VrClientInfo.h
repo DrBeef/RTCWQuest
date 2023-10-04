@@ -12,6 +12,7 @@ typedef struct {
     float  fov;
     qboolean weapon_stabilised;
     qboolean right_handed;
+    qboolean menu_right_handed;
     qboolean player_moving;
     qboolean visible_hud;
     qboolean dualwield;
@@ -73,7 +74,11 @@ typedef struct {
     vec3_t   teleportdest; // teleport destination
     qboolean teleportexecute; // execute the teleport
 
-    int     useGestureState;
+    int      useGestureState;
+    int      wheelSelectorEnabled;
+    qboolean binocularsActive;
+    qboolean useHoldableItem;
+    qboolean toggleMainMenu;
 
     //////////////////////////////////////
     //    Test stuff for weapon alignment

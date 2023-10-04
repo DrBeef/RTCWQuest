@@ -133,19 +133,22 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
     //Menu button
 	handleTrackedControllerButton(&leftTrackedRemoteState_new, &leftTrackedRemoteState_old, ovrButton_Enter, K_ESCAPE);
+	if (vr.toggleMainMenu) { // Menu toggled via wheel selector
+		vr.toggleMainMenu = qfalse;
+		Sys_QueEvent( 0, SE_KEY, K_ESCAPE, qtrue, 0, NULL );
+	}
 
     static float menuYaw = 0;
-    static bool switchedMenuControls = qfalse;
     if ( RTCWVR_useScreenLayer() )
     {
         bool controlsLeftHanded = vr_control_scheme->integer >= 10;
-        if ((controlsLeftHanded && !switchedMenuControls) || (!controlsLeftHanded && switchedMenuControls)) {
+        if (controlsLeftHanded == vr.menu_right_handed) {
             interactWithTouchScreen(menuYaw, vr.offhandangles);
             handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, offButton1, K_MOUSE1);
             handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, ovrButton_Trigger, K_MOUSE1);
             handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, offButton2, K_ESCAPE);
             if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) != (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger) && (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger)) {
-                switchedMenuControls = !switchedMenuControls;
+                vr.menu_right_handed = !vr.menu_right_handed;
             }
         } else {
             interactWithTouchScreen(menuYaw, vr.dominanthandangles);
@@ -153,7 +156,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
             handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, ovrButton_Trigger, K_MOUSE1);
             handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton2, K_ESCAPE);
             if ((pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) != (pOffTrackedRemoteOld->Buttons & ovrButton_Trigger) && (pOffTrackedRemoteNew->Buttons & ovrButton_Trigger)) {
-                switchedMenuControls = !switchedMenuControls;
+                vr.menu_right_handed = !vr.menu_right_handed;
             }
         }
     }
@@ -221,7 +224,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
 
         static qboolean binocularstate = qfalse;
-        qboolean binocularsactive = (vr.hasbinoculars && vr.backpackitemactive == 3 &&
+        qboolean binocularsactive = (vr.hasbinoculars && (vr.backpackitemactive == 3 || vr.binocularsActive) &&
                 (distanceToHMD < BINOCULAR_ENGAGE_DISTANCE) &&
                 (pDominantTracking->Status & (VRAPI_TRACKING_STATUS_POSITION_TRACKED | VRAPI_TRACKING_STATUS_POSITION_VALID)));
         if (binocularstate != binocularsactive)
@@ -460,11 +463,18 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                 if (dominantGripPushed) {
                     if (dominantGripPushTime == 0) {
                         dominantGripPushTime = GetTimeInMilliSeconds();
+                    } else if (!handInBackpack && !vr.backpackitemactive && !vr.mountedgun && !vr.scopeengaged && !vr.weapon_stabilised &&
+                            (GetTimeInMilliSeconds() - dominantGripPushTime) > vr_reloadtimeoutms->integer) {
+                        vr.wheelSelectorEnabled = true;
                     }
                 }
                 else
                 {
-                    if (vr.backpackitemactive == 1) {
+                    if (vr.wheelSelectorEnabled) {
+                        vr.wheelSelectorEnabled = false;
+                        sendButtonActionSimple("wheelselectorselect");
+                    }
+                    else if (vr.backpackitemactive == 1) {
                         //Restores last used weapon if possible
                         char buffer[32];
                         sprintf(buffer, "weapon %i", vr.lastweaponid);
@@ -598,7 +608,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
             else
             {
                 //Fire Primary
-                if (vr.backpackitemactive != 3 && // Can't fire while holding binoculars
+                if (vr.backpackitemactive != 3 && !vr.binocularsActive && // Can't fire while holding binoculars
                     !vr.velocitytriggered && // Don't fire velocity triggered weapons
                     (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
                     (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
@@ -630,17 +640,18 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
 			//Weapon Chooser
 			static qboolean itemSwitched = false;
-			if (between(-0.2f, pPrimaryJoystick->x, 0.2f) &&
-				(between(0.8f, pPrimaryJoystick->y, 1.0f) ||
-				 between(-1.0f, pPrimaryJoystick->y, -0.8f)))
+			if (!vr.wheelSelectorEnabled && between(-0.2f, pPrimaryJoystick->x, 0.2f) &&
+				(between(0.8f, pPrimaryJoystick->y, 1.0f) || between(-1.0f, pPrimaryJoystick->y, -0.8f)))
 			{
 				if (!itemSwitched) {
 					if (between(0.8f, pPrimaryJoystick->y, 1.0f))
 					{
+                        vr.binocularsActive = false;
                         sendButtonActionSimple("weapprev");
 					}
 					else
 					{
+                        vr.binocularsActive = false;
                         sendButtonActionSimple("weapnext");
 					}
 					itemSwitched = true;
@@ -680,6 +691,18 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
 
             static qboolean stopUseItemNextFrame = false;
+            static qboolean startUseItemNextFrame = false;
+            if (vr.useHoldableItem) // Item toggled via wheel selector
+            {
+                startUseItemNextFrame = true;
+                vr.useHoldableItem = false;
+            }
+            if (startUseItemNextFrame)
+            {
+                Cbuf_AddText("+useitem\n");
+                startUseItemNextFrame = qfalse;
+                stopUseItemNextFrame = qtrue;
+            }
             if (stopUseItemNextFrame)
             {
                 Cbuf_AddText("-useitem\n");
@@ -752,62 +775,78 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                 usingMountedGun = vr.mountedgun;
             }
 
-            //No snap turn when using mounted gun
-            static int syncCount = 0;
-            static int increaseSnap = true;
-            if (!vr.mountedgun && !vr.scopeengaged) {
-                if (pPrimaryJoystick->x > 0.7f) {
-                    if (increaseSnap) {
-                        float turnAngle = vr_turn_mode->integer ? (vr_turn_angle->value / 9.0f) : vr_turn_angle->value;
-                        snapTurn -= turnAngle;
-
-                        if (vr_turn_mode->integer == 0) {
-                            increaseSnap = false;
-                        }
-
-                        if (snapTurn < -180.0f) {
-                            snapTurn += 360.f;
-                        }
-
-                        RTCWVR_ResyncClientYawWithGameYaw();
+            if (vr.wheelSelectorEnabled) {
+                static int wheelSelectorSwitched = false;
+                if (between(0.8f, pPrimaryJoystick->x, 1.0f) || between(-1.0f, pPrimaryJoystick->x, -0.8f)) {
+                    if (!wheelSelectorSwitched) {
+					    if (between(0.8f, pPrimaryJoystick->x, 1.0f)) {
+                            sendButtonActionSimple("wheelselectornext");
+					    } else {
+                            sendButtonActionSimple("wheelselectorprev");
+					    }
+                        wheelSelectorSwitched = true;
                     }
-                } else if (pPrimaryJoystick->x < 0.3f) {
-                    increaseSnap = true;
+                } else {
+                    wheelSelectorSwitched = false;
                 }
+            } else {
+                //No snap turn when using mounted gun
+                static int syncCount = 0;
+                static int increaseSnap = true;
+                if (!vr.mountedgun && !vr.scopeengaged) {
+                    if (pPrimaryJoystick->x > 0.7f) {
+                        if (increaseSnap) {
+                            float turnAngle = vr_turn_mode->integer ? (vr_turn_angle->value / 9.0f) : vr_turn_angle->value;
+                            snapTurn -= turnAngle;
 
-                static int decreaseSnap = true;
-                if (pPrimaryJoystick->x < -0.7f) {
-                    if (decreaseSnap) {
+                            if (vr_turn_mode->integer == 0) {
+                                increaseSnap = false;
+                            }
 
-                        float turnAngle = vr_turn_mode->integer ? (vr_turn_angle->value / 9.0f) : vr_turn_angle->value;
-                        snapTurn += turnAngle;
+                            if (snapTurn < -180.0f) {
+                                snapTurn += 360.f;
+                            }
 
-                        //If snap turn configured for less than 10 degrees
-                        if (vr_turn_mode->integer == 0) {
-                            decreaseSnap = false;
+                            RTCWVR_ResyncClientYawWithGameYaw();
                         }
-
-                        if (snapTurn > 180.0f) {
-                            snapTurn -= 360.f;
-                        }
-
-                        RTCWVR_ResyncClientYawWithGameYaw();
+                    } else if (pPrimaryJoystick->x < 0.3f) {
+                        increaseSnap = true;
                     }
-                } else if (pPrimaryJoystick->x > -0.3f) {
-                    decreaseSnap = true;
+
+                    static int decreaseSnap = true;
+                    if (pPrimaryJoystick->x < -0.7f) {
+                        if (decreaseSnap) {
+
+                            float turnAngle = vr_turn_mode->integer ? (vr_turn_angle->value / 9.0f) : vr_turn_angle->value;
+                            snapTurn += turnAngle;
+
+                            //If snap turn configured for less than 10 degrees
+                            if (vr_turn_mode->integer == 0) {
+                                decreaseSnap = false;
+                            }
+
+                            if (snapTurn > 180.0f) {
+                                snapTurn -= 360.f;
+                            }
+
+                            RTCWVR_ResyncClientYawWithGameYaw();
+                        }
+                    } else if (pPrimaryJoystick->x > -0.3f) {
+                        decreaseSnap = true;
+                    }
                 }
-            }
-            else {
-                if (fabs(pPrimaryJoystick->x) > 0.5f) {
-                    if (increaseSnap)
+                else {
+                    if (fabs(pPrimaryJoystick->x) > 0.5f) {
+                        if (increaseSnap)
+                        {
+                            RTCWVR_ResyncClientYawWithGameYaw();
+                        }
+                        increaseSnap = false;
+                    }
+                    else
                     {
-                        RTCWVR_ResyncClientYawWithGameYaw();
+                        increaseSnap = true;
                     }
-                    increaseSnap = false;
-                }
-                else
-                {
-                    increaseSnap = true;
                 }
             }
         }
@@ -818,7 +857,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
     // Process "use" gesture
     if (vr_gesture_triggered_use->integer) {
         int thirdPersonActive = Cvar_VariableIntegerValue("cg_thirdPerson");
-        bool gestureUseAllowed = !vr.weapon_stabilised && !vr.mountedgun && !vr.scopeengaged && !thirdPersonActive;
+        bool gestureUseAllowed = !vr.weapon_stabilised && !vr.mountedgun && !vr.scopeengaged && !vr.wheelSelectorEnabled && !thirdPersonActive;
         // Off-hand gesture
         float distanceToBody = sqrt(vr.offhandoffset[0]*vr.offhandoffset[0] + vr.offhandoffset[2]*vr.offhandoffset[2]);
         if (gestureUseAllowed && (distanceToBody > vr_use_gesture_boundary->value)) {

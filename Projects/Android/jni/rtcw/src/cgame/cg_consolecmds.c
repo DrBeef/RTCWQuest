@@ -416,6 +416,10 @@ typedef struct {
 	void ( *function )( void );
 } consoleCommand_t;
 
+void CG_WheelSelectorSelect_f( void );
+void CG_WheelSelectorNext_f( void );
+void CG_WheelSelectorPrev_f( void );
+
 static consoleCommand_t commands[] = {
 	{ "testgun", CG_TestGun_f },
 	{ "testmodel", CG_TestModel_f },
@@ -453,6 +457,9 @@ static consoleCommand_t commands[] = {
 	{ "loaddeferred", CG_LoadDeferredPlayers },  // spelling fixed (SA)
 	{ "camera", CG_Camera_f },   // duffy
 	{ "fade", CG_Fade_f },   // duffy
+	{ "wheelselectorselect", CG_WheelSelectorSelect_f },
+	{ "wheelselectornext", CG_WheelSelectorNext_f },
+	{ "wheelselectorprev", CG_WheelSelectorPrev_f },
 
 	// NERVE - SMF
 	{ "mp_QuickMessage", CG_QuickMessage_f },

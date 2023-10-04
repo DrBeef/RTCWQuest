@@ -1603,11 +1603,13 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		DEBUGTIME
 	}
 
-
-	CG_AddViewWeapon( &cg.predictedPlayerState );
-
-	if (trap_Cvar_VariableIntegerValue("vr_gesture_triggered_use") && !cgVR->weapon_stabilised && !cg.renderingThirdPerson) {
-		CG_AddViewHand( &cg.predictedPlayerState);
+	if (cgVR->wheelSelectorEnabled) {
+		CG_DrawWheelSelector();
+	} else {
+		CG_AddViewWeapon( &cg.predictedPlayerState );
+		if (trap_Cvar_VariableIntegerValue("vr_gesture_triggered_use") && !cgVR->weapon_stabilised && !cg.renderingThirdPerson) {
+			CG_AddViewHand( &cg.predictedPlayerState);
+		}
 	}
 
 	DEBUGTIME
