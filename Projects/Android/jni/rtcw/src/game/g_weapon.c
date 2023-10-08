@@ -968,8 +968,8 @@ void Bullet_Fire( gentity_t *ent, float spread, int damage ) {
 		sprintf(fire_command, "fire_%i", ent->s.weapon);
 	    if (ent->s.weapon == WP_AKIMBO)
         {
-            right = BG_AkimboFireSequence(ent->s.weapon, ent->client->ps.ammoclip[WP_AKIMBO], ent->client->ps.ammoclip[WP_COLT] );
-            trap_Vibrate(100, right ? 1 : 0, 1.0, fire_command, 0.0, 0.0);
+            qboolean akimbo = BG_AkimboFireSequence(ent->s.weapon, ent->client->ps.ammoclip[WP_AKIMBO], ent->client->ps.ammoclip[WP_COLT], gVR->akimboTriggerState );
+            trap_Vibrate(100, right != akimbo ? 1 : 0, 1.0, fire_command, 0.0, 0.0);
         } else{
             trap_Vibrate(100, right ? 1 : 0, 1.0, fire_command, 0.0, 0.0);
             if (gVR->weapon_stabilised) {
@@ -1746,7 +1746,11 @@ void CalcMuzzlePoint( gentity_t *ent, int weapon, vec3_t forward, vec3_t right, 
 		float worldscale = trap_Cvar_VariableIntegerValue("cg_worldScale");
         float heightAdjust = 0;
         trap_Cvar_VariableValue("cg_heightAdjust", &heightAdjust);
-		convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);
+        if (weapon == WP_AKIMBO && BG_AkimboFireSequence(WP_AKIMBO, ent->client->ps.ammoclip[WP_AKIMBO], ent->client->ps.ammoclip[WP_COLT], gVR->akimboTriggerState)) {
+            convertFromVR(worldscale, ent, gVR->offhandoffset, ent->r.currentOrigin, muzzlePoint);
+        } else {
+            convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);
+        }
         muzzlePoint[2] += (ent->client->ps.viewheight - 64);
 		muzzlePoint[2] += (gVR->hmdposition[1] + heightAdjust) * worldscale;
 		return;
@@ -1773,9 +1777,6 @@ void CalcMuzzlePoint( gentity_t *ent, int weapon, vec3_t forward, vec3_t right, 
 	case WP_GRENADE_LAUNCHER:
 		VectorMA( muzzlePoint, 20, right, muzzlePoint );
 		break;
-	case WP_AKIMBO:     // left side rather than right
-		VectorMA( muzzlePoint, -6, right, muzzlePoint );
-		VectorMA( muzzlePoint, -4, up, muzzlePoint );
 	default:
 		VectorMA( muzzlePoint, 6, right, muzzlePoint );
 		VectorMA( muzzlePoint, -4, up, muzzlePoint );
@@ -1807,7 +1808,11 @@ void CalcMuzzlePointForActivate( gentity_t *ent, vec3_t forward, vec3_t right, v
         float worldscale = trap_Cvar_VariableIntegerValue("cg_worldScale");
 		float heightAdjust = 0;
 		trap_Cvar_VariableValue("cg_heightAdjust", &heightAdjust);
-        convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);
+		if (ent->client->ps.weapon == WP_AKIMBO && BG_AkimboFireSequence(WP_AKIMBO, ent->client->ps.ammoclip[WP_AKIMBO], ent->client->ps.ammoclip[WP_COLT], gVR->akimboTriggerState)) {
+			convertFromVR(worldscale, ent, gVR->offhandoffset, ent->r.currentOrigin, muzzlePoint);
+		} else {
+			convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);
+		}
         muzzlePoint[2] += (ent->client->ps.viewheight - 64);
         muzzlePoint[2] += (gVR->hmdposition[1] + heightAdjust) * worldscale;
         return;
@@ -1863,10 +1868,13 @@ void CalcMuzzlePoints( gentity_t *ent, int weapon ) {
 			phase = level.time / 1000.0 * ZOOM_YAW_FREQUENCY * M_PI * 2;
 			viewang[YAW] += ZOOM_YAW_AMPLITUDE * sin( phase ) * ( spreadfrac + ZOOM_YAW_MIN_AMPLITUDE );
 */
-
-
-        VectorCopy(gVR->weaponangles, viewang);
-        viewang[YAW] = ent->client->ps.viewangles[YAW] + (gVR->weaponangles[YAW] - gVR->hmdorientation[YAW]);
+		if (weapon == WP_AKIMBO && BG_AkimboFireSequence(WP_AKIMBO, ent->client->ps.ammoclip[WP_AKIMBO], ent->client->ps.ammoclip[WP_COLT], gVR->akimboTriggerState)) {
+			VectorCopy(gVR->offhandweaponangles, viewang);
+			viewang[YAW] = ent->client->ps.viewangles[YAW] + (gVR->offhandweaponangles[YAW] - gVR->hmdorientation[YAW]);
+		} else {
+			VectorCopy(gVR->weaponangles, viewang);
+			viewang[YAW] = ent->client->ps.viewangles[YAW] + (gVR->weaponangles[YAW] - gVR->hmdorientation[YAW]);
+		}
 
 	} else {
 		VectorCopy( ent->client->ps.viewangles, viewang );
@@ -1931,7 +1939,8 @@ void FireWeapon( gentity_t *ent ) {
 			case WP_SILENCER:
 			case WP_COLT:
 			case WP_AKIMBO:
-				aimSpreadScale += 0.4f;
+				// No need for penalty, dual wield penalizes enough :-)
+				// aimSpreadScale += 0.4f;
 				break;
 
 			case WP_PANZERFAUST:

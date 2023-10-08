@@ -1977,17 +1977,9 @@ void convertFromVR(vec3_t in, vec3_t offset, vec3_t out)
 }
 
 void CG_CalculateVRWeaponPosition( int weaponNum, vec3_t origin, vec3_t angles ) {
-
-	if (weaponNum != WP_AKIMBO || BG_AkimboFireSequence(weaponNum, cg.predictedPlayerState.ammoclip[WP_AKIMBO], cg.predictedPlayerState.ammoclip[WP_COLT] ))
-	{
-		convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, origin);
-	} else{
-		convertFromVR(cgVR->offhandoffset, cg.refdef.vieworg, origin);
-	}
-
+    convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, origin);
     origin[2] -= 64;
     origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
-
     switch (cg.predictedPlayerState.weapon)
     {
         case WP_KNIFE:
@@ -1997,7 +1989,6 @@ void CG_CalculateVRWeaponPosition( int weaponNum, vec3_t origin, vec3_t angles )
             VectorCopy(cgVR->weaponangles, angles);
             break;
     }
-
     angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
 }
 
@@ -2014,6 +2005,14 @@ void CG_CalculateVROffHandPosition( vec3_t origin, vec3_t angles ) {
     origin[2] -= 64;
     origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
     VectorCopy(cgVR->offhandangles, angles);
+    angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
+}
+
+void CG_CalculateVROffHandWeaponPosition( vec3_t origin, vec3_t angles ) {
+    convertFromVR(cgVR->offhandoffset, cg.refdef.vieworg, origin);
+    origin[2] -= 64;
+    origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
+    VectorCopy(cgVR->offhandweaponangles, angles);
     angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
 }
 
@@ -2036,9 +2035,13 @@ CG_CalculateWeaponPositionAndScale
 */
 
 
-static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origin, vec3_t angles ) {
+static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origin, vec3_t angles, qboolean akimbo ) {
 
-    CG_CalculateVRWeaponPosition(0, origin, angles);
+    if (akimbo) {
+        CG_CalculateVROffHandWeaponPosition(origin, angles);
+    } else {
+        CG_CalculateVRWeaponPosition(0, origin, angles);
+    }
 
     vec3_t offset;
 
@@ -2080,7 +2083,11 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
         else if (ps->weapon != 0)
         {
             char cvar_name[64];
-            Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", ps->weapon);
+            if (ps->weapon == WP_AKIMBO) {
+                Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", WP_COLT);
+            } else {
+                Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", ps->weapon);
+            }
 
             char weapon_adjustment[256];
             trap_Cvar_VariableStringBuffer(cvar_name, weapon_adjustment, 256);
@@ -2096,7 +2103,7 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
                        &(adjust[PITCH]), &(adjust[YAW]), &(adjust[ROLL]));
                 VectorScale(temp_offset, scale, offset);
 
-                if (!cgVR->right_handed)
+                if (!cgVR->right_handed != akimbo)
                 {
                     //yaw needs to go in the other direction as left handed model is reversed
                     adjust[YAW] *= -1.0f;
@@ -2120,7 +2127,7 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
     AngleVectors( angles, forward, right, up );
     VectorMA( origin, offset[2], forward, origin );
     VectorMA( origin, offset[1], up, origin );
-    if (cgVR->right_handed) {
+    if (cgVR->right_handed != akimbo) {
         VectorMA(origin, offset[0], right, origin);
     } else {
         VectorMA(origin, -offset[0], right, origin);
@@ -2866,7 +2873,11 @@ static qboolean CG_CalcMuzzlePoint( int entityNum, int dist, vec3_t muzzle ) {
     cent = &cg_entities[entityNum];
     if ( entityNum == cg.snap->ps.clientNum ) {
         vec3_t angles;
-        CG_CalculateVRWeaponPosition(cent->currentState.weapon, muzzle, angles);
+        if (cent->currentState.weapon == WP_AKIMBO && BG_AkimboFireSequence(WP_AKIMBO, cg.snap->ps.ammoclip[WP_AKIMBO], cg.snap->ps.ammoclip[WP_COLT], cgVR->akimboTriggerState)) {
+            CG_CalculateVROffHandWeaponPosition(muzzle, angles);            
+        } else {
+            CG_CalculateVRWeaponPosition(cent->currentState.weapon, muzzle, angles);
+        }
 
         AngleVectors( angles, forward, NULL, NULL );
         VectorMA( muzzle, dist, forward, muzzle );
@@ -2908,7 +2919,7 @@ sound should only be done on the world model case.
 */
 static qboolean debuggingweapon = qfalse;
 
-void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent ) {
+void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, qboolean akimbo ) {
 
 	refEntity_t gun;
 	refEntity_t barrel;
@@ -2986,16 +2997,21 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 			break;
 		}
 	} else {
-		CG_RegisterWeapon( weaponNum );
-		weapon = &cg_weapons[weaponNum];
+		if (weaponNum == WP_AKIMBO) {
+			CG_RegisterWeapon(WP_COLT);
+			weapon = &cg_weapons[WP_COLT];
+		} else {
+			CG_RegisterWeapon( weaponNum );
+			weapon = &cg_weapons[weaponNum];
+		}
 	}
 	// dhm - end
 
 
 	if ( isPlayer ) {
-		akimboFire = BG_AkimboFireSequence( weaponNum, cg.predictedPlayerState.ammoclip[WP_AKIMBO], cg.predictedPlayerState.ammoclip[WP_COLT] );
+		akimboFire = BG_AkimboFireSequence( weaponNum, cg.predictedPlayerState.ammoclip[WP_AKIMBO], cg.predictedPlayerState.ammoclip[WP_COLT], cgVR->akimboTriggerState );
 	} else if ( ps ) {
-		akimboFire = BG_AkimboFireSequence( weaponNum, ps->ammoclip[WP_AKIMBO], ps->ammoclip[WP_AKIMBO] );
+		akimboFire = BG_AkimboFireSequence( weaponNum, ps->ammoclip[WP_AKIMBO], ps->ammoclip[WP_AKIMBO], 0 );
 	}
 
 	// add the weapon
@@ -3111,20 +3127,19 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		int brassOffset[WP_NUM_WEAPONS];
 		memset (brassOffset, 0, sizeof brassOffset);
 		brassOffset[WP_LUGER] = 1;
+		brassOffset[WP_SILENCER] = 1;
 		brassOffset[WP_COLT] = 1;
+		brassOffset[WP_AKIMBO] = 1;
 		brassOffset[WP_FG42] = 1;
 		brassOffset[WP_MP40] = 2;
 		brassOffset[WP_THOMPSON] = 2;
 		brassOffset[WP_STEN] = 6;
 		brassOffset[WP_VENOM] = 5;
 
-		// opposite tag in akimbo, since at this point the weapon
-		// has fired and the fire seq has switched over
-		if ( weaponNum == WP_AKIMBO && akimboFire ) {
-			CG_PositionRotatedEntityOnTag( &brass, &gun, "tag_brass2" );
-		} else if ( brassOffset[weaponNum] != 0) {
-		    //Correct bad tag on certain models
-            CG_CalcMuzzlePoint(cent->currentState.clientNum, brassOffset[weaponNum], brass.origin);
+		if ( brassOffset[weaponNum] != 0) {
+			//Correct bad tag on certain models
+			CG_CalcMuzzlePoint(cent->currentState.clientNum, brassOffset[weaponNum], brass.origin);
+			MatrixMultiply( brass.axis, gun.axis, brass.axis );
 		} else {
 			CG_PositionRotatedEntityOnTag( &brass, &gun, "tag_brass" );
 		}
@@ -3341,6 +3356,10 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		return;
 	}
 
+	if (isPlayer && akimbo != akimboFire) {
+		return; // We are firing the other gun
+	}
+
 	if ( weaponNum == WP_STEN ) {  // sten has no muzzleflash
 		flash.hModel = 0;
 	}
@@ -3356,15 +3375,6 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 			}
 		}
 	}
-
-	if ( isPlayer ) {
-		if ( weaponNum == WP_AKIMBO ) {
-			if ( !cent->akimboFire ) {
-				CG_PositionRotatedEntityOnTag( &flash, &gun, "tag_flash2" );
-			}
-		}
-	}
-
 
 	if ( flash.hModel ) {
 		if ( weaponNum != WP_FLAMETHROWER && weaponNum != WP_TESLA ) {    //Ridah, hide the flash also for now
@@ -3481,7 +3491,7 @@ void CG_AddPlayerFoot( refEntity_t *parent, playerState_t *ps, centity_t *cent )
 
 }
 
-void CG_LaserSight(const playerState_t *ps) {
+void CG_LaserSight(const playerState_t *ps, qboolean akimbo) {
 
 	if (trap_Cvar_VariableIntegerValue("vr_lasersight") != 0 &&
 	    cgVR->backpackitemactive == 0 && !cgVR->binocularsActive &&
@@ -3513,7 +3523,11 @@ void CG_LaserSight(const playerState_t *ps) {
 			vec3_t endForward;
 			vec3_t angles;
 			clientInfo_t ci;
-			CG_CalculateVRWeaponPosition(0, origin, angles);
+			if (akimbo) {
+				CG_CalculateVROffHandWeaponPosition(origin, angles);
+			} else {
+				CG_CalculateVRWeaponPosition(0, origin, angles);
+			}
 
 			vec3_t forward, right, up;
 			AngleVectors(angles, forward, right, up);
@@ -3539,10 +3553,14 @@ Add the weapon, and flash for the player's view
 */
 void CG_AddViewWeapon( playerState_t *ps ) {
 	refEntity_t hand;
+	refEntity_t handAkimbo;
 	float fovOffset;
 	vec3_t angles;
+	vec3_t anglesAkimbo;
 	vec3_t gunoff;
+	vec3_t gunoffAkimbo;
 	weaponInfo_t    *weapon;
+	weaponInfo_t    *weaponAkimbo;
 
 	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
 		return;
@@ -3613,53 +3631,98 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 				break;
 			}
 		} else {
-			CG_RegisterWeapon( ps->weapon );
-			weapon = &cg_weapons[ ps->weapon ];
+			if (ps->weapon == WP_AKIMBO) {
+				CG_RegisterWeapon( WP_COLT );
+				CG_RegisterWeapon( WP_AKIMBO );
+				weapon = &cg_weapons[ WP_COLT ];
+				weaponAkimbo = &cg_weapons[ WP_AKIMBO ];
+			} else {
+				CG_RegisterWeapon( ps->weapon );
+				weapon = &cg_weapons[ ps->weapon ];
+			}
 		}
 		// dhm - end
 
 		memset( &hand, 0, sizeof( hand ) );
+		memset( &handAkimbo, 0, sizeof( handAkimbo ) );
 
 		// set up gun position
-		float scale = CG_CalculateWeaponPositionAndScale( ps, hand.origin, angles );
+		float scale = CG_CalculateWeaponPositionAndScale( ps, hand.origin, angles, qfalse );
+		float scaleAkimbo = CG_CalculateWeaponPositionAndScale( ps, handAkimbo.origin, anglesAkimbo, qtrue );
 
 		gunoff[0] = cg_gun_x.value;
 		gunoff[1] = cg_gun_y.value;
 		gunoff[2] = cg_gun_z.value;
+		gunoffAkimbo[0] = cg_gun_x.value;
+		gunoffAkimbo[1] = cg_gun_y.value;
+		gunoffAkimbo[2] = cg_gun_z.value;
 
 //----(SA)	removed
 
 		VectorMA( hand.origin, gunoff[0], cg.refdef.viewaxis[0], hand.origin );
 		VectorMA( hand.origin, gunoff[1], cg.refdef.viewaxis[1], hand.origin );
 		VectorMA( hand.origin, gunoff[2], cg.refdef.viewaxis[2], hand.origin );
+		VectorMA( handAkimbo.origin, gunoffAkimbo[0], cg.refdef.viewaxis[0], handAkimbo.origin );
+		VectorMA( handAkimbo.origin, gunoffAkimbo[1], cg.refdef.viewaxis[1], handAkimbo.origin );
+		VectorMA( handAkimbo.origin, gunoffAkimbo[2], cg.refdef.viewaxis[2], handAkimbo.origin );
 
 		AnglesToAxis( angles, hand.axis );
+		AnglesToAxis( anglesAkimbo, handAkimbo.axis );
 
 		if ( cg_gun_frame.integer) {
 			hand.frame = hand.oldframe = cg_gun_frame.integer;
 			hand.backlerp = 0;
+			handAkimbo.frame = handAkimbo.oldframe = cg_gun_frame.integer;
+			handAkimbo.backlerp = 0;
 		} else {  // get the animation state
-			CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );   //----(SA)	changed
+			if (ps->weapon == WP_AKIMBO) {
+				int weapAnim = ( ps->weapAnim & ~ANIM_TOGGLEBIT ); 
+				if (weapAnim == WEAP_ATTACK1 || weapAnim == WEAP_ATTACK2 || weapAnim == WEAP_ATTACK_LASTSHOT || weapAnim == WEAP_IDLE1 || weapAnim == WEAP_IDLE2) {
+					// For akimbo attack animation, animate only firing weapon
+					if (cgVR->akimboFire) {
+						CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );
+					} else {
+						CG_WeaponAnimation( ps, weaponAkimbo, &handAkimbo.oldframe, &handAkimbo.frame, &handAkimbo.backlerp );
+					}
+				} else if (weapAnim == WEAP_RELOAD1 || weapAnim == WEAP_RELOAD2 || weapAnim == WEAP_RELOAD3) {
+					// For akimbo reload, do not animate weapon with full clip
+					if (ps->ammoclip[WP_COLT] < 8) {
+						CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );
+					}
+					if (ps->ammoclip[WP_AKIMBO] < 8) {
+						CG_WeaponAnimation( ps, weaponAkimbo, &handAkimbo.oldframe, &handAkimbo.frame, &handAkimbo.backlerp );
+					}
+				} else {
+					CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );
+					CG_WeaponAnimation( ps, weaponAkimbo, &handAkimbo.oldframe, &handAkimbo.frame, &handAkimbo.backlerp );
+				}
+			} else {
+				CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );   //----(SA)	changed                
+			}
 		}
 
 		if (cgVR->backpackitemactive != 3 && !cgVR->binocularsActive)
 		{
 			hand.hModel = weapon->handsModel;
+			handAkimbo.hModel = weaponAkimbo->handsModel;
 		}
 
         //Weapon offset debugging
         if (weaponDebugging)
         {
             hand.renderfx = RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON; //No depth hack for weapon adjusting mode
+            handAkimbo.renderfx = RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON;
         }
         else
         {
             hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON;   //----(SA)
+            handAkimbo.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON;
         }
 
 		//scale the whole model (hand and weapon)
 		for ( int i = 0; i < 3; i++ ) {
-			VectorScale( hand.axis[i], (cgVR->right_handed || i != 1 || ps->weapon == WP_AKIMBO) ? scale : -scale, hand.axis[i] );
+			VectorScale( hand.axis[i], (cgVR->right_handed || i != 1) ? scale : -scale, hand.axis[i] );
+			VectorScale( handAkimbo.axis[i], (!cgVR->right_handed || i != 1) ? scaleAkimbo : -scaleAkimbo, handAkimbo.axis[i] );
 		}
 
 
@@ -3701,7 +3764,10 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		}
 
 		// add everything onto the hand
-		CG_AddPlayerWeapon(&hand, ps, &cg.predictedPlayerEntity);
+		CG_AddPlayerWeapon(&hand, ps, &cg.predictedPlayerEntity, qfalse);
+		if (ps->weapon == WP_AKIMBO) {
+			CG_AddPlayerWeapon(&handAkimbo, ps, &cg.predictedPlayerEntity, qtrue);
+		}
 		// Ridah
 	}   // end  "if ( ps->weapon > WP_NONE)"
 
@@ -3736,7 +3802,10 @@ void CG_AddViewWeapon( playerState_t *ps ) {
         CG_RailTrail2(&ci, origin, endUp);
     }
 
-	CG_LaserSight(ps);
+	CG_LaserSight(ps, qfalse);
+	if (ps->weapon == WP_AKIMBO) {
+		CG_LaserSight(ps, qtrue);
+	}
 
 	cg.predictedPlayerEntity.lastWeaponClientFrame = cg.clientFrame;
 }
@@ -3753,7 +3822,7 @@ void CG_AddViewHand( playerState_t *ps ) {
 		VectorScale( handEnt.axis[i], (cgVR->right_handed || i != 1) ? 1.0f : -1.0f, handEnt.axis[i] );
 	}
 
-	handEnt.renderfx = RF_DEPTHHACK; //| RF_VRVIEWMODEL;
+	handEnt.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON;
 	handEnt.hModel = cgs.media.handModel;
 
 	trap_R_AddRefEntityToScene( &handEnt );
@@ -4562,6 +4631,8 @@ void CG_DrawWheelSelector( void )
 				memset(&item, 0, sizeof(item));
 				if (weaponNum == WP_LUGER && CG_WeaponAvailable(WP_SILENCER)) {
 					item.itemId = WP_SILENCER;
+				} else if (weaponNum == WP_COLT && CG_WeaponAvailable(WP_AKIMBO)) {
+					item.itemId = WP_AKIMBO;
 				} else {
 					item.itemId = weaponNum;   
 				}
@@ -4909,6 +4980,7 @@ void CG_WheelSelectorSelect_f( void )
 		if (cg.wheelSelectorType == WST_WEAPON) {
 
 			cgVR->binocularsActive = qfalse;
+			cgVR->weaponid = cg.wheelSelectorSelection;
 			if (cg.wheelSelectorSelection != cg.weaponSelect) {
 				cg.weaponSelectTime = cg.time;
 				cg.weaponSelect = cg.wheelSelectorSelection;
@@ -4922,16 +4994,19 @@ void CG_WheelSelectorSelect_f( void )
 			}
 			else if (cg.wheelSelectorSelection == WSI_GRENADE) {
 				cgVR->binocularsActive = qfalse;
+				cgVR->weaponid = WP_GRENADE_LAUNCHER;
 				cg.weaponSelectTime = cg.time;
 				cg.weaponSelect = WP_GRENADE_LAUNCHER;
 			}
 			else if (cg.wheelSelectorSelection == WSI_PINEAPPLE) {
 				cgVR->binocularsActive = qfalse;
+				cgVR->weaponid = WP_GRENADE_PINEAPPLE;
 				cg.weaponSelectTime = cg.time;
 				cg.weaponSelect = WP_GRENADE_PINEAPPLE;
 			}
 			else if (cg.wheelSelectorSelection == WSI_DYNAMITE) {
 				cgVR->binocularsActive = qfalse;
+				cgVR->weaponid = WP_DYNAMITE;
 				cg.weaponSelectTime = cg.time;
 				cg.weaponSelect = WP_DYNAMITE;
 			}
@@ -5153,8 +5228,6 @@ void CG_FinishWeaponChange( int lastweap, int newweap ) {
 			cg.switchbackWeapon = lastweap;
 		}
 	}
-
-    cgVR->dualwield = (newweap == WP_AKIMBO);
 
 	cg.weaponSelect     = newweap;
 	cgVR->weaponid    = newweap; //Store in case we use backpack

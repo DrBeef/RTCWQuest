@@ -50,6 +50,8 @@ extern vmCvar_t g_gametype;
 extern vr_client_info_t* gVR;
 #endif
 
+#define TRIGGER_SECONDARY 1
+#define TRIGGER_PRIMARY   2
 
 // JPW NERVE -- stuck this here so it can be seen client & server side
 float Com_GetFlamethrowerRange( void ) {
@@ -2373,14 +2375,14 @@ void PM_CheckForReload( int weapon ) {
 	// clip is empty, but you have reserves.  (auto reload)
 	else if ( !( pm->ps->ammoclip[clipWeap] ) ) {   // clip is empty...
 		if ( pm->ps->ammo[ammoWeap] ) {         // and you have reserves
-			if ( weapon == WP_AKIMBO ) {    // if colt's got ammo, don't force reload yet (you know you've got it 'out' since you've got the akimbo selected
-				if ( !( pm->ps->ammoclip[WP_COLT] ) ) {
+			if ( weapon == WP_AKIMBO ) {  // reload only if both clips are empty
+				if ( !( pm->ps->ammoclip[WP_COLT] ) && !( pm->ps->ammoclip[WP_COLT] ) ) {
 					doReload = qtrue;
 				}
 				// likewise.  however, you need to check if you've got the akimbo selected, since you could have the colt alone
 			} else if ( weapon == WP_COLT ) {   // weapon checking for reload is colt...
-				if ( pm->ps->weapon == WP_AKIMBO ) {    // you've got the akimbo selected...
-					if ( !( pm->ps->ammoclip[WP_AKIMBO] ) ) {   // and it's got no ammo either
+				if ( pm->ps->weapon == WP_AKIMBO ) {  // reload only if both clips are empty
+					if ( !( pm->ps->ammoclip[WP_COLT] ) && !( pm->ps->ammoclip[WP_AKIMBO] ) ) {
 						doReload = qtrue;       // so reload
 					}
 				} else {     // single colt selected
@@ -2471,7 +2473,14 @@ void PM_WeaponUseAmmo( int wp, int amount ) {
 	} else {
 		takeweapon = BG_FindClipForWeapon( wp );
 		if ( wp == WP_AKIMBO ) {
-			if ( !BG_AkimboFireSequence( wp, pm->ps->ammoclip[WP_AKIMBO], pm->ps->ammoclip[WP_COLT] ) ) {
+			int triggerState = 0;
+#ifdef CGAMEDLL
+			triggerState = cgVR->akimboTriggerState;
+#endif
+#ifdef GAMEDLL
+			triggerState = gVR->akimboTriggerState;
+#endif
+			if ( !BG_AkimboFireSequence( wp, pm->ps->ammoclip[WP_AKIMBO], pm->ps->ammoclip[WP_COLT], triggerState ) ) {
 				takeweapon = WP_COLT;
 			}
 		}
@@ -2496,7 +2505,14 @@ int PM_WeaponAmmoAvailable( int wp ) {
 //		return pm->ps->ammoclip[BG_FindClipForWeapon( wp )];
 		takeweapon = BG_FindClipForWeapon( wp );
 		if ( wp == WP_AKIMBO ) {
-			if ( !BG_AkimboFireSequence( pm->ps->weapon, pm->ps->ammoclip[WP_AKIMBO], pm->ps->ammoclip[WP_COLT] ) ) {
+			int triggerState = 0;
+#ifdef CGAMEDLL
+			triggerState = cgVR->akimboTriggerState;
+#endif
+#ifdef GAMEDLL
+			triggerState = gVR->akimboTriggerState;
+#endif
+			if ( !BG_AkimboFireSequence( pm->ps->weapon, pm->ps->ammoclip[WP_AKIMBO], pm->ps->ammoclip[WP_COLT], triggerState ) ) {
 				takeweapon = WP_COLT;
 			}
 		}
@@ -2786,7 +2802,14 @@ static void PM_Weapon( void ) {
 	// RF, remoed this, was preventing lava from hurting player
 	//pm->watertype = 0;
 
-	akimboFire = BG_AkimboFireSequence( pm->ps->weapon, pm->ps->ammoclip[WP_AKIMBO], pm->ps->ammoclip[WP_COLT] );
+	int triggerState = 0;
+#ifdef CGAMEDLL
+	triggerState = cgVR->akimboTriggerState;
+#endif
+#ifdef GAMEDLL
+	triggerState = gVR->akimboTriggerState;
+#endif
+	akimboFire = BG_AkimboFireSequence( pm->ps->weapon, pm->ps->ammoclip[WP_AKIMBO], pm->ps->ammoclip[WP_COLT], triggerState );
 
 	if ( 0 ) {
 		switch ( pm->ps->weaponstate ) {
@@ -3061,6 +3084,12 @@ if ( pm->ps->weapon == WP_NONE ) {  // this is possible since the player starts 
 	return;
 }
 
+// In case of akimbo, fire only if player still holds at least one of triggers
+// (Sometimes with really quick tap +attack is spawned but trigger state is no longer
+// set when reaching here. Exiting solves problem of "random" weapon fire)
+if (pm->ps->weapon == WP_AKIMBO && !triggerState) {
+	return;
+}
 
 // JPW NERVE -- in multiplayer, don't allow panzerfaust or dynamite to fire if charge bar isn't full
 #ifdef GAMEDLL
@@ -3251,6 +3280,16 @@ if ( pm->ps->weapon ) {
 			playswitchsound = qfalse;
 			break;
 
+		case WP_AKIMBO:
+			// do not reload but continue fire if there is ammo in other gun
+			if (pm->ps->ammoclip[WP_AKIMBO] || pm->ps->ammoclip[WP_COLT]) {
+				reloadingW = qfalse;
+				playswitchsound = qfalse;
+				// notify player that one gun is empty
+				PM_AddEvent( EV_EMPTYCLIP );
+			}
+			break;
+
 			// some weapons not allowed to reload.  must switch back to primary first
 		case WP_SNOOPERSCOPE:
 		case WP_SNIPERRIFLE:
@@ -3395,17 +3434,21 @@ case WP_COLT:
 
 //----(SA)	added
 case WP_AKIMBO:
-	// if you're firing an akimbo colt, and your other gun is dry,
-	// nextshot needs to take 2x time
+	// if you're firing an akimbo colt, and you are firing only single gun,
+	// or other gun is dry, nextshot needs to take 2x time
 
 	addTime = ammoTable[pm->ps->weapon].nextShotTime;
-
-	// (SA) (added check for last shot in both guns so there's no delay for the last shot)
-	if ( !pm->ps->ammoclip[WP_AKIMBO] || !pm->ps->ammoclip[WP_COLT] ) {
-		if ( ( !pm->ps->ammoclip[WP_AKIMBO] && !akimboFire ) || ( !pm->ps->ammoclip[WP_COLT] && akimboFire ) ) {
-			addTime = 2 * ammoTable[pm->ps->weapon].nextShotTime;
+	if (triggerState < 3) {
+		// firing only single gun
+		addTime = 2 * ammoTable[pm->ps->weapon].nextShotTime;
+	} else {
+		// (SA) (added check for last shot in both guns so there's no delay for the last shot)
+		if ( !pm->ps->ammoclip[WP_AKIMBO] || !pm->ps->ammoclip[WP_COLT] ) {
+			if ( ( !pm->ps->ammoclip[WP_AKIMBO] && !akimboFire ) || ( !pm->ps->ammoclip[WP_COLT] && akimboFire ) ) {
+				addTime = 2 * ammoTable[pm->ps->weapon].nextShotTime;
+			}
 		}
-	}
+    }
 
 	aimSpreadScaleAdd = 20;
 	break;

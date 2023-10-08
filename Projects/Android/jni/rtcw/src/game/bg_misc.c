@@ -55,6 +55,8 @@ extern vmCvar_t g_gametype;
 #define MAX_AMMO_FG42   MAX_AMMO_MAUSER
 #define MAX_AMMO_BAR    200
 
+#define TRIGGER_SECONDARY 1
+#define TRIGGER_PRIMARY   2
 
 // these defines are matched with the character torso animations
 #define DELAY_LOW       100 // machineguns, tesla, spear, flame
@@ -1073,9 +1075,9 @@ dual colts
 	{
 		"weapon_akimbo",
 		"sound/misc/w_pkup.wav",
-		{   "models/weapons2/colt2/colt2.md3",
-			"models/weapons2/colt2/v_colt2.md3",
-			"models/weapons2/colt2/pu_colt2.md3",
+		{   "models/weapons2/colt/colt.md3",
+			"models/weapons2/colt/v_colt.md3",
+			"models/weapons2/colt/pu_colt.md3",
 			0, 0 },
 
 		"icons/iconw_colt_1",    // icon
@@ -3621,30 +3623,33 @@ BG_AkimboFireSequence
 ==============
 */
 //qboolean BG_AkimboFireSequence( playerState_t *ps ) {
-qboolean BG_AkimboFireSequence( int weapon, int akimboClip, int coltClip ) {
+qboolean BG_AkimboFireSequence( int weapon, int akimboClip, int coltClip, int triggerState ) {
 	// NOTE: this doesn't work when clips are turned off (dmflags 64)
 
 	if ( weapon != WP_AKIMBO ) {
 		return qfalse;
 	}
 
+	// If only one trigger is pushed, return weapon matching the trigger
+	if ((triggerState & TRIGGER_SECONDARY) && !(triggerState & TRIGGER_PRIMARY)) {
+		return qtrue; // Firing secondary weapon
+	}
+	if ((triggerState & TRIGGER_PRIMARY) && !(triggerState & TRIGGER_SECONDARY)) {
+		return qfalse; // Firing primary weapon
+	}
+
+	// If both triggers are pushed and one weapon is missing ammo, return the other
 	if ( !akimboClip ) {
 		return qfalse;
 	}
-
-	// no ammo in colt, must be akimbo turn
 	if ( !coltClip ) {
 		return qtrue;
 	}
 
-	// at this point, both have ammo
 
-	// now check 'cycle'   // (removed old method 11/5/2001)
-	if ( ( akimboClip + coltClip ) & 1 ) {
-		return qfalse;
-	}
-
-	return qtrue;
+	// At this point, both have ammo and we are firing from both
+	// Switch between primary and secondary after each fired shot
+	return ( ( akimboClip + coltClip ) & 1 );
 }
 
 //----(SA) end

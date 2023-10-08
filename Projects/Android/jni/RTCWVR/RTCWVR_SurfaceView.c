@@ -1514,8 +1514,7 @@ void RTCWVR_Init()
     //Set up vr client info
 	vr.backpackitemactive = 0;
 	vr.visible_hud = qtrue;
-	vr.dualwield = qfalse;
-    vr.weapon_recoil = 0.0f;
+	vr.weapon_recoil = 0.0f;
 
 	//Clear teleport stuff
 	vr.teleportexecute = qfalse;

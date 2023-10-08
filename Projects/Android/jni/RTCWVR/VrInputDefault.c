@@ -52,14 +52,6 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
     //Need this for the touch screen
     ovrTracking * pWeapon = pDominantTracking;
     ovrTracking * pOff = pOffTracking;
-    if (vr.weaponid == WP_AKIMBO &&
-            !vr.right_handed &&
-            !RTCWVR_useScreenLayer())
-    {
-        //Revert to same weapon controls as right-handed if using akimbo
-        pWeapon = pOffTracking;
-        pOff = pDominantTracking;
-    }
 
     //All this to allow stick and button switching!
     ovrVector2f *pPrimaryJoystick;
@@ -111,24 +103,27 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
         QuatToYawPitchRoll(pDominantTracking->HeadPose.Pose.Orientation, rotation, vr.dominanthandangles);
         rotation[PITCH] = 30;
         QuatToYawPitchRoll(pWeapon->HeadPose.Pose.Orientation, rotation, vr.weaponangles_knife);
-        rotation[PITCH] = vr_weapon_pitchadjust->value +
-                (vr.pistol ? vr.weapon_recoil : 0.0f); // Our hacked recoil effect
-        vr.weapon_recoil *= 0.8f; // quick reduction on synthetic recoil
+        qboolean addRecoil = vr.pistol && (vr.weaponid != WP_AKIMBO || vr.akimboFire);
+        rotation[PITCH] = vr_weapon_pitchadjust->value + (addRecoil ? vr.weapon_recoil : 0.0f); // Our hacked recoil effect
         QuatToYawPitchRoll(pWeapon->HeadPose.Pose.Orientation, rotation, vr.weaponangles);
 
         VectorSubtract(vr.weaponangles_last, vr.weaponangles, vr.weaponangles_delta);
         VectorCopy(vr.weaponangles, vr.weaponangles_last);
 
-        ALOGV("        weaponangles_last: %f, %f, %f",
-              vr.weaponangles_last[0], vr.weaponangles_last[1], vr.weaponangles_last[2]);
+        ALOGV("        weaponangles_last: %f, %f, %f", vr.weaponangles_last[0], vr.weaponangles_last[1], vr.weaponangles_last[2]);
 
         //GB Also set offhand angles just in case we want to use those.
         vec3_t rotation_off = {0};
         rotation_off[PITCH] = -25;
         QuatToYawPitchRoll(pOff->HeadPose.Pose.Orientation, rotation_off, vr.offhandangles);
+        qboolean addRecoil_off = vr.pistol && (vr.weaponid != WP_AKIMBO || !vr.akimboFire);
+        rotation_off[PITCH] = vr_weapon_pitchadjust->value + (addRecoil_off ? vr.weapon_recoil : 0.0f); // Our hacked recoil effect
+        QuatToYawPitchRoll(pOff->HeadPose.Pose.Orientation, rotation_off, vr.offhandweaponangles);
 
         VectorSubtract(vr.offhandangles_last, vr.offhandangles, vr.offhandangles_delta);
         VectorCopy(vr.offhandangles, vr.offhandangles_last);
+
+        vr.weapon_recoil *= 0.8f; // quick reduction on synthetic recoil
     }
 
     //Menu button
@@ -279,10 +274,9 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                 sendButtonAction("+attack", velocityTriggeredAttack);
             }
 
-            if (vr.weapon_stabilised || vr.dualwield)
+            if (vr.weapon_stabilised)
             {
-                if (vr.scopeengaged || (vr_virtual_stock->integer == 1 &&  // Classic Virtual Stock
-                                        !vr.dualwield))
+                if (vr.scopeengaged || vr_virtual_stock->integer == 1)
                 {
                     //offset to the appropriate eye a little bit
                     vec2_t xy;
@@ -305,16 +299,8 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                     float zxDist = length(x, z);
 
                     if (zxDist != 0.0f && z != 0.0f) {
-                        if (vr.dualwield) {
-                            //SUPER FUDGE
-                            VectorSet(vr.weaponangles, vr.weaponangles[PITCH],
-                                      -90.0f-degrees(atan2f(x, -z)), degrees(atanf(y / zxDist)));
-                        }
-                        else
-                        {
-                            VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)),
-                                      -degrees(atan2f(x, -z)), vr.weaponangles[ROLL] / 2.0f); //Dampen roll on stabilised weapon
-                        }
+                        VectorSet(vr.weaponangles, -degrees(atanf(y / zxDist)),
+                                  -degrees(atan2f(x, -z)), vr.weaponangles[ROLL] / 2.0f); //Dampen roll on stabilised weapon
                     }
                 }
             }
@@ -583,6 +569,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                         else if (firing)
                         {
                             //no longer firing
+                            vr.akimboTriggerState = 0;
                             firing = qfalse;
                             ALOGV("**WEAPON EVENT**  Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
                             sendButtonAction("+attack", firing);
@@ -599,9 +586,22 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                     else
                     {
                         //Just ignore grip and fire
-                        firing = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
                         ALOGV("**WEAPON EVENT**  Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
-                        sendButtonAction("+attack", firing);
+                        firing = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
+                        if (vr.weaponid == WP_AKIMBO) {
+                            if (firing) {
+                                vr.akimboTriggerState |= ACTIVE_WEAPON_HAND;
+                                sendButtonAction("+attack", firing);
+                            } else {
+                                vr.akimboTriggerState &= ~ACTIVE_WEAPON_HAND;
+                                if (!vr.akimboTriggerState) { // Stop firing only if we are not firing with off-hand weapon
+                                    sendButtonAction("+attack", firing);
+                                }
+                            }
+                        } else {
+                            vr.akimboTriggerState = 0;
+                            sendButtonAction("+attack", firing);
+                        }
                     }
                 }
             }
@@ -615,7 +615,20 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
                     ALOGV("**WEAPON EVENT**  Not Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
                     firing = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
-                    sendButtonAction("+attack", firing);
+                    if (vr.weaponid == WP_AKIMBO) {
+                        if (firing) {
+                            vr.akimboTriggerState |= ACTIVE_WEAPON_HAND;
+                            sendButtonAction("+attack", firing);
+                        } else {
+                            vr.akimboTriggerState &= ~ACTIVE_WEAPON_HAND;
+                            if (!vr.akimboTriggerState) { // Stop firing only if we are not still firing with off-hand weapon
+                                sendButtonAction("+attack", firing);
+                            }
+                        }
+                    } else {
+                        vr.akimboTriggerState = 0;
+                        sendButtonAction("+attack", firing);
+                    }
                 }
                 else if (binocularsactive) // trigger can zoom-in binoculars, remove from face to reset
                 {
@@ -748,11 +761,30 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
             //in meantime, then it wouldn't stop the gun firing and it would get stuck
             if (!vr.teleportenabled)
             {
-                //Run
-                handleTrackedControllerButton(pOffTrackedRemoteNew,
-                                              pOffTrackedRemoteOld,
-                                              ovrButton_Trigger, K_SHIFT);
-
+                if (vr.weaponid == WP_AKIMBO && vr.backpackitemactive != 3 && !vr.binocularsActive) {
+                    // Fire off-hand weapon
+                    if ((pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) != (pOffTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
+                        ALOGV("**WEAPON EVENT**  Off-hand trigger %sattack", (pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
+                        qboolean firing = (pOffTrackedRemoteNew->Buttons & ovrButton_Trigger);
+                        if (firing) {
+                            vr.akimboTriggerState |= ACTIVE_OFF_HAND;
+                            sendButtonAction("+attack", firing);
+                        } else {
+                            vr.akimboTriggerState &= ~ACTIVE_OFF_HAND;
+                            if (!vr.akimboTriggerState) { // Stop firing only if we are not still firing with main weapon
+                                sendButtonAction("+attack", firing);
+                            }
+                        }
+                    }
+                } else {
+                    if (vr.akimboTriggerState) {
+                        // Akimbo no longer active, stop attacking
+                        vr.akimboTriggerState = 0;
+                        sendButtonAction("+attack", qfalse);
+                    }
+                    // Run
+                    handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, ovrButton_Trigger, K_SHIFT);
+                }
             } else {
                 if (pOffTrackedRemoteNew->Buttons & ovrButton_Trigger)
                 {
@@ -861,34 +893,34 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
         // Off-hand gesture
         float distanceToBody = sqrt(vr.offhandoffset[0]*vr.offhandoffset[0] + vr.offhandoffset[2]*vr.offhandoffset[2]);
         if (gestureUseAllowed && (distanceToBody > vr_use_gesture_boundary->value)) {
-            if (!(vr.useGestureState & USE_GESTURE_OFF_HAND)) {
+            if (!(vr.useGestureState & ACTIVE_OFF_HAND)) {
                 sendButtonAction("+activate2", true);
             }
-            vr.useGestureState |= USE_GESTURE_OFF_HAND;
+            vr.useGestureState |= ACTIVE_OFF_HAND;
         } else {
-            if (vr.useGestureState & USE_GESTURE_OFF_HAND) {
+            if (vr.useGestureState & ACTIVE_OFF_HAND) {
                 sendButtonAction("+activate2", false);
             }
-            vr.useGestureState &= ~USE_GESTURE_OFF_HAND;
+            vr.useGestureState &= ~ACTIVE_OFF_HAND;
         }
         // Weapon-hand gesture
         distanceToBody = sqrt(vr.current_weaponoffset[0]*vr.current_weaponoffset[0] + vr.current_weaponoffset[2]*vr.current_weaponoffset[2]);
         if (gestureUseAllowed && (distanceToBody > vr_use_gesture_boundary->value)) {
-            if (!(vr.useGestureState & USE_GESTURE_WEAPON_HAND)) {
+            if (!(vr.useGestureState & ACTIVE_WEAPON_HAND)) {
                 sendButtonAction("+activate", true);
             }
-            vr.useGestureState |= USE_GESTURE_WEAPON_HAND;
+            vr.useGestureState |= ACTIVE_WEAPON_HAND;
         } else {
-            if (vr.useGestureState & USE_GESTURE_WEAPON_HAND) {
+            if (vr.useGestureState & ACTIVE_WEAPON_HAND) {
                 sendButtonAction("+activate", false);
             }
-            vr.useGestureState &= ~USE_GESTURE_WEAPON_HAND;
+            vr.useGestureState &= ~ACTIVE_WEAPON_HAND;
         }
     } else {
-        if (vr.useGestureState & USE_GESTURE_OFF_HAND) {
+        if (vr.useGestureState & ACTIVE_OFF_HAND) {
             sendButtonAction("+activate2", false);
         }
-        if (vr.useGestureState & USE_GESTURE_WEAPON_HAND) {
+        if (vr.useGestureState & ACTIVE_WEAPON_HAND) {
             sendButtonAction("+activate", false);
         }
         vr.useGestureState = 0;

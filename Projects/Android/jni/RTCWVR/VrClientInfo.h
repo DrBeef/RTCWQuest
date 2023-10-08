@@ -4,8 +4,8 @@
 #define NUM_WEAPON_SAMPLES      10
 #define WEAPON_RECOIL           15.0f;
 
-#define USE_GESTURE_OFF_HAND      1
-#define USE_GESTURE_WEAPON_HAND   2
+#define ACTIVE_OFF_HAND      1
+#define ACTIVE_WEAPON_HAND   2
 
 typedef struct {
     qboolean screen;
@@ -15,7 +15,6 @@ typedef struct {
     qboolean menu_right_handed;
     qboolean player_moving;
     qboolean visible_hud;
-    qboolean dualwield;
     int weaponid;
     int lastweaponid;
     int backpackitemactive; //0 - nothing, 1 - grenades, 2 - knife, 3 - Binoculars
@@ -55,6 +54,7 @@ typedef struct {
 
     qboolean velocitytriggered; // Weapon attack triggered by velocity (knife)
 
+    vec3_t offhandweaponangles;
     vec3_t offhandangles;
     vec3_t offhandangles_last; // Don't use this, it is just for calculating delta!
     vec3_t offhandangles_delta;
@@ -79,6 +79,8 @@ typedef struct {
     qboolean binocularsActive;
     qboolean useHoldableItem;
     qboolean toggleMainMenu;
+    int      akimboTriggerState;
+    qboolean akimboFire;
 
     //////////////////////////////////////
     //    Test stuff for weapon alignment

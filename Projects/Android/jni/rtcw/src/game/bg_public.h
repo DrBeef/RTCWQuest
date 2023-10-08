@@ -1312,7 +1312,7 @@ gitem_t *BG_FindItemForKey( wkey_t k, int *index );
 weapon_t BG_FindAmmoForWeapon( weapon_t weapon );
 weapon_t BG_FindClipForWeapon( weapon_t weapon );
 
-qboolean BG_AkimboFireSequence( int weapon, int akimboClip, int coltClip );
+qboolean BG_AkimboFireSequence( int weapon, int akimboClip, int coltClip, int triggerState );
 //qboolean BG_AkimboFireSequence	( playerState_t *ps );	//----(SA)	added
 
 #define ITEM_INDEX( x ) ( ( x ) - bg_itemlist )

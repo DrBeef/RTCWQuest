@@ -1607,7 +1607,8 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		CG_DrawWheelSelector();
 	} else if (!cgVR->screen){
 		CG_AddViewWeapon( &cg.predictedPlayerState );
-		if (trap_Cvar_VariableIntegerValue("vr_gesture_triggered_use") && !cgVR->weapon_stabilised && !cg.renderingThirdPerson) {
+		qboolean usingAkimbo = cg.predictedPlayerState.weapon == WP_AKIMBO;
+		if (!usingAkimbo && !cgVR->weapon_stabilised && !cg.renderingThirdPerson && trap_Cvar_VariableIntegerValue("vr_gesture_triggered_use")) {
 			CG_AddViewHand( &cg.predictedPlayerState);
 		}
 	}

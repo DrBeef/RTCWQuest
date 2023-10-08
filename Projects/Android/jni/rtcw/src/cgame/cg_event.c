@@ -1947,6 +1947,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_EMPTYCLIP:
 		DEBUGNAME( "EV_EMPTYCLIP" );
+		if ( ( es->weapon != WP_GRENADE_LAUNCHER ) && ( es->weapon != WP_GRENADE_PINEAPPLE ) && ( es->weapon != WP_DYNAMITE ) ) {
+			trap_S_StartSound( NULL, es->number, CHAN_AUTO, cgs.media.noAmmoSound );
+		}
 		break;
 
 	case EV_FILL_CLIP:
@@ -2022,8 +2025,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		CG_FireWeapon( cent );
 		if ( event == EV_FIRE_WEAPONB ) {  // akimbo firing colt
 			cent->akimboFire = qtrue;
+			cgVR->akimboFire = qtrue;
 		} else {
 			cent->akimboFire = qfalse;
+			cgVR->akimboFire = qfalse;
 		}
 		break;
 	case EV_FIRE_WEAPON_LASTSHOT:
