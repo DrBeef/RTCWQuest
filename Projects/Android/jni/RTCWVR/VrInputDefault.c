@@ -43,6 +43,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
             vr_control_scheme->value == 99; // Always right-handed for weapon calibration
 
 	vr.teleportenabled = vr_teleport->integer != 0;
+    vr.visible_hud = vr_draw_hud->integer;
 
     static qboolean dominantGripPushed = false;
 	static float dominantGripPushTime = 0.0f;
@@ -553,92 +554,37 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
 
 
-            //We need to record if we have started firing primary so that releasing trigger will stop firing, if user has pushed grip
-            //in meantime, then it wouldn't stop the gun firing and it would get stuck
-            static qboolean firing = false;
-            if (dominantGripPushed && vr.backpackitemactive == 0)
-            {
-                if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
-                    (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger))
-                {
-                    if (!vr.scopedweapon) {
-                        if (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) {
-                            ALOGV("**WEAPON EVENT**  weapalt");
-                            sendButtonActionSimple("weapalt");
-                        }
-                        else if (firing)
-                        {
-                            //no longer firing
-                            vr.akimboTriggerState = 0;
-                            firing = qfalse;
-                            ALOGV("**WEAPON EVENT**  Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
+            //Fire Primary
+            if (vr.backpackitemactive != 3 && !vr.binocularsActive && // Can't fire while holding binoculars
+                !vr.velocitytriggered && // Don't fire velocity triggered weapons
+                (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
+                (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
+
+                ALOGV("**WEAPON EVENT**  Not Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
+                qboolean firing = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
+                if (vr.weaponid == WP_AKIMBO) {
+                    if (firing) {
+                        vr.akimboTriggerState |= ACTIVE_WEAPON_HAND;
+                        sendButtonAction("+attack", firing);
+                    } else {
+                        vr.akimboTriggerState &= ~ACTIVE_WEAPON_HAND;
+                        if (!vr.akimboTriggerState) { // Stop firing only if we are not still firing with off-hand weapon
                             sendButtonAction("+attack", firing);
                         }
                     }
-                    else if (vr.detachablescope)
-                    {
-                        if (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) {
-                            //See if we are able to detach the scope
-                            ALOGV("**WEAPON EVENT**  weapdetachscope");
-                            sendButtonActionSimple("weapdetachscope");
-                        }
-                    }
-                    else
-                    {
-                        //Just ignore grip and fire
-                        ALOGV("**WEAPON EVENT**  Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
-                        firing = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
-                        if (vr.weaponid == WP_AKIMBO) {
-                            if (firing) {
-                                vr.akimboTriggerState |= ACTIVE_WEAPON_HAND;
-                                sendButtonAction("+attack", firing);
-                            } else {
-                                vr.akimboTriggerState &= ~ACTIVE_WEAPON_HAND;
-                                if (!vr.akimboTriggerState) { // Stop firing only if we are not firing with off-hand weapon
-                                    sendButtonAction("+attack", firing);
-                                }
-                            }
-                        } else {
-                            vr.akimboTriggerState = 0;
-                            sendButtonAction("+attack", firing);
-                        }
-                    }
+                } else {
+                    vr.akimboTriggerState = 0;
+                    sendButtonAction("+attack", firing);
                 }
             }
-            else
+            else if (binocularsactive) // trigger can zoom-in binoculars, remove from face to reset
             {
-                //Fire Primary
-                if (vr.backpackitemactive != 3 && !vr.binocularsActive && // Can't fire while holding binoculars
-                    !vr.velocitytriggered && // Don't fire velocity triggered weapons
-                    (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) !=
-                    (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
-
-                    ALOGV("**WEAPON EVENT**  Not Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
-                    firing = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
-                    if (vr.weaponid == WP_AKIMBO) {
-                        if (firing) {
-                            vr.akimboTriggerState |= ACTIVE_WEAPON_HAND;
-                            sendButtonAction("+attack", firing);
-                        } else {
-                            vr.akimboTriggerState &= ~ACTIVE_WEAPON_HAND;
-                            if (!vr.akimboTriggerState) { // Stop firing only if we are not still firing with off-hand weapon
-                                sendButtonAction("+attack", firing);
-                            }
-                        }
-                    } else {
-                        vr.akimboTriggerState = 0;
-                        sendButtonAction("+attack", firing);
-                    }
-                }
-                else if (binocularsactive) // trigger can zoom-in binoculars, remove from face to reset
+                static qboolean zoomin = true;
+                if (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) {
+                    sendButtonActionSimple(zoomin ? "weapnext" : "weapprev");
+                } else if (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)
                 {
-                    static qboolean zoomin = true;
-                    if (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) {
-                        sendButtonActionSimple(zoomin ? "weapnext" : "weapprev");
-                    } else if (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger)
-                    {
-                        zoomin = !zoomin;
-                    }
+                    zoomin = !zoomin;
                 }
             }
 
@@ -722,31 +668,28 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                 stopUseItemNextFrame = false;
             }
 
+            // Detach scopes, draw akimbo
             if (!canUseQuickSave) {
                 if (((secondaryButtonsNew & secondaryButton1) !=
                      (secondaryButtonsOld & secondaryButton1)) &&
                     (secondaryButtonsNew & secondaryButton1)) {
-
-                    if (dominantGripPushed) {
-                        Cbuf_AddText("+useitem\n");
-                        stopUseItemNextFrame = qtrue;
-                    } else {
-                        vr.visible_hud = !vr.visible_hud;
+                    if (!vr.scopedweapon) {
+                        ALOGV("**WEAPON EVENT**  weapalt");
+                        sendButtonActionSimple("weapalt");
+                    } else if (vr.detachablescope) {
+                        //See if we are able to detach the scope
+                        ALOGV("**WEAPON EVENT**  weapdetachscope");
+                        sendButtonActionSimple("weapdetachscope");
                     }
                 }
             }
 
-            //notebook or select "item"
+            // Notebook
             if (!canUseQuickSave) {
                 if (((secondaryButtonsNew & secondaryButton2) !=
                      (secondaryButtonsOld & secondaryButton2)) &&
                     (secondaryButtonsNew & secondaryButton2)) {
-
-                    if (dominantGripPushed) {
-                        sendButtonActionSimple("itemprev");
-                    } else {
-                        sendButtonActionSimple("notebook");
-                    }
+                    sendButtonActionSimple("notebook");
                 }
             }
 
@@ -759,7 +702,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
             //We need to record if we have started firing primary so that releasing trigger will stop definitely firing, if user has pushed grip
             //in meantime, then it wouldn't stop the gun firing and it would get stuck
-            if (!vr.teleportenabled)
+            if (!vr.teleportenabled || vr.weaponid == WP_AKIMBO)
             {
                 if (vr.weaponid == WP_AKIMBO && vr.backpackitemactive != 3 && !vr.binocularsActive) {
                     // Fire off-hand weapon

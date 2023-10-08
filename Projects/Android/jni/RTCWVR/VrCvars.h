@@ -15,4 +15,4 @@ cvar_t	*vr_cinematic_stereo;
 cvar_t	*vr_screen_dist;
 cvar_t	*vr_gesture_triggered_use;
 cvar_t	*vr_use_gesture_boundary;
-
+cvar_t	*vr_draw_hud;
