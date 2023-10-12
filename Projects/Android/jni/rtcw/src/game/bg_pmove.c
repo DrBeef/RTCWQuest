@@ -1635,6 +1635,60 @@ static void PM_CheckDuck( void ) {
 		return;
 	}
 
+	// IRL Crouch
+	vr_client_info_t* vr;
+#ifdef CGAMEDLL
+	vr = cgVR;
+#endif
+#ifdef GAMEDLL
+	vr = gVR;
+#endif
+	if (vr && !pm->ps->clientNum && vr->vrIrlCrouchEnabled) {
+		int standheight = pm->ps->maxs[2];
+		int crouchheight = pm->ps->crouchMaxZ;
+		// In-game view height always matches full stand height
+		// (we are crouching IRL, no need to artificially lower view)
+		pm->ps->viewheight = standheight - 8;
+
+		// Compute in-game height based on HMD height above floor
+		// (adjust height only when crouching, ignore IRL jumps)
+		int computedHeight = pm->ps->standViewHeight;
+		if (crouchheight < standheight && vr->curHeight < vr->maxHeight) {
+			// Count minimum IRL crouch height based on maximum IRL height
+			//trap_Cvar_VariableValue("vr_irl_crouch_to_stand_ratio", &vrIrlCrouchToStandRatio);
+			float minHeight = vr->maxHeight * vr->vrIrlCrouchToStandRatio;
+			if (vr->curHeight < minHeight) { // Do not allow to crawl (set min height)
+				computedHeight = crouchheight;
+			} else {
+				float heightRatio = (vr->curHeight - minHeight) / (vr->maxHeight - minHeight);
+				computedHeight = pm->ps->crouchViewHeight + (int)(heightRatio * (standheight - crouchheight));
+			}
+		}
+
+		// Adjust height based on where are you standing
+		// (cannot stand up if there is no place, find nearest possible height)
+		for (int i = computedHeight; i > 0; i--) {
+			pm->maxs[2] = i;
+			pm->trace( &trace, pm->ps->origin, pm->mins, pm->maxs, pm->ps->origin, pm->ps->clientNum, pm->tracemask );
+			if ( !trace.allsolid ) {
+				break;
+			} else {
+				// Lower view height to not see through ceiling
+				// (in case you stand up IRL in tight place)
+				pm->ps->viewheight--;
+			}
+		}
+
+		// Toggle duck flag based on in-game height (need to be at least half-way crouched)
+		if (pm->maxs[2] < crouchheight + (standheight - crouchheight)/2) {
+			pm->ps->pm_flags |= PMF_DUCKED;
+		} else {
+			pm->ps->pm_flags &= ~PMF_DUCKED;
+		}
+
+		return;
+	}
+
 	if ( pm->cmd.upmove < 0 ) { // duck
 		pm->ps->pm_flags |= PMF_DUCKED;
 	} else

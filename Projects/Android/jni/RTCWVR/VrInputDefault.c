@@ -44,6 +44,8 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
 	vr.teleportenabled = vr_teleport->integer != 0;
     vr.visible_hud = vr_draw_hud->integer;
+    vr.vrIrlCrouchEnabled = vr_irl_crouch_enabled->integer != 0;
+    vr.vrIrlCrouchToStandRatio = vr_irl_crouch_to_stand_ratio->value;
 
     static qboolean dominantGripPushed = false;
 	static float dominantGripPushTime = 0.0f;
@@ -595,6 +597,8 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                 (primaryButtonsOld & primaryButton1)) {
 
                 sendButtonAction("+movedown", (primaryButtonsNew & primaryButton1));
+                // Reset max height for IRL crouch
+                vr.maxHeight = 0;
             }
 
 			//Weapon Chooser

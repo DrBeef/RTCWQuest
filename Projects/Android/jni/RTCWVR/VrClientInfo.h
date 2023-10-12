@@ -81,6 +81,10 @@ typedef struct {
     qboolean toggleMainMenu;
     int      akimboTriggerState;
     qboolean akimboFire;
+    qboolean vrIrlCrouchEnabled;
+    float    vrIrlCrouchToStandRatio;
+    float    maxHeight;
+    float    curHeight;
 
     //////////////////////////////////////
     //    Test stuff for weapon alignment

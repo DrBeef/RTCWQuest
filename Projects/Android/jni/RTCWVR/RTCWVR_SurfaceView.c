@@ -1504,6 +1504,8 @@ void RTCWVR_Init()
 	vr_gesture_triggered_use = Cvar_Get ("vr_gesture_triggered_use", "1", CVAR_ARCHIVE);
 	vr_use_gesture_boundary = Cvar_Get ("vr_use_gesture_boundary", "0.35", CVAR_ARCHIVE);
 	vr_draw_hud = Cvar_Get ("vr_draw_hud", "1", CVAR_ARCHIVE);
+	vr_irl_crouch_enabled = Cvar_Get ("vr_irl_crouch_enabled", "0", CVAR_ARCHIVE);
+	vr_irl_crouch_to_stand_ratio = Cvar_Get ("vr_irl_crouch_to_stand_ratio", "0.65", CVAR_ARCHIVE);
 
     //Defaults
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
@@ -1856,6 +1858,13 @@ void RTCWVR_getHMDOrientation() {//Get orientation
 	setHMDPosition(positionHmd.x, positionHmd.y, positionHmd.z);
 
 	updateHMDOrientation();
+
+	// Max-height is set only once on start, or after re-calibration
+	// (ignore too low value which is sometimes provided on start)
+	if (!vr.maxHeight || vr.maxHeight < 1.0) {
+		vr.maxHeight = positionHmd.y;
+	}
+	vr.curHeight = positionHmd.y;
 
 	ALOGV("        HMD-Position: %f, %f, %f", positionHmd.x, positionHmd.y, positionHmd.z);
 }

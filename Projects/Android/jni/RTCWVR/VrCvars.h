@@ -16,3 +16,5 @@ cvar_t	*vr_screen_dist;
 cvar_t	*vr_gesture_triggered_use;
 cvar_t	*vr_use_gesture_boundary;
 cvar_t	*vr_draw_hud;
+cvar_t	*vr_irl_crouch_enabled;
+cvar_t	*vr_irl_crouch_to_stand_ratio;
