@@ -2858,10 +2858,14 @@ static void PM_Weapon( void ) {
 
 	int triggerState = 0;
 #ifdef CGAMEDLL
-	triggerState = cgVR->akimboTriggerState;
+	if (cgVR) {
+		triggerState = cgVR->akimboTriggerState;
+	}
 #endif
 #ifdef GAMEDLL
-	triggerState = gVR->akimboTriggerState;
+	if (gVR) {
+		triggerState = gVR->akimboTriggerState;
+	}
 #endif
 	akimboFire = BG_AkimboFireSequence( pm->ps->weapon, pm->ps->ammoclip[WP_AKIMBO], pm->ps->ammoclip[WP_COLT], triggerState );
 
