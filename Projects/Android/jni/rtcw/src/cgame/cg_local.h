@@ -1099,6 +1099,12 @@ typedef struct {
 
 	qhandle_t binocularsIcon;
 	qhandle_t binocularsIconSelect;
+	qhandle_t grenadeIcon;
+	qhandle_t grenadeIconSelect;
+	qhandle_t pineappleIcon;
+	qhandle_t pineappleIconSelect;
+	qhandle_t dynamiteIcon;
+	qhandle_t dynamiteIconSelect;
 	qhandle_t wine1Icon;
 	qhandle_t wine1IconSelect;
 	qhandle_t wine2Icon;
@@ -1122,6 +1128,7 @@ typedef struct {
 	qhandle_t arrowIcon;
 	qhandle_t weaponIcons[SELECTABLE_WEAPONS_NUM];
 	qhandle_t weaponIconsSelect[SELECTABLE_WEAPONS_NUM];
+	qhandle_t itemSelectCursor;
 
 	qhandle_t reticleShader;
 //	qhandle_t	reticleShaderSimple;

@@ -1285,6 +1285,9 @@ static void CG_RegisterGraphics( void ) {
 
 	cgs.media.arrowIcon = trap_R_RegisterShader( "icons/arrow" );
 	cgs.media.binocularsIcon = trap_R_RegisterShader( "icons/binoculars" );
+	cgs.media.grenadeIcon = trap_R_RegisterShader( "icons/iconw_grenade_1" );
+	cgs.media.pineappleIcon = trap_R_RegisterShader( "icons/iconw_pineapple_1" );
+	cgs.media.dynamiteIcon = trap_R_RegisterShader( "icons/iconw_dynamite_1" );
 	cgs.media.wine1Icon = trap_R_RegisterShader( "icons/wine_notselect" );
 	cgs.media.wine2Icon = trap_R_RegisterShader( "icons/wine2_notselect" );
 	cgs.media.wine3Icon = trap_R_RegisterShader( "icons/wine3_notselect" );
@@ -1296,6 +1299,9 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.loadIcon = trap_R_RegisterShader( "icons/load" );
 	cgs.media.saveIcon = trap_R_RegisterShader( "icons/save" );
 	cgs.media.binocularsIconSelect = trap_R_RegisterShader( "icons/binoculars_select" );
+	cgs.media.grenadeIconSelect = trap_R_RegisterShader( "icons/iconw_grenade_1_select" );
+	cgs.media.pineappleIconSelect = trap_R_RegisterShader( "icons/iconw_pineapple_1_select" );
+	cgs.media.dynamiteIconSelect = trap_R_RegisterShader( "icons/iconw_dynamite_1_select" );
 	cgs.media.wine1IconSelect = trap_R_RegisterShader( "icons/wine" );
 	cgs.media.wine2IconSelect = trap_R_RegisterShader( "icons/wine2" );
 	cgs.media.wine3IconSelect = trap_R_RegisterShader( "icons/wine3" );
@@ -1337,6 +1343,7 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.weaponIconsSelect[11] = trap_R_RegisterShader( "icons/iconw_flamethrower_1_select.tga" );
 	cgs.media.weaponIconsSelect[12] = trap_R_RegisterShader( "icons/iconw_tesla_1_select.tga" );
 	cgs.media.noammoIcon = trap_R_RegisterShader( "icons/noammo2" );
+	cgs.media.itemSelectCursor = trap_R_RegisterShader( "icons/item_select_cursor.tga" );
 
 	// powerup shaders
 //	cgs.media.quadShader = trap_R_RegisterShader("powerups/quad" );

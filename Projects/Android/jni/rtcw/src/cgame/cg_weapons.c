@@ -4469,7 +4469,7 @@ void CG_WeaponSuggest( int weap ) {
 
 }
 
-void GC_HandleWheelSelector(vec3_t beamColor, selectorWheelEntity_t selectorWheelItems[] , int selectorWheelItemNum )
+void GC_HandleWheelSelector(selectorWheelEntity_t selectorWheelItems[] , int selectorWheelItemNum )
 {
 	if (cg.wheelSelectorTime == 0)
 	{
@@ -4537,11 +4537,16 @@ void GC_HandleWheelSelector(vec3_t beamColor, selectorWheelEntity_t selectorWhee
 		trap_R_AddRefEntityToScene(&arrowIcon);
 	}
 
-	clientInfo_t ci;
-	ci.health = 1;
-	ci.handicap = 96; // value out of 255 for  alpha channel
-	VectorSet(ci.color, beamColor[0], beamColor[1], beamColor[2]);
-	CG_RailTrail2(&ci, beamOrigin, selectorOrigin);
+	refEntity_t selectCursor;
+	memset(&selectCursor, 0, sizeof(selectCursor));
+	selectCursor.reType = RT_SPRITE;
+	selectCursor.customShader = cgs.media.itemSelectCursor;
+	selectCursor.radius = 1.3f;
+	memset(selectCursor.shaderRGBA, 0xff, 4);
+	vec3_t forward;
+	AngleVectors(wheelAngles, forward, NULL, NULL);
+	VectorMA(selectorOrigin, -0.6f, forward, selectCursor.origin);
+	trap_R_AddRefEntityToScene(&selectCursor);
 
 	if (selectorWheelItemNum == 0) {
 		cg.wheelSelectorSelection = WP_NONE;
@@ -4614,15 +4619,10 @@ void CG_DrawWheelSelector( void )
 		return;
 	}
 
-	vec3_t beamColor;
 	selectorWheelEntity_t selectorWheelItems[32];
 	int selectorWheelItemNum = 0;
 
 	if (cg.wheelSelectorType == WST_WEAPON) {
-
-		beamColor[0] = 1.0f;
-		beamColor[1] = 0.8f;
-		beamColor[2] = 0.2f;
 
 		int availableWeapons[SELECTABLE_WEAPONS_NUM];
 		int weaponCount = 0;
@@ -4675,10 +4675,6 @@ void CG_DrawWheelSelector( void )
 
 	} else if (cg.wheelSelectorType == WST_ITEM) {
 
-		beamColor[0] = 0.0f;
-		beamColor[1] = 1.0f;
-		beamColor[2] = 0.0f;
-
 		if (cgVR->hasbinoculars) {
 			selectorWheelEntity_t binocularsItem;
 			memset(&binocularsItem, 0, sizeof(binocularsItem));
@@ -4707,14 +4703,14 @@ void CG_DrawWheelSelector( void )
 			refEntity_t grenadeIcon;
 			memset(&grenadeIcon, 0, sizeof(grenadeIcon));
 			grenadeIcon.reType = RT_SPRITE;
-			grenadeIcon.customShader = cg_weapons[WP_GRENADE_LAUNCHER].weaponIcon[0];
+			grenadeIcon.customShader = cgs.media.grenadeIcon;
 			grenadeIcon.radius = 0.8f;
 			memset(grenadeIcon.shaderRGBA, 0xff, 4);
 			grenadeItem.icon = grenadeIcon;
 			refEntity_t grenadeIconSelected;
 			memset(&grenadeIconSelected, 0, sizeof(grenadeIconSelected));
 			grenadeIconSelected.reType = RT_SPRITE;
-            grenadeIconSelected.customShader = cg_weapons[WP_GRENADE_LAUNCHER].weaponIcon[1];
+            grenadeIconSelected.customShader = cgs.media.grenadeIconSelect;
 			grenadeIconSelected.radius = 1.3f;
 			memset(grenadeIconSelected.shaderRGBA, 0xff, 4);
 			grenadeItem.iconSelected = grenadeIconSelected;
@@ -4728,14 +4724,14 @@ void CG_DrawWheelSelector( void )
 			refEntity_t pineappleIcon;
 			memset(&pineappleIcon, 0, sizeof(pineappleIcon));
 			pineappleIcon.reType = RT_SPRITE;
-			pineappleIcon.customShader = cg_weapons[WP_GRENADE_PINEAPPLE].weaponIcon[0];
+			pineappleIcon.customShader = cgs.media.pineappleIcon;
 			pineappleIcon.radius = 0.8f;
 			memset(pineappleIcon.shaderRGBA, 0xff, 4);
 			pineappleItem.icon = pineappleIcon;
 			refEntity_t pineappleIconSelected;
 			memset(&pineappleIconSelected, 0, sizeof(pineappleIconSelected));
 			pineappleIconSelected.reType = RT_SPRITE;
-			pineappleIconSelected.customShader = cg_weapons[WP_GRENADE_PINEAPPLE].weaponIcon[1];
+			pineappleIconSelected.customShader = cgs.media.pineappleIconSelect;
 			pineappleIconSelected.radius = 1.3f;
 			memset(pineappleIconSelected.shaderRGBA, 0xff, 4);
 			pineappleItem.iconSelected = pineappleIconSelected;
@@ -4749,14 +4745,14 @@ void CG_DrawWheelSelector( void )
 			refEntity_t dynamiteIcon;
 			memset(&dynamiteIcon, 0, sizeof(dynamiteIcon));
 			dynamiteIcon.reType = RT_SPRITE;
-			dynamiteIcon.customShader = cg_weapons[WP_DYNAMITE].weaponIcon[0];
+			dynamiteIcon.customShader = cgs.media.dynamiteIcon;
 			dynamiteIcon.radius = 0.8f;
 			memset(dynamiteIcon.shaderRGBA, 0xff, 4);
 			dynamiteItem.icon = dynamiteIcon;
 			refEntity_t dynamiteIconSelected;
 			memset(&dynamiteIconSelected, 0, sizeof(dynamiteIconSelected));
 			dynamiteIconSelected.reType = RT_SPRITE;
-			dynamiteIconSelected.customShader = cg_weapons[WP_DYNAMITE].weaponIcon[1];
+			dynamiteIconSelected.customShader = cgs.media.dynamiteIconSelect;
 			dynamiteIconSelected.radius = 1.3f;
 			memset(dynamiteIconSelected.shaderRGBA, 0xff, 4);
 			dynamiteItem.iconSelected = dynamiteIconSelected;
@@ -4902,10 +4898,6 @@ void CG_DrawWheelSelector( void )
 
 	} else if (cg.wheelSelectorType == WST_SYSTEM) {
 
-		beamColor[0] = 1.0f;
-		beamColor[1] = 1.0f;
-		beamColor[2] = 1.0f;
-
 		selectorWheelEntity_t exitItem;
 		memset(&exitItem, 0, sizeof(exitItem));
 		exitItem.itemId = WSI_EXIT_MENU;
@@ -4973,7 +4965,7 @@ void CG_DrawWheelSelector( void )
 		selectorWheelItems[selectorWheelItemNum++] = saveItem;
 	}
 
-	GC_HandleWheelSelector(beamColor, selectorWheelItems, selectorWheelItemNum);
+	GC_HandleWheelSelector(selectorWheelItems, selectorWheelItemNum);
 }
 
 void CG_WheelSelectorSelect_f( void )
