@@ -723,6 +723,18 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
                             }
                         }
                     }
+                    // When holding off-hand weapon, run (or teleport) with left grip
+                    if (!vr.teleportenabled) {
+                        handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, ovrButton_GripTrigger, K_SHIFT);
+                    } else {
+                        if (pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger) {
+                            vr.teleportseek = qtrue;
+                        } else if (vr.teleportseek) {
+                            vr.teleportseek = qfalse;
+                            vr.teleportexecute = vr.teleportready;
+                            vr.teleportready = qfalse;
+                        }
+                    }
                 } else {
                     if (vr.akimboTriggerState) {
                         // Akimbo no longer active, stop attacking
