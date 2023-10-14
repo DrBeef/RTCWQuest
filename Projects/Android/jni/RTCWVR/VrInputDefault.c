@@ -147,6 +147,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
             handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, offButton2, K_ESCAPE);
             if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) != (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger) && (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger)) {
                 vr.menu_right_handed = !vr.menu_right_handed;
+                RTCWVR_Vibrate(40, vr.menu_right_handed ? 1 : 0, 0.5);
             }
         } else {
             interactWithTouchScreen(menuYaw, vr.dominanthandangles);
@@ -155,7 +156,12 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
             handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton2, K_ESCAPE);
             if ((pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) != (pOffTrackedRemoteOld->Buttons & ovrButton_Trigger) && (pOffTrackedRemoteNew->Buttons & ovrButton_Trigger)) {
                 vr.menu_right_handed = !vr.menu_right_handed;
+                RTCWVR_Vibrate(40, vr.menu_right_handed ? 1 : 0, 0.5);
             }
+        }
+        if (vr_menu_item_touched->integer) {
+            RTCWVR_Vibrate(40, vr.menu_right_handed ? 1 : 0, 0.5);
+            Cvar_SetValue("vr_menu_item_touched", 0);
         }
     }
     else

@@ -19,3 +19,4 @@ cvar_t	*vr_draw_hud;
 cvar_t	*vr_irl_crouch_enabled;
 cvar_t	*vr_irl_crouch_to_stand_ratio;
 cvar_t	*vr_haptic_intensity;
+cvar_t	*vr_menu_item_touched;
