@@ -18,3 +18,4 @@ cvar_t	*vr_use_gesture_boundary;
 cvar_t	*vr_draw_hud;
 cvar_t	*vr_irl_crouch_enabled;
 cvar_t	*vr_irl_crouch_to_stand_ratio;
+cvar_t	*vr_haptic_intensity;

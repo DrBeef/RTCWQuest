@@ -910,7 +910,7 @@ void RTCWVR_Vibrate( int duration, int channel, float intensity )
 		return;
 
 	vibration_channel_duration[channel] = duration;
-	vibration_channel_intensity[channel] = intensity;
+	vibration_channel_intensity[channel] = intensity * vr_haptic_intensity->value;
 }
 
 void RTCWVR_Haptic( int duration, int channel, float intensity, char *description, float yaw, float height  )
@@ -1506,6 +1506,7 @@ void RTCWVR_Init()
 	vr_draw_hud = Cvar_Get ("vr_draw_hud", "1", CVAR_ARCHIVE);
 	vr_irl_crouch_enabled = Cvar_Get ("vr_irl_crouch_enabled", "0", CVAR_ARCHIVE);
 	vr_irl_crouch_to_stand_ratio = Cvar_Get ("vr_irl_crouch_to_stand_ratio", "0.65", CVAR_ARCHIVE);
+	vr_haptic_intensity = Cvar_Get ("vr_haptic_intensity", "1.0", CVAR_ARCHIVE);
 
     //Defaults
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
