@@ -640,16 +640,20 @@ static void CG_OffsetFirstPersonView( void ) {
 //===================================
 
 	// add view height
-	origin[2] += cg.predictedPlayerState.viewheight;
+	if (cgVR->vrIrlCrouchEnabled) {
+		origin[2] += cgVR->viewHeight;
+	} else {
+		origin[2] += cg.predictedPlayerState.viewheight;
 
-	// smooth out duck height changes
-	timeDelta = cg.time - cg.duckTime;
-	if ( timeDelta < 0 ) { // Ridah
-		cg.duckTime = cg.time - DUCK_TIME;
-	}
-	if ( timeDelta < DUCK_TIME ) {
-		cg.refdef.vieworg[2] -= cg.duckChange
-								* ( DUCK_TIME - timeDelta ) / DUCK_TIME;
+		// smooth out duck height changes
+		timeDelta = cg.time - cg.duckTime;
+		if ( timeDelta < 0 ) { // Ridah
+			cg.duckTime = cg.time - DUCK_TIME;
+		}
+		if ( timeDelta < DUCK_TIME ) {
+			cg.refdef.vieworg[2] -= cg.duckChange
+									* ( DUCK_TIME - timeDelta ) / DUCK_TIME;
+		}
 	}
 
 	// add bob height

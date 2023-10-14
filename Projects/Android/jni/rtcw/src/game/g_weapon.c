@@ -1751,7 +1751,11 @@ void CalcMuzzlePoint( gentity_t *ent, int weapon, vec3_t forward, vec3_t right, 
         } else {
             convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);
         }
-        muzzlePoint[2] += (ent->client->ps.viewheight - 64);
+        if (gVR->vrIrlCrouchEnabled) {
+            muzzlePoint[2] += (gVR->viewHeight - 64);
+        } else {
+            muzzlePoint[2] += (ent->client->ps.viewheight - 64);
+        }
 		muzzlePoint[2] += (gVR->hmdposition[1] + heightAdjust) * worldscale;
 		return;
 	}
@@ -1813,7 +1817,11 @@ void CalcMuzzlePointForActivate( gentity_t *ent, vec3_t forward, vec3_t right, v
 		} else {
 			convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);
 		}
-        muzzlePoint[2] += (ent->client->ps.viewheight - 64);
+        if (gVR->vrIrlCrouchEnabled) {
+            muzzlePoint[2] += (gVR->viewHeight - 64);
+        } else {
+            muzzlePoint[2] += (ent->client->ps.viewheight - 64);
+        }
         muzzlePoint[2] += (gVR->hmdposition[1] + heightAdjust) * worldscale;
         return;
     }

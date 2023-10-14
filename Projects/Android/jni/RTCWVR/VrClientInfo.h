@@ -83,6 +83,7 @@ typedef struct {
     qboolean akimboFire;
     qboolean vrIrlCrouchEnabled;
     float    vrIrlCrouchToStandRatio;
+    float    viewHeight;
     float    maxHeight;
     float    curHeight;
 

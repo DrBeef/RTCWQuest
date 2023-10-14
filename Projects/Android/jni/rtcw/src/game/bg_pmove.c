@@ -1622,20 +1622,6 @@ static void PM_CheckDuck( void ) {
 
 	pm->mins[2] = pm->ps->mins[2];
 
-	if ( pm->ps->pm_type == PM_DEAD ) {
-		pm->maxs[2] = pm->ps->maxs[2];          // NOTE: must set death bounding box in game code
-		pm->ps->viewheight = pm->ps->deadViewHeight;
-		return;
-	}
-
-	// RF, disable crouching while using MG42
-	if ( pm->ps->eFlags & EF_MG42_ACTIVE ) {
-		pm->maxs[2] = pm->ps->maxs[2];
-		pm->ps->viewheight = pm->ps->standViewHeight;
-		return;
-	}
-
-	// IRL Crouch
 	vr_client_info_t* vr;
 #ifdef CGAMEDLL
 	vr = cgVR;
@@ -1643,25 +1629,49 @@ static void PM_CheckDuck( void ) {
 #ifdef GAMEDLL
 	vr = gVR;
 #endif
+
+	if ( pm->ps->pm_type == PM_DEAD ) {
+		pm->maxs[2] = pm->ps->maxs[2];          // NOTE: must set death bounding box in game code
+		pm->ps->viewheight = pm->ps->deadViewHeight;
+		if (vr && !pm->ps->clientNum && vr->vrIrlCrouchEnabled) {
+			vr->viewHeight = pm->ps->deadViewHeight;
+		}
+		return;
+	}
+
+	// RF, disable crouching while using MG42
+	if ( pm->ps->eFlags & EF_MG42_ACTIVE ) {
+		pm->maxs[2] = pm->ps->maxs[2];
+		pm->ps->viewheight = pm->ps->standViewHeight;
+		if (vr && !pm->ps->clientNum && vr->vrIrlCrouchEnabled) {
+			vr->viewHeight = pm->ps->standViewHeight;
+		}
+		return;
+	}
+
+	// IRL Crouch
 	if (vr && !pm->ps->clientNum && vr->vrIrlCrouchEnabled) {
-		int standheight = pm->ps->maxs[2];
-		int crouchheight = pm->ps->crouchMaxZ;
-		// In-game view height always matches full stand height
-		// (we are crouching IRL, no need to artificially lower view)
-		pm->ps->viewheight = standheight - 8;
+		int viewOffset = pm->ps->maxs[2] - pm->ps->standViewHeight; // 8
+		int standHeight = pm->ps->maxs[2]; // 48
+		int crouchHeight = pm->ps->crouchMaxZ; // 24
+		// In case of IRL crouch we must use separate var for view height so
+		// we can change ps.viewheight without affecting camera view (we do not
+		// want to lower camera view as we are crouching IRL).
+		// But ps.viewheight needs to be changed as it affects how AI sees the
+		// player.
+		vr->viewHeight = pm->ps->standViewHeight; // 40
 
 		// Compute in-game height based on HMD height above floor
 		// (adjust height only when crouching, ignore IRL jumps)
-		int computedHeight = pm->ps->standViewHeight;
-		if (crouchheight < standheight && vr->curHeight < vr->maxHeight) {
+		int computedHeight = standHeight;
+		if (crouchHeight < standHeight && vr->curHeight < vr->maxHeight) {
 			// Count minimum IRL crouch height based on maximum IRL height
-			//trap_Cvar_VariableValue("vr_irl_crouch_to_stand_ratio", &vrIrlCrouchToStandRatio);
 			float minHeight = vr->maxHeight * vr->vrIrlCrouchToStandRatio;
 			if (vr->curHeight < minHeight) { // Do not allow to crawl (set min height)
-				computedHeight = crouchheight;
+				computedHeight = crouchHeight;
 			} else {
 				float heightRatio = (vr->curHeight - minHeight) / (vr->maxHeight - minHeight);
-				computedHeight = pm->ps->crouchViewHeight + (int)(heightRatio * (standheight - crouchheight));
+				computedHeight = crouchHeight + (int)(heightRatio * (standHeight - crouchHeight));
 			}
 		}
 
@@ -1669,18 +1679,19 @@ static void PM_CheckDuck( void ) {
 		// (cannot stand up if there is no place, find nearest possible height)
 		for (int i = computedHeight; i > 0; i--) {
 			pm->maxs[2] = i;
+			pm->ps->viewheight = i - viewOffset;
 			pm->trace( &trace, pm->ps->origin, pm->mins, pm->maxs, pm->ps->origin, pm->ps->clientNum, pm->tracemask );
 			if ( !trace.allsolid ) {
 				break;
 			} else {
-				// Lower view height to not see through ceiling
+				// Lower camera view height to not see through ceiling
 				// (in case you stand up IRL in tight place)
-				pm->ps->viewheight--;
+				vr->viewHeight--;
 			}
 		}
 
 		// Toggle duck flag based on in-game height (need to be at least half-way crouched)
-		if (pm->maxs[2] < crouchheight + (standheight - crouchheight)/2) {
+		if (pm->maxs[2] < crouchHeight + (standHeight - crouchHeight)/2) {
 			pm->ps->pm_flags |= PMF_DUCKED;
 		} else {
 			pm->ps->pm_flags &= ~PMF_DUCKED;
