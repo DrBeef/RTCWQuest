@@ -1980,14 +1980,18 @@ void CG_CalculateVRWeaponPosition( int weaponNum, vec3_t origin, vec3_t angles )
     convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, origin);
     origin[2] -= 64;
     origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
-    switch (cg.predictedPlayerState.weapon)
-    {
-        case WP_KNIFE:
-            VectorCopy(cgVR->weaponangles_knife, angles);
-            break;
-        default:
-            VectorCopy(cgVR->weaponangles, angles);
-            break;
+    if (cgVR->backpackitemactive == 3 || cgVR->binocularsActive) {
+        VectorCopy(cgVR->dominanthandangles, angles);
+    } else {
+        switch (cg.predictedPlayerState.weapon)
+        {
+            case WP_KNIFE:
+                VectorCopy(cgVR->weaponangles_knife, angles);
+                break;
+            default:
+                VectorCopy(cgVR->weaponangles, angles);
+                break;
+        }
     }
     angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
 }
@@ -3765,7 +3769,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 		// add everything onto the hand
 		CG_AddPlayerWeapon(&hand, ps, &cg.predictedPlayerEntity, qfalse);
-		if (ps->weapon == WP_AKIMBO) {
+		if (ps->weapon == WP_AKIMBO && cgVR->backpackitemactive != 3 && !cgVR->binocularsActive) {
 			CG_AddPlayerWeapon(&handAkimbo, ps, &cg.predictedPlayerEntity, qtrue);
 		}
 		// Ridah
