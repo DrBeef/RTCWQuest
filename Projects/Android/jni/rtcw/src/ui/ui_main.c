@@ -4490,6 +4490,7 @@ UI_RunMenuScript
 ==============
 */
 
+qboolean showCredits = qtrue;
 static void UI_RunMenuScript( char **args ) {
 	const char *name, *name2;
 	char buff[1024];
@@ -4775,8 +4776,14 @@ static void UI_RunMenuScript( char **args ) {
 			}
 			//#endif	// #ifdef MISSIONPACK
 		} else if ( Q_stricmp( name, "Quit" ) == 0 ) {
-			trap_Cvar_Set( "ui_singlePlayerActive", "0" );
-			trap_Cmd_ExecuteText( EXEC_NOW, "quit" );
+			if (showCredits) {
+				showCredits = qfalse;
+				Menus_CloseAll();
+				Menus_OpenByName( "credits" );
+			} else {
+				trap_Cvar_Set( "ui_singlePlayerActive", "0" );
+				trap_Cmd_ExecuteText( EXEC_NOW, "quit" );
+			}
 		} else if ( Q_stricmp( name, "Controls" ) == 0 ) {
 			trap_Cvar_Set( "cl_paused", "1" );
 			trap_Key_SetCatcher( KEYCATCH_UI );
