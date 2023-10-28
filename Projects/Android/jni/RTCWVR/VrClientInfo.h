@@ -4,14 +4,17 @@
 #define NUM_WEAPON_SAMPLES      10
 #define WEAPON_RECOIL           15.0f;
 
+#define ACTIVE_OFF_HAND      1
+#define ACTIVE_WEAPON_HAND   2
+
 typedef struct {
     qboolean screen;
     float  fov;
     qboolean weapon_stabilised;
     qboolean right_handed;
+    qboolean menu_right_handed;
     qboolean player_moving;
     qboolean visible_hud;
-    qboolean dualwield;
     int weaponid;
     int lastweaponid;
     int backpackitemactive; //0 - nothing, 1 - grenades, 2 - knife, 3 - Binoculars
@@ -29,6 +32,7 @@ typedef struct {
     vec3_t weaponangles;
     vec3_t weaponangles_last; // Don't use this, it is just for calculating delta!
     vec3_t weaponangles_delta;
+    vec3_t dominanthandangles;
 
     float weapon_recoil;            // recoil effect to improve the default
 
@@ -50,11 +54,16 @@ typedef struct {
 
     qboolean velocitytriggered; // Weapon attack triggered by velocity (knife)
 
+    vec3_t offhandweaponangles;
     vec3_t offhandangles;
     vec3_t offhandangles_last; // Don't use this, it is just for calculating delta!
     vec3_t offhandangles_delta;
 
     vec3_t offhandoffset;
+
+    vec3_t clientviewangles; //orientation in the client - we use this in the cgame
+    float clientview_yaw_last; // Don't use this, it is just for calculating delta!
+    float clientview_yaw_delta;
 
     //
     // Teleport Stuff
@@ -65,7 +74,18 @@ typedef struct {
     vec3_t   teleportdest; // teleport destination
     qboolean teleportexecute; // execute the teleport
 
-
+    int      useGestureState;
+    int      wheelSelectorEnabled;
+    qboolean binocularsActive;
+    qboolean useHoldableItem;
+    qboolean toggleMainMenu;
+    int      akimboTriggerState;
+    qboolean akimboFire;
+    qboolean vrIrlCrouchEnabled;
+    float    vrIrlCrouchToStandRatio;
+    float    viewHeight;
+    float    maxHeight;
+    float    curHeight;
 
     //////////////////////////////////////
     //    Test stuff for weapon alignment

@@ -1108,6 +1108,7 @@ If you have questions concerning this license or the applicable additional terms
 {"ClientDamage", (byte *)ClientDamage},
 {"Cmd_WolfKick_f", (byte *)Cmd_WolfKick_f},
 {"Cmd_Activate_f", (byte *)Cmd_Activate_f},
+{"Cmd_Activate2_f", (byte *)Cmd_Activate2_f},
 {"G_ThrowChair", (byte *)G_ThrowChair},
 {"Cmd_InterruptCamera_f", (byte *)Cmd_InterruptCamera_f},
 {"Cmd_SetCameraOrigin_f", (byte *)Cmd_SetCameraOrigin_f},

@@ -3389,7 +3389,82 @@ static void CG_ScreenFade( void ) {
 	}
 }
 
+/*
+==============
+CG_DrawVignette
+==============
+*/
+float currentComfortVignetteValue = 0.0f;
+float filteredViewYawDelta = 0.0f;
 
+static void CG_DrawVignette( void )
+{
+	playerState_t	*ps;
+	ps = &cg.snap->ps;
+
+	float vr_comfort_vignette = 0;
+	char buf[32];
+	trap_Cvar_VariableStringBuffer("vr_comfort_vignette", buf, sizeof(buf)); // defined in VrCvars.h
+	vr_comfort_vignette = atof(buf);
+	if (vr_comfort_vignette <= 0.0f || vr_comfort_vignette > 1.0f || cg.zoomedScope || cg.zoomedBinoc)
+	{
+		return;
+	}
+
+	qboolean isMoving = VectorLength(cg.predictedPlayerState.velocity) > 30.0;
+	// When player is in the air, apply vignette (to prevent throbbing on top of jump)
+	qboolean isInAir = ps->groundEntityNum == ENTITYNUM_NONE;
+	int vr_turn_mode = trap_Cvar_VariableIntegerValue("vr_turn_mode"); // defined in VrCvars.h
+	// Apply only for smooth turn
+	qboolean isTurning = (vr_turn_mode == 2);
+	if (isTurning) {
+		float yawDelta = fabsf(cgVR->clientview_yaw_delta);
+		if (yawDelta > 180)
+		{
+			yawDelta = fabs(yawDelta - 360);
+		}
+		filteredViewYawDelta = filteredViewYawDelta * 0.75f + yawDelta * 0.25f;
+		isTurning = filteredViewYawDelta > 1;
+	}
+
+	if (isMoving || isInAir || isTurning)
+	{
+		if (currentComfortVignetteValue <  vr_comfort_vignette)
+		{
+			currentComfortVignetteValue += vr_comfort_vignette * 0.05;
+			if (currentComfortVignetteValue > 1.0f)
+				currentComfortVignetteValue = 1.0f;
+		}
+	} else{
+		if (currentComfortVignetteValue >  0.0f)
+			currentComfortVignetteValue -= vr_comfort_vignette * 0.05;
+	}
+
+	if (currentComfortVignetteValue > 0.0f && currentComfortVignetteValue <= 1.0f)
+	{
+		int screenWidth = cg.refdef.width;
+		int screenHeight = cg.refdef.height;
+
+		int x = (int)(0 + currentComfortVignetteValue * screenWidth / 3.5f);
+		int w = (int)(screenWidth - 2 * x);
+		int y = (int)(0 + currentComfortVignetteValue * screenHeight / 3.5f);
+		int h = (int)(screenHeight - 2 * y);
+
+		vec4_t black = {0.0, 0.0, 0.0, 1};
+		trap_R_SetColor( black );
+
+		// sides
+		trap_R_DrawStretchPic( 0, 0, x, screenHeight, 0, 0, 1, 1, cgs.media.whiteShader );
+		trap_R_DrawStretchPic( screenWidth - x, 0, x, screenHeight, 0, 0, 1, 1, cgs.media.whiteShader );
+		// top/bottom
+		trap_R_DrawStretchPic( x, 0, screenWidth - x, y, 0, 0, 1, 1, cgs.media.whiteShader );
+		trap_R_DrawStretchPic( x, screenHeight - y, screenWidth - x, y, 0, 0, 1, 1, cgs.media.whiteShader );
+		// vignette
+		trap_R_DrawStretchPic( x, y, w, h, 0, 0, 1, 1, cgs.media.vignetteShader );
+
+		trap_R_SetColor( NULL );
+	}
+}
 
 /*
 =================
@@ -3429,6 +3504,8 @@ static void CG_Draw2D( void ) {
 	} else {
 		// don't draw any status if dead
 		if ( cg.snap->ps.stats[STAT_HEALTH] > 0 ) {
+
+			CG_DrawVignette();
 
 			if (cg.zoomedScope || cg.zoomedBinoc || ( cg.snap->ps.eFlags & EF_MG42_ACTIVE )) {
 				CG_DrawCrosshair();

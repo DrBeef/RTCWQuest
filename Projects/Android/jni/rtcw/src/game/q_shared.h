@@ -1083,7 +1083,7 @@ typedef enum
 #define MAX_WEAPS_IN_BANK_MP    8
 #define MAX_WEAP_BANKS_MP   7
 // jpw
-#define MAX_WEAP_ALTS       WP_DYNAMITE
+#define MAX_WEAP_ALTS       WP_AKIMBO_THOMPSON
 
 
 // bit field limits
@@ -1308,9 +1308,9 @@ typedef struct playerState_s {
 #define WBUTTON_RELOAD      8
 #define WBUTTON_LEANLEFT    16
 #define WBUTTON_LEANRIGHT   32
+#define WBUTTON_ACTIVATE2   64
 
 // unused
-#define WBUTTON_EXTRA6      64
 #define WBUTTON_EXTRA7      128
 //----(SA) end
 

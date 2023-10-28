@@ -29,6 +29,9 @@ If you have questions concerning this license or the applicable additional terms
 // cl.input.c  -- builds an intended movement command to send to the server
 
 #include "client.h"
+#include "../../../RTCWVR/VrClientInfo.h"
+
+extern vr_client_info_t vr;
 
 unsigned frame_msec;
 int old_com_frameTime;
@@ -334,10 +337,10 @@ void IN_LeanLeftDown( void )  { IN_KeyDown( &kb[KB_WBUTTONS4] );    }   //----(S
 void IN_LeanLeftUp( void )    { IN_KeyUp( &kb[KB_WBUTTONS4] );  }
 void IN_LeanRightDown( void ) { IN_KeyDown( &kb[KB_WBUTTONS5] );    }   //----(SA)	lean right
 void IN_LeanRightUp( void )   { IN_KeyUp( &kb[KB_WBUTTONS5] );  }
+void IN_Activate2Down( void ) {IN_KeyDown( &kb[KB_WBUTTONS6] );}
+void IN_Activate2Up( void ) {IN_KeyUp( &kb[KB_WBUTTONS6] );}
 
 // unused
-void IN_Wbutton6Down( void )  { IN_KeyDown( &kb[KB_WBUTTONS6] );    }
-void IN_Wbutton6Up( void )    { IN_KeyUp( &kb[KB_WBUTTONS6] );  }
 void IN_Wbutton7Down( void )  { IN_KeyDown( &kb[KB_WBUTTONS7] );    }
 void IN_Wbutton7Up( void )    { IN_KeyUp( &kb[KB_WBUTTONS7] );  }
 
@@ -445,6 +448,8 @@ void CL_AdjustAngles( void ) {
 	cl.viewangles[PITCH] = new_move.pitch;
 
 	cl.viewangles[ROLL] = new_move.roll;
+
+    VectorCopy(cl.viewangles, vr.clientviewangles);
 }
 
 /*
@@ -486,7 +491,7 @@ void CL_KeyMove( usercmd_t *cmd ) {
 	side -= movespeed * CL_KeyState( &kb[KB_MOVELEFT] );
 
 //----(SA)	added
-	if ( cmd->buttons & BUTTON_ACTIVATE ) {
+	if ( (cmd->buttons & BUTTON_ACTIVATE) || (cmd->wbuttons & WBUTTON_ACTIVATE2) ) {
 		if ( side > 0 ) {
 			cmd->wbuttons |= WBUTTON_LEANRIGHT;
 		} else if ( side < 0 ) {
@@ -1222,8 +1227,8 @@ void CL_InitInput( void ) {
 	Cmd_AddCommand( "-leanleft", IN_LeanLeftUp );
 	Cmd_AddCommand( "+leanright",    IN_LeanRightDown );
 	Cmd_AddCommand( "-leanright",    IN_LeanRightUp );
-	Cmd_AddCommand( "+wbutton6", IN_Wbutton6Down );   //
-	Cmd_AddCommand( "-wbutton6", IN_Wbutton6Up );
+	Cmd_AddCommand( "+activate2", IN_Activate2Down );
+	Cmd_AddCommand( "-activate2", IN_Activate2Up );
 	Cmd_AddCommand( "+wbutton7", IN_Wbutton7Down );   //
 	Cmd_AddCommand( "-wbutton7", IN_Wbutton7Up );
 //----(SA) end

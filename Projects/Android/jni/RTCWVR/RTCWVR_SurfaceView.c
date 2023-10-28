@@ -855,6 +855,11 @@ void updateHMDOrientation()
 
 	//Keep this for our records
 	VectorCopy(vr.hmdorientation, vr.hmdorientation_last);
+
+	// View yaw delta
+	float clientview_yaw = vr.clientviewangles[YAW] - vr.hmdorientation[YAW];
+	vr.clientview_yaw_delta = vr.clientview_yaw_last - clientview_yaw;
+	vr.clientview_yaw_last = clientview_yaw;
 }
 
 void setHMDPosition( float x, float y, float z )
@@ -905,7 +910,7 @@ void RTCWVR_Vibrate( int duration, int channel, float intensity )
 		return;
 
 	vibration_channel_duration[channel] = duration;
-	vibration_channel_intensity[channel] = intensity;
+	vibration_channel_intensity[channel] = intensity * vr_haptic_intensity->value;
 }
 
 void RTCWVR_Haptic( int duration, int channel, float intensity, char *description, float yaw, float height  )
@@ -923,14 +928,20 @@ void RTCWVR_Haptic( int duration, int channel, float intensity, char *descriptio
         RTCWVR_HapticEvent("weapon_reload", channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
     }
 	else if(strcmp(description,"door_open") == 0) {
-		RTCWVR_HapticEvent("open_door", 0, 0, 100.0f * intensity, yaw, height);
+		// Replaced by "use trigger" haptics
+		// RTCWVR_HapticEvent("open_door", 0, 0, 100.0f * intensity, yaw, height);
 	}
     else if(strcmp(description,"alarm_on") == 0) {
-        RTCWVR_HapticEvent("heartbeat", 0, 0, 100.0f * intensity, yaw, height);
+		// Replaced by "use trigger" haptics
+		// RTCWVR_HapticEvent("heartbeat", 0, 0, 100.0f * intensity, yaw, height);
     }
     else if(strcmp(description,"end_alarm") == 0) {
-        RTCWVR_HapticStopEvent("heartbeat");
-    }
+		// Replaced by "use trigger" haptics
+		// RTCWVR_HapticStopEvent("heartbeat");
+	}
+	else if(strcmp(description,"use_trigger") == 0) {
+		RTCWVR_HapticEvent("use_trigger", channel == 1 ? 2 : 1, 0, 100.0f * intensity, yaw, height);
+	}
 	else if(strcmp(description,"switch_weapon") == 0 || strcmp(description,"pickup_item") == 0) {
 		RTCWVR_HapticEvent(description, channel == 1 ? 2 : 1, 0, 100.0f * intensity, 0, 0);
 	}
@@ -1488,7 +1499,15 @@ void RTCWVR_Init()
 	vr_weapon_pitchadjust = Cvar_Get( "vr_weapon_pitchadjust", "-20.0", CVAR_ARCHIVE);
 	vr_lasersight = Cvar_Get( "vr_lasersight", "0", CVAR_ARCHIVE);
 	vr_teleport = Cvar_Get( "vr_teleport", "0", CVAR_ARCHIVE);
-    vr_virtual_stock = Cvar_Get( "vr_virtual_stock", "0", CVAR_ARCHIVE);
+	vr_virtual_stock = Cvar_Get( "vr_virtual_stock", "0", CVAR_ARCHIVE);
+	vr_comfort_vignette = Cvar_Get ("vr_comfort_vignette", "0.0", CVAR_ARCHIVE);
+	vr_gesture_triggered_use = Cvar_Get ("vr_gesture_triggered_use", "1", CVAR_ARCHIVE);
+	vr_use_gesture_boundary = Cvar_Get ("vr_use_gesture_boundary", "0.35", CVAR_ARCHIVE);
+	vr_draw_hud = Cvar_Get ("vr_draw_hud", "1", CVAR_ARCHIVE);
+	vr_irl_crouch_enabled = Cvar_Get ("vr_irl_crouch_enabled", "0", CVAR_ARCHIVE);
+	vr_irl_crouch_to_stand_ratio = Cvar_Get ("vr_irl_crouch_to_stand_ratio", "0.65", CVAR_ARCHIVE);
+	vr_haptic_intensity = Cvar_Get ("vr_haptic_intensity", "1.0", CVAR_ARCHIVE);
+	vr_menu_item_touched = Cvar_Get ("vr_menu_item_touched", "0", CVAR_TEMP);
 
     //Defaults
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
@@ -1500,14 +1519,15 @@ void RTCWVR_Init()
     //Set up vr client info
 	vr.backpackitemactive = 0;
 	vr.visible_hud = qtrue;
-	vr.dualwield = qfalse;
-    vr.weapon_recoil = 0.0f;
+	vr.weapon_recoil = 0.0f;
 
 	//Clear teleport stuff
 	vr.teleportexecute = qfalse;
 	vr.teleportseek = qfalse;
 	vr.teleportenabled = qfalse;
 	vr.teleportready = qfalse;
+
+	vr.menu_right_handed = vr_control_scheme->integer == 0;
 }
 
 
@@ -1840,6 +1860,13 @@ void RTCWVR_getHMDOrientation() {//Get orientation
 	setHMDPosition(positionHmd.x, positionHmd.y, positionHmd.z);
 
 	updateHMDOrientation();
+
+	// Max-height is set only once on start, or after re-calibration
+	// (ignore too low value which is sometimes provided on start)
+	if (!vr.maxHeight || vr.maxHeight < 1.0) {
+		vr.maxHeight = positionHmd.y;
+	}
+	vr.curHeight = positionHmd.y;
 
 	ALOGV("        HMD-Position: %f, %f, %f", positionHmd.x, positionHmd.y, positionHmd.z);
 }

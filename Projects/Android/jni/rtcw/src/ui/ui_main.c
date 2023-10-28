@@ -4490,6 +4490,7 @@ UI_RunMenuScript
 ==============
 */
 
+qboolean showCredits = qtrue;
 static void UI_RunMenuScript( char **args ) {
 	const char *name, *name2;
 	char buff[1024];
@@ -4775,8 +4776,14 @@ static void UI_RunMenuScript( char **args ) {
 			}
 			//#endif	// #ifdef MISSIONPACK
 		} else if ( Q_stricmp( name, "Quit" ) == 0 ) {
-			trap_Cvar_Set( "ui_singlePlayerActive", "0" );
-			trap_Cmd_ExecuteText( EXEC_NOW, "quit" );
+			if (showCredits) {
+				showCredits = qfalse;
+				Menus_CloseAll();
+				Menus_OpenByName( "credits" );
+			} else {
+				trap_Cvar_Set( "ui_singlePlayerActive", "0" );
+				trap_Cmd_ExecuteText( EXEC_NOW, "quit" );
+			}
 		} else if ( Q_stricmp( name, "Controls" ) == 0 ) {
 			trap_Cvar_Set( "cl_paused", "1" );
 			trap_Key_SetCatcher( KEYCATCH_UI );
@@ -6782,20 +6789,22 @@ void _UI_MouseEvent( int dx, int dy ) {
 UI_MouseEvent
 =================
 */
+const int cursorSize = 16;
 void _UI_MouseEventAbs( int x, int y ) {
 	// update mouse screen position
+    // allow to hide cursor beyond the screen edges
 	uiInfo.uiDC.cursorx = x;
-	if ( uiInfo.uiDC.cursorx < 0 ) {
-		uiInfo.uiDC.cursorx = 0;
-	} else if ( uiInfo.uiDC.cursorx > SCREEN_WIDTH ) {
-		uiInfo.uiDC.cursorx = SCREEN_WIDTH;
+	if ( uiInfo.uiDC.cursorx < -cursorSize ) {
+		uiInfo.uiDC.cursorx = -cursorSize;
+	} else if ( uiInfo.uiDC.cursorx > SCREEN_WIDTH + cursorSize ) {
+		uiInfo.uiDC.cursorx = SCREEN_WIDTH + cursorSize;
 	}
 
 	uiInfo.uiDC.cursory = y;
-	if ( uiInfo.uiDC.cursory < 0 ) {
-		uiInfo.uiDC.cursory = 0;
-	} else if ( uiInfo.uiDC.cursory > SCREEN_HEIGHT ) {
-		uiInfo.uiDC.cursory = SCREEN_HEIGHT;
+	if ( uiInfo.uiDC.cursory < -cursorSize ) {
+		uiInfo.uiDC.cursory = -cursorSize;
+	} else if ( uiInfo.uiDC.cursory > SCREEN_HEIGHT + cursorSize) {
+		uiInfo.uiDC.cursory = SCREEN_HEIGHT + cursorSize;
 	}
 
 	if ( Menu_Count() > 0 ) {

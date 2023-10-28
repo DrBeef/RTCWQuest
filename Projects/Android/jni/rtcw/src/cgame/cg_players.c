@@ -5021,7 +5021,7 @@ void CG_Player( centity_t *cent ) {
 	//
 	// add the gun / barrel / flash
 	//
-	CG_AddPlayerWeapon( &torso, NULL, cent );
+	CG_AddPlayerWeapon( &torso, NULL, cent, qfalse );
 
 	cent->lastWeaponClientFrame = cg.clientFrame;
 

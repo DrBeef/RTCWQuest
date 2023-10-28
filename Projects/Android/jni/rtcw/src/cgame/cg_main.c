@@ -1283,6 +1283,76 @@ static void CG_RegisterGraphics( void ) {
 	cgs.media.backTileShader = trap_R_RegisterShader( "gfx/2d/backtile" );
 	cgs.media.noammoShader = trap_R_RegisterShader( "icons/noammo" );
 
+	cgs.media.arrowIcon = trap_R_RegisterShader( "icons/arrow" );
+	cgs.media.binocularsIcon = trap_R_RegisterShader( "icons/binoculars" );
+	cgs.media.grenadeIcon = trap_R_RegisterShader( "icons/iconw_grenade_1" );
+	cgs.media.pineappleIcon = trap_R_RegisterShader( "icons/iconw_pineapple_1" );
+	cgs.media.dynamiteIcon = trap_R_RegisterShader( "icons/iconw_dynamite_1" );
+	cgs.media.wine1Icon = trap_R_RegisterShader( "icons/wine_notselect" );
+	cgs.media.wine2Icon = trap_R_RegisterShader( "icons/wine2_notselect" );
+	cgs.media.wine3Icon = trap_R_RegisterShader( "icons/wine3_notselect" );
+	cgs.media.staminaIcon = trap_R_RegisterShader( "icons/stamina_notselect" );
+	cgs.media.pbookIcon = trap_R_RegisterShader( "icons/icon_pbook_notselect" );
+	cgs.media.vbookIcon = trap_R_RegisterShader( "icons/icon_vbook_notselect" );
+	cgs.media.zbookIcon = trap_R_RegisterShader( "icons/icon_zbook_notselect" );
+	cgs.media.exitIcon = trap_R_RegisterShader( "icons/exit" );
+	cgs.media.loadIcon = trap_R_RegisterShader( "icons/load" );
+	cgs.media.saveIcon = trap_R_RegisterShader( "icons/save" );
+	cgs.media.binocularsIconSelect = trap_R_RegisterShader( "icons/binoculars_select" );
+	cgs.media.grenadeIconSelect = trap_R_RegisterShader( "icons/iconw_grenade_1_select" );
+	cgs.media.pineappleIconSelect = trap_R_RegisterShader( "icons/iconw_pineapple_1_select" );
+	cgs.media.dynamiteIconSelect = trap_R_RegisterShader( "icons/iconw_dynamite_1_select" );
+	cgs.media.wine1IconSelect = trap_R_RegisterShader( "icons/wine" );
+	cgs.media.wine2IconSelect = trap_R_RegisterShader( "icons/wine2" );
+	cgs.media.wine3IconSelect = trap_R_RegisterShader( "icons/wine3" );
+	cgs.media.staminaIconSelect = trap_R_RegisterShader( "icons/stamina" );
+	cgs.media.pbookIconSelect = trap_R_RegisterShader( "icons/icon_pbook" );
+	cgs.media.vbookIconSelect = trap_R_RegisterShader( "icons/icon_vbook" );
+	cgs.media.zbookIconSelect = trap_R_RegisterShader( "icons/icon_zbook" );
+	cgs.media.exitIconSelect = trap_R_RegisterShader( "icons/exit_select" );
+	cgs.media.loadIconSelect = trap_R_RegisterShader( "icons/load_select" );
+	cgs.media.saveIconSelect = trap_R_RegisterShader( "icons/save_select" );
+
+	// Z-order of icon rendering is based on order they were registered, not based on depth
+	// they are rendered at. So we are registering weapon icons again so they are properly
+	// rendered on weapon wheel including no-ammo overlay icon
+	cgs.media.weaponIcons[WP_KNIFE] = trap_R_RegisterShader( "icons/iconw_knife_1.tga" );
+	cgs.media.weaponIcons[WP_LUGER] = trap_R_RegisterShader( "icons/iconw_luger_1.tga" );
+    cgs.media.weaponIcons[WP_SILENCER] = trap_R_RegisterShader( "icons/iconw_sluger_1.tga" );
+	cgs.media.weaponIcons[WP_COLT] = trap_R_RegisterShader( "icons/iconw_colt_1.tga" );
+    cgs.media.weaponIcons[WP_AKIMBO] = trap_R_RegisterShader( "icons/iconw_acolt_1.tga" );
+	cgs.media.weaponIcons[WP_MP40] = trap_R_RegisterShader( "icons/iconw_mp40_1.tga" );
+    cgs.media.weaponIcons[WP_AKIMBO_MP40] = trap_R_RegisterShader( "icons/iconw_amp40_1.tga" );
+	cgs.media.weaponIcons[WP_THOMPSON] = trap_R_RegisterShader( "icons/iconw_thompson_1.tga" );
+	cgs.media.weaponIcons[WP_AKIMBO_THOMPSON] = trap_R_RegisterShader( "icons/iconw_athompson_1.tga" );
+	cgs.media.weaponIcons[WP_STEN] = trap_R_RegisterShader( "icons/iconw_sten_1.tga" );
+	cgs.media.weaponIcons[WP_MAUSER] = trap_R_RegisterShader( "icons/iconw_mauser_1.tga" );
+	cgs.media.weaponIcons[WP_GARAND] = trap_R_RegisterShader( "icons/iconw_garand_1.tga" );
+	cgs.media.weaponIcons[WP_FG42] = trap_R_RegisterShader( "icons/iconw_fg42_1.tga" );
+	cgs.media.weaponIcons[WP_PANZERFAUST] = trap_R_RegisterShader( "icons/iconw_panzerfaust_1.tga" );
+	cgs.media.weaponIcons[WP_VENOM] = trap_R_RegisterShader( "icons/iconw_venom_1.tga" );
+	cgs.media.weaponIcons[WP_FLAMETHROWER] = trap_R_RegisterShader( "icons/iconw_flamethrower_1.tga" );
+	cgs.media.weaponIcons[WP_TESLA] = trap_R_RegisterShader( "icons/iconw_tesla_1.tga" );
+	cgs.media.weaponIconsSelect[WP_KNIFE] = trap_R_RegisterShader( "icons/iconw_knife_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_LUGER] = trap_R_RegisterShader( "icons/iconw_luger_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_SILENCER] = trap_R_RegisterShader( "icons/iconw_sluger_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_COLT] = trap_R_RegisterShader( "icons/iconw_colt_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_AKIMBO] = trap_R_RegisterShader( "icons/iconw_acolt_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_MP40] = trap_R_RegisterShader( "icons/iconw_mp40_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_AKIMBO_MP40] = trap_R_RegisterShader( "icons/iconw_amp40_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_THOMPSON] = trap_R_RegisterShader( "icons/iconw_thompson_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_AKIMBO_THOMPSON] = trap_R_RegisterShader( "icons/iconw_athompson_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_STEN] = trap_R_RegisterShader( "icons/iconw_sten_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_MAUSER] = trap_R_RegisterShader( "icons/iconw_mauser_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_GARAND] = trap_R_RegisterShader( "icons/iconw_garand_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_FG42] = trap_R_RegisterShader( "icons/iconw_fg42_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_PANZERFAUST] = trap_R_RegisterShader( "icons/iconw_panzerfaust_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_VENOM] = trap_R_RegisterShader( "icons/iconw_venom_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_FLAMETHROWER] = trap_R_RegisterShader( "icons/iconw_flamethrower_1_select.tga" );
+	cgs.media.weaponIconsSelect[WP_TESLA] = trap_R_RegisterShader( "icons/iconw_tesla_1_select.tga" );
+	cgs.media.noammoIcon = trap_R_RegisterShader( "icons/noammo2" );
+	cgs.media.itemSelectCursor = trap_R_RegisterShader( "icons/item_select_cursor.tga" );
+
 	// powerup shaders
 //	cgs.media.quadShader = trap_R_RegisterShader("powerups/quad" );
 //	cgs.media.quadWeaponShader = trap_R_RegisterShader("powerups/quadWeapon" );
@@ -1566,6 +1636,10 @@ static void CG_RegisterGraphics( void ) {
 //	cgs.media.cursor = trap_R_RegisterShaderNoMip( "menu/art/3_cursor2" );
 	cgs.media.sizeCursor = trap_R_RegisterShaderNoMip( "ui/assets/sizecursor.tga" );
 	cgs.media.selectCursor = trap_R_RegisterShaderNoMip( "ui/assets/selectcursor.tga" );
+
+	cgs.media.vignetteShader = trap_R_RegisterShaderNoMip( "gfx/vignette" );
+	cgs.media.handModel = trap_R_RegisterModel("models/players/bj/hand.md3");
+
 	CG_LoadingString( " - game media done" );
 
 }

@@ -1674,6 +1674,10 @@ qboolean Item_SetFocus( itemDef_t *item, float x, float y ) {
 
 	if ( playSound && sfx ) {
 		DC->startLocalSound( *sfx, CHAN_LOCAL_SOUND );
+		// Ugly hack for haptics but i didn't manage to make
+		// vr_client_info_t structure and vibrate function
+		// accessible here :-(
+		DC->setCVar("vr_menu_item_touched", "1");
 	}
 
 	for ( i = 0; i < parent->itemCount; i++ ) {

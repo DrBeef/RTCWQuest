@@ -127,6 +127,12 @@ void TossClientItems( gentity_t *self ) {
 	if ( weapon == WP_AKIMBO ) { //----(SA)	added
 		weapon = WP_COLT;
 	}
+	if ( weapon == WP_AKIMBO_MP40 ) { //----(SA)	added
+		weapon = WP_MP40;
+	}
+	if ( weapon == WP_AKIMBO_THOMPSON ) { //----(SA)	added
+		weapon = WP_THOMPSON;
+	}
 //----(SA)	end
 
 
@@ -273,7 +279,9 @@ char    *modNames[] = {
 	"MOD_LUGER",
 	"MOD_COLT",
 	"MOD_MP40",
+	"MOD_AKIMBO_MP40",
 	"MOD_THOMPSON",
+	"MOD_AKIMBO_THOMPSON",
 	"MOD_STEN",
 	"MOD_MAUSER",
 	"MOD_SNIPERRIFLE",
@@ -674,7 +682,9 @@ qboolean IsHeadShotWeapon( int mod, gentity_t *targ, gentity_t *attacker ) {
 	case MOD_COLT:
 	case MOD_AKIMBO:
 	case MOD_MP40:
+	case MOD_AKIMBO_MP40:
 	case MOD_THOMPSON:
+	case MOD_AKIMBO_THOMPSON:
 	case MOD_STEN:
 	case MOD_BAR:
 	case MOD_FG42:

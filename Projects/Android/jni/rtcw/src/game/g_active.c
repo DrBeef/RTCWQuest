@@ -152,9 +152,11 @@ void P_DamageFeedback( gentity_t *player ) {
                 trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_low_bullet", yaw, pitch);
                 break;
             case MOD_THOMPSON:
+            case MOD_AKIMBO_THOMPSON:
             case MOD_STEN:
             case MOD_MAUSER:
             case MOD_MP40:
+            case MOD_AKIMBO_MP40:
             case MOD_GARAND:
             case MOD_SPEARGUN:
             case MOD_CROSS:
@@ -539,6 +541,9 @@ void SpectatorThink( gentity_t *ent, usercmd_t *ucmd ) {
 		// Ridah, made it a latched event (occurs on keydown only)
 		if ( client->latched_buttons & BUTTON_ACTIVATE ) {
 			Cmd_Activate_f( ent );
+		}
+		if ( client->latched_wbuttons & WBUTTON_ACTIVATE2 ) {
+			Cmd_Activate2_f( ent );
 		}
 
 		// save results of pmove
@@ -1510,6 +1515,9 @@ void ClientThink_real( gentity_t *ent ) {
 	// Ridah, made it a latched event (occurs on keydown only)
 	if ( client->latched_buttons & BUTTON_ACTIVATE ) {
 		Cmd_Activate_f( ent );
+	}
+	if ( client->latched_wbuttons & WBUTTON_ACTIVATE2 ) {
+		Cmd_Activate2_f( ent );
 	}
 
 	if ( ent->flags & FL_NOFATIGUE ) {

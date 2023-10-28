@@ -160,6 +160,14 @@ typedef struct {
 
 } refEntity_t;
 
+typedef struct {
+	int itemId;
+	refEntity_t icon;
+	refEntity_t iconSelected;
+	qboolean notSelectable;
+	refEntity_t labelNotSelectable; 
+} selectorWheelEntity_t;
+
 //----(SA)
 
 //                                                                  //
