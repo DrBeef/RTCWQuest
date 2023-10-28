@@ -627,7 +627,9 @@ int G_GetWeaponDamage( int weapon ) {
 		case WP_COLT:
 		case WP_AKIMBO: return 10;       //---- Make pistols a little more powerful for VR
 		case WP_VENOM: return 12;       // 15  ----(SA)	slight modify for DM
+		case WP_AKIMBO_MP40:
 		case WP_MP40: return 6;
+		case WP_AKIMBO_THOMPSON:
 		case WP_THOMPSON: return 8;
 		case WP_STEN: return 10;
 		case WP_FG42SCOPE:
@@ -657,7 +659,9 @@ int G_GetWeaponDamage( int weapon ) {
 		case WP_AKIMBO: return 18;      //----(SA)	added
 		case WP_VENOM: return 20;
 		case WP_MP40: return 14;
+		case WP_AKIMBO_MP40: return 14;
 		case WP_THOMPSON: return 18;
+		case WP_AKIMBO_THOMPSON: return 18;
 		case WP_STEN: return 14;
 		case WP_FG42SCOPE:
 		case WP_FG42: return 15;
@@ -701,9 +705,11 @@ float G_GetWeaponSpread( int weapon ) {
 			case WP_AKIMBO:     return 10;
 			case WP_VENOM:      return 1000;
 			case WP_MP40:       return 800;
+			case WP_AKIMBO_MP40: return 800;
 			case WP_FG42SCOPE:  return 100;
 			case WP_FG42:       return 200;
 			case WP_THOMPSON:   return 1000;
+			case WP_AKIMBO_THOMPSON:   return 1000;
 			case WP_STEN:       return 800;//1200; Improve accuracy of Sten for more fun on stealth missions
 			case WP_MAUSER:     return 200;
 			case WP_GARAND:     return 500;
@@ -718,9 +724,11 @@ float G_GetWeaponSpread( int weapon ) {
 			case WP_AKIMBO:     return 30;      //----(SA)	added
 			case WP_VENOM:      return 200;
 			case WP_MP40:       return 200;
+			case WP_AKIMBO_MP40: return 200;
 			case WP_FG42SCOPE:  return 10;
 			case WP_FG42:       return 150;
 			case WP_THOMPSON:   return 250;
+			case WP_AKIMBO_THOMPSON:   return 250;
 			case WP_STEN:       return 300;
 			case WP_MAUSER:     return 15;
 			case WP_GARAND:     return 25;
@@ -736,9 +744,11 @@ float G_GetWeaponSpread( int weapon ) {
 		case WP_AKIMBO: return 800;         //----(SA)added
 		case WP_VENOM: return 600;
 		case WP_MP40: return 400;
+		case WP_AKIMBO_MP40: return 400;
 		case WP_FG42SCOPE:
 		case WP_FG42:   return 500;
 		case WP_THOMPSON: return 600;
+		case WP_AKIMBO_THOMPSON: return 600;
 		case WP_STEN: return 200;
 		case WP_MAUSER: return 700;
 		case WP_GARAND: return 600;
@@ -966,11 +976,11 @@ void Bullet_Fire( gentity_t *ent, float spread, int damage ) {
 		// Allocates storage
 		char *fire_command = (char*)malloc(8 * sizeof(char));
 		sprintf(fire_command, "fire_%i", ent->s.weapon);
-	    if (ent->s.weapon == WP_AKIMBO)
+	    if (ent->s.weapon == WP_AKIMBO || ent->s.weapon == WP_AKIMBO_MP40 || ent->s.weapon == WP_AKIMBO_THOMPSON)
         {
-            qboolean akimbo = BG_AkimboFireSequence(ent->s.weapon, ent->client->ps.ammoclip[WP_AKIMBO], ent->client->ps.ammoclip[WP_COLT], gVR->akimboTriggerState );
+            qboolean akimbo = BG_AkimboFireSequence(ent->s.weapon, ent->client->ps.ammoclip[ent->s.weapon], ent->client->ps.ammoclip[weapAlts[ent->s.weapon]], gVR->akimboTriggerState );
             trap_Vibrate(100, right != akimbo ? 1 : 0, 1.0, fire_command, 0.0, 0.0);
-        } else{
+        } else {
             trap_Vibrate(100, right ? 1 : 0, 1.0, fire_command, 0.0, 0.0);
             if (gVR->weapon_stabilised) {
                 trap_Vibrate(100, right ? 0 : 1, 0.7, fire_command, 0.0, 0.0);
@@ -1746,8 +1756,12 @@ void CalcMuzzlePoint( gentity_t *ent, int weapon, vec3_t forward, vec3_t right, 
 		float worldscale = trap_Cvar_VariableIntegerValue("cg_worldScale");
         float heightAdjust = 0;
         trap_Cvar_VariableValue("cg_heightAdjust", &heightAdjust);
-        if (weapon == WP_AKIMBO && BG_AkimboFireSequence(WP_AKIMBO, ent->client->ps.ammoclip[WP_AKIMBO], ent->client->ps.ammoclip[WP_COLT], gVR->akimboTriggerState)) {
-            convertFromVR(worldscale, ent, gVR->offhandoffset, ent->r.currentOrigin, muzzlePoint);
+        if (weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON) {
+            if (BG_AkimboFireSequence(weapon, ent->client->ps.ammoclip[weapon], ent->client->ps.ammoclip[weapAlts[weapon]], gVR->akimboTriggerState)) {
+                convertFromVR(worldscale, ent, gVR->offhandoffset, ent->r.currentOrigin, muzzlePoint);
+            } else {
+                convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);                
+            }
         } else {
             convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);
         }
@@ -1812,8 +1826,13 @@ void CalcMuzzlePointForActivate( gentity_t *ent, vec3_t forward, vec3_t right, v
         float worldscale = trap_Cvar_VariableIntegerValue("cg_worldScale");
 		float heightAdjust = 0;
 		trap_Cvar_VariableValue("cg_heightAdjust", &heightAdjust);
-		if (ent->client->ps.weapon == WP_AKIMBO && BG_AkimboFireSequence(WP_AKIMBO, ent->client->ps.ammoclip[WP_AKIMBO], ent->client->ps.ammoclip[WP_COLT], gVR->akimboTriggerState)) {
-			convertFromVR(worldscale, ent, gVR->offhandoffset, ent->r.currentOrigin, muzzlePoint);
+		int weapon = ent->client->ps.weapon;
+		if (weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON) {
+			if (BG_AkimboFireSequence(weapon, ent->client->ps.ammoclip[weapon], ent->client->ps.ammoclip[weapAlts[weapon]], gVR->akimboTriggerState)) {
+				convertFromVR(worldscale, ent, gVR->offhandoffset, ent->r.currentOrigin, muzzlePoint);
+			} else {
+				convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);
+			}
 		} else {
 			convertFromVR(worldscale, ent, gVR->calculated_weaponoffset, ent->r.currentOrigin, muzzlePoint);
 		}
@@ -1876,9 +1895,14 @@ void CalcMuzzlePoints( gentity_t *ent, int weapon ) {
 			phase = level.time / 1000.0 * ZOOM_YAW_FREQUENCY * M_PI * 2;
 			viewang[YAW] += ZOOM_YAW_AMPLITUDE * sin( phase ) * ( spreadfrac + ZOOM_YAW_MIN_AMPLITUDE );
 */
-		if (weapon == WP_AKIMBO && BG_AkimboFireSequence(WP_AKIMBO, ent->client->ps.ammoclip[WP_AKIMBO], ent->client->ps.ammoclip[WP_COLT], gVR->akimboTriggerState)) {
-			VectorCopy(gVR->offhandweaponangles, viewang);
-			viewang[YAW] = ent->client->ps.viewangles[YAW] + (gVR->offhandweaponangles[YAW] - gVR->hmdorientation[YAW]);
+		if (weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON) {
+			if (BG_AkimboFireSequence(weapon, ent->client->ps.ammoclip[weapon], ent->client->ps.ammoclip[weapAlts[weapon]], gVR->akimboTriggerState)) {
+				VectorCopy(gVR->offhandweaponangles, viewang);
+				viewang[YAW] = ent->client->ps.viewangles[YAW] + (gVR->offhandweaponangles[YAW] - gVR->hmdorientation[YAW]);
+			} else {
+				VectorCopy(gVR->weaponangles, viewang);
+				viewang[YAW] = ent->client->ps.viewangles[YAW] + (gVR->weaponangles[YAW] - gVR->hmdorientation[YAW]);
+			}
 		} else {
 			VectorCopy(gVR->weaponangles, viewang);
 			viewang[YAW] = ent->client->ps.viewangles[YAW] + (gVR->weaponangles[YAW] - gVR->hmdorientation[YAW]);
@@ -1947,6 +1971,8 @@ void FireWeapon( gentity_t *ent ) {
 			case WP_SILENCER:
 			case WP_COLT:
 			case WP_AKIMBO:
+			case WP_AKIMBO_MP40:
+			case WP_AKIMBO_THOMPSON:
 				// No need for penalty, dual wield penalizes enough :-)
 				// aimSpreadScale += 0.4f;
 				break;
@@ -2068,9 +2094,11 @@ void FireWeapon( gentity_t *ent ) {
 	case WP_STEN:
 		Bullet_Fire( ent, STEN_SPREAD * aimSpreadScale, STEN_DAMAGE );
 		break;
+	case WP_AKIMBO_MP40:
 	case WP_MP40:
 		Bullet_Fire( ent, MP40_SPREAD * aimSpreadScale, MP40_DAMAGE );
 		break;
+	case WP_AKIMBO_THOMPSON:
 	case WP_THOMPSON:
 		Bullet_Fire( ent, THOMPSON_SPREAD * aimSpreadScale, THOMPSON_DAMAGE );
 		break;

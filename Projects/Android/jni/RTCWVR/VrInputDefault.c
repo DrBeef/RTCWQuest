@@ -22,6 +22,8 @@ Authors		:	Simon Brown
 
 
 #define WP_AKIMBO           20
+#define WP_AKIMBO_MP40      23
+#define WP_AKIMBO_THOMPSON  24
 
 void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, int capsule );
 
@@ -183,7 +185,8 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
         float controllerYawHeading = 0.0f;
         //Turn on weapon stabilisation?
         qboolean stabilised = qfalse;
-        if (!vr.pistol && // Don't stabilise pistols
+        qboolean usingAkimbo = vr.weaponid == WP_AKIMBO || vr.weaponid == WP_AKIMBO_MP40 || vr.weaponid == WP_AKIMBO_THOMPSON; 
+        if (!vr.pistol && !usingAkimbo && // Don't stabilise pistols and dual guns
             (pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger) && (distance < STABILISATION_DISTANCE))
         {
             stabilised = qtrue;
@@ -570,7 +573,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
                 ALOGV("**WEAPON EVENT**  Not Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
                 qboolean firing = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
-                if (vr.weaponid == WP_AKIMBO) {
+                if (usingAkimbo) {
                     if (firing) {
                         vr.akimboTriggerState |= ACTIVE_WEAPON_HAND;
                         sendButtonAction("+attack", firing);
@@ -712,9 +715,9 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
             //We need to record if we have started firing primary so that releasing trigger will stop definitely firing, if user has pushed grip
             //in meantime, then it wouldn't stop the gun firing and it would get stuck
-            if (!vr.teleportenabled || vr.weaponid == WP_AKIMBO)
+            if (!vr.teleportenabled || usingAkimbo)
             {
-                if (vr.weaponid == WP_AKIMBO && vr.backpackitemactive != 3 && !vr.binocularsActive) {
+                if ((usingAkimbo) && vr.backpackitemactive != 3 && !vr.binocularsActive) {
                     // Fire off-hand weapon
                     if ((pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) != (pOffTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
                         ALOGV("**WEAPON EVENT**  Off-hand trigger %sattack", (pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");

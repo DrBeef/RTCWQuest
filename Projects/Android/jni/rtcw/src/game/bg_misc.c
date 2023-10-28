@@ -130,13 +130,15 @@ ammotable_t ammoTable[] = {
 //	{	100,			1,		100,	1000,	DELAY_PISTOL,	900,	0,		0,		MOD_CROSS				},	//	WP_CROSS				// 29
 	{   10,             1,      10,     1000,   DELAY_THROW_VR, 1600,   0,      0,      MOD_DYNAMITE            },  //	WP_DYNAMITE				// 30
 //	{	10,				1,		10,		1000,	DELAY_THROW,	1600,	0,		0,		MOD_DYNAMITE			},	//	WP_DYNAMITE2			// 31
+	{	MAX_AMMO_9MM,	1,      32,     2600,   DELAY_LOW,      70,    0,      0,		MOD_AKIMBO_MP40         },  //	WP_AKIMBO_MP40			// 32
+	{	MAX_AMMO_45,	1,      30,     2400,   DELAY_LOW,      90,    0,      0,		MOD_AKIMBO_THOMPSON     },  //	WP_AKIMBO_THOMPSON		// 33
 
 // stubs for some "not-real" weapons (so they always return "yes, you have enough ammo for that gauntlet", etc.)
-//	{	5,				1,		5,		1000,	DELAY_SHOULDER,	1200,	0,		0,		0 /*mod_prox*/			},	//	WP_PROX					// 32
-	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK1		// 33
-	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK2		// 34
-	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK3		// 35
-	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       }   //	WP_GAUNTLET				// 36
+//	{	5,				1,		5,		1000,	DELAY_SHOULDER,	1200,	0,		0,		0 /*mod_prox*/			},	//	WP_PROX					// 34
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK1		// 35
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK2		// 36
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       },  //	WP_MONSTER_ATTACK3		// 37
+	{   999,            0,      999,    0,      50,             0,      0,      0,      0                       }   //	WP_GAUNTLET				// 38
 };
 
 
@@ -145,7 +147,7 @@ int weapAlts[] = {
 	WP_NONE,            // 0 WP_NONE
 	WP_NONE,            // 1 WP_KNIFE
 	WP_SILENCER,        // 2 WP_LUGER
-	WP_NONE,            // 3 WP_MP40
+	WP_AKIMBO_MP40,     // 3 WP_MP40
 	WP_SNIPERRIFLE,     // 4 WP_MAUSER
 	WP_FG42SCOPE,       // 5 WP_FG42	// was SP5
 	WP_NONE,            // 6 WP_GRENADE_LAUNCHER
@@ -156,7 +158,7 @@ int weapAlts[] = {
 //	WP_SPEARGUN_CO2,	// 11 WP_SPEARGUN
 //	WP_NONE,			// 12 WP_KNIFE2
 	WP_AKIMBO,          // 13 WP_COLT		//----(SA)	new
-	WP_NONE,            // 14 WP_THOMPSON
+	WP_AKIMBO_THOMPSON, // 14 WP_THOMPSON
 	WP_SNOOPERSCOPE,    // 15 WP_GARAND
 //	WP_BAR2,			// 16 WP_BAR		//----(SA)	modified
 	WP_NONE,            // 17 WP_GRENADE_PINEAPPLE
@@ -172,8 +174,10 @@ int weapAlts[] = {
 	WP_COLT,            // 27 WP_AKIMBO		//----(SA)	new
 	WP_NONE,            // 28 WP_CLASS_SPECIAL
 //	WP_NONE,			// 29 WP_CROSS
-	WP_NONE             // 30 WP_DYNAMITE	//----(SA)	modified (not in rotation yet)
+	WP_NONE,            // 30 WP_DYNAMITE	//----(SA)	modified (not in rotation yet)
 //	WP_DYNAMITE			// 31 WP_DYNAMITE2	//----(SA)	new
+	WP_MP40,			// 32 WP_AKIMBO_MP40
+	WP_THOMPSON			// 33 WP_AKIMBO_THOMPSON
 };
 
 
@@ -1020,6 +1024,30 @@ model="models/weapons2/mauser/mauser.md3"
 		{0,0,0,0}
 	},
 
+/*weapon_akimbo
+dual thompson
+*/
+	{
+		"weapon_akimbo_thompson",
+		"sound/misc/w_pkup.wav",
+		{   "models/weapons2/thompson/thompson.md3",
+			"models/weapons2/thompson/v_thompson.md3",
+			"models/weapons2/thompson/pu_thompson.md3",
+			0, 0 },
+
+		"icons/iconw_athompson_1",    // icon
+		"icons/ammo2",           // ammo icon
+		"Dual Thompsons",              // pickup
+		30,
+		IT_WEAPON,
+		WP_AKIMBO_THOMPSON,
+		WP_COLT,
+		WP_AKIMBO_THOMPSON,
+		"",                  // precache
+		"",                  // sounds
+		{0,0,0,0}
+	},
+
 /*QUAKED weapon_thompson (.3 .3 1) (-16 -16 -16) (16 16 16) SUSPENDED SPIN - RESPAWN
 -------- MODEL FOR RADIANT ONLY - DO NOT SET THIS AS A KEY --------
 model="models/weapons2/thompson/thompson.md3"
@@ -1080,7 +1108,7 @@ dual colts
 			"models/weapons2/colt/pu_colt.md3",
 			0, 0 },
 
-		"icons/iconw_colt_1",    // icon
+		"icons/iconw_acolt_1",    // icon
 		"icons/ammo2",           // ammo icon
 		"Dual Colts",            // pickup
 		50,
@@ -1142,6 +1170,30 @@ model="models/weapons2/garand/garand.md3"
 		WP_GARAND,
 		WP_GARAND,
 		WP_GARAND,
+		"",                      // precache
+		"",                      // sounds
+		{0,0,0,0}
+	},
+
+/*weapon_akimbo
+dual MP40
+*/
+	{
+		"weapon_akimbo_mp40",
+		"sound/misc/w_pkup.wav",
+		{   "models/weapons2/mp40/mp40.md3",
+			"models/weapons2/mp40/v_mp40.md3",
+			"models/weapons2/mp40/pu_mp40.md3",
+			0, 0 },
+
+		"icons/iconw_amp40_1",    // icon
+		"icons/ammo2",           // ammo icon
+		"Dual MP40",            // pickup
+		30,
+		IT_WEAPON,
+        WP_AKIMBO_MP40,
+		WP_LUGER,
+		WP_AKIMBO_MP40,
 		"",                      // precache
 		"",                      // sounds
 		{0,0,0,0}
@@ -1272,7 +1324,7 @@ model="models/weapons2/sp5/sp5.md3"
 			"models/weapons2/silencer/pu_silencer.md3",
 			0, 0},
 
-		"icons/iconw_silencer_1",    // icon
+		"icons/iconw_sluger_1",    // icon
 		"icons/ammo5",       // ammo icon
 //		"Silencer",		// pickup
 		"sp5 pistol",
@@ -3623,10 +3675,10 @@ BG_AkimboFireSequence
 ==============
 */
 //qboolean BG_AkimboFireSequence( playerState_t *ps ) {
-qboolean BG_AkimboFireSequence( int weapon, int akimboClip, int coltClip, int triggerState ) {
+qboolean BG_AkimboFireSequence( int weapon, int akimboClip, int mainClip, int triggerState ) {
 	// NOTE: this doesn't work when clips are turned off (dmflags 64)
 
-	if ( weapon != WP_AKIMBO ) {
+	if ( weapon != WP_AKIMBO && weapon != WP_AKIMBO_MP40 && weapon != WP_AKIMBO_THOMPSON ) {
 		return qfalse;
 	}
 
@@ -3642,14 +3694,14 @@ qboolean BG_AkimboFireSequence( int weapon, int akimboClip, int coltClip, int tr
 	if ( !akimboClip ) {
 		return qfalse;
 	}
-	if ( !coltClip ) {
+	if ( !mainClip ) {
 		return qtrue;
 	}
 
 
 	// At this point, both have ammo and we are firing from both
 	// Switch between primary and secondary after each fired shot
-	return ( ( akimboClip + coltClip ) & 1 );
+	return ( ( akimboClip + mainClip ) & 1 );
 }
 
 //----(SA) end

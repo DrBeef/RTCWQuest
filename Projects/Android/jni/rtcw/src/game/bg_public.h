@@ -578,22 +578,24 @@ typedef enum {
 //	WP_CROSS,				// 29
 	WP_DYNAMITE,            // 22
 //	WP_DYNAMITE2,			// 31
+	WP_AKIMBO_MP40,         // 23	// dual MP40
+	WP_AKIMBO_THOMPSON,     // 24	// dual thompson
 //	WP_PROX,				// 32
 
-	WP_MONSTER_ATTACK1,     // 23	// generic monster attack, slot 1
-	WP_MONSTER_ATTACK2,     // 24	// generic monster attack, slot 2
-	WP_MONSTER_ATTACK3,     // 25	// generic monster attack, slot 2
+	WP_MONSTER_ATTACK1,     // 25	// generic monster attack, slot 1
+	WP_MONSTER_ATTACK2,     // 26	// generic monster attack, slot 2
+	WP_MONSTER_ATTACK3,     // 27	// generic monster attack, slot 2
 
-	WP_GAUNTLET,            // 26
+	WP_GAUNTLET,            // 28
 
-	WP_SNIPER,              // 27
-	WP_GRENADE_SMOKE,       // 28	// smoke grenade for LT multiplayer
-	WP_MEDIC_HEAL,          // 29	// DHM - Nerve :: Medic special weapon
-	WP_MORTAR,              // 30
+	WP_SNIPER,              // 29
+	WP_GRENADE_SMOKE,       // 30	// smoke grenade for LT multiplayer
+	WP_MEDIC_HEAL,          // 31	// DHM - Nerve :: Medic special weapon
+	WP_MORTAR,              // 32
 
-	VERYBIGEXPLOSION,       // 31	// explosion effect for airplanes
+	VERYBIGEXPLOSION,       // 33	// explosion effect for airplanes
 
-	WP_NUM_WEAPONS          // 32   NOTE: this cannot be larger than 64 for AI/player weapons!
+	WP_NUM_WEAPONS          // 34   NOTE: this cannot be larger than 64 for AI/player weapons!
 
 } weapon_t;
 
@@ -1190,7 +1192,9 @@ typedef enum {
 	MOD_LUGER,
 	MOD_COLT,
 	MOD_MP40,
+	MOD_AKIMBO_MP40,
 	MOD_THOMPSON,
+	MOD_AKIMBO_THOMPSON,
 	MOD_STEN,
 	MOD_MAUSER,
 	MOD_SNIPERRIFLE,
@@ -1312,7 +1316,7 @@ gitem_t *BG_FindItemForKey( wkey_t k, int *index );
 weapon_t BG_FindAmmoForWeapon( weapon_t weapon );
 weapon_t BG_FindClipForWeapon( weapon_t weapon );
 
-qboolean BG_AkimboFireSequence( int weapon, int akimboClip, int coltClip, int triggerState );
+qboolean BG_AkimboFireSequence( int weapon, int akimboClip, int mainClip, int triggerState );
 //qboolean BG_AkimboFireSequence	( playerState_t *ps );	//----(SA)	added
 
 #define ITEM_INDEX( x ) ( ( x ) - bg_itemlist )

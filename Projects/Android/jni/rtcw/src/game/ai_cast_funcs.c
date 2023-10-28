@@ -2896,7 +2896,7 @@ char *AIFunc_BattleChase( cast_state_t *cs ) {
 	//
 	// if they are visible, but not attackable, look for a spot where we can attack them, and head
 	// for there. This should prevent AI's getting stuck in a bunch.
-	if ( !moved && cs->weaponNum >= WP_LUGER && cs->weaponNum <= WP_AKIMBO && cs->attributes[TACTICAL] >= 0.1 ) {
+	if ( !moved && ((cs->weaponNum >= WP_LUGER && cs->weaponNum <= WP_AKIMBO) || cs->weaponNum == WP_AKIMBO_MP40  || cs->weaponNum == WP_AKIMBO_THOMPSON ) && cs->attributes[TACTICAL] >= 0.1 ) {
 		//
 		// check for another movement we should be making
 		if ( cs->obstructingTime > level.time ) {

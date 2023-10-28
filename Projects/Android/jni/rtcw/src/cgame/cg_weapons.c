@@ -250,7 +250,7 @@ int weapBanks[MAX_WEAP_BANKS][MAX_WEAPS_IN_BANK] = {
 
 	{WP_KNIFE,              0,                      0           },  //	1
 	{WP_LUGER,              WP_COLT,                0           },  //	2	// WP_AKIMBO
-	{WP_MP40,               WP_THOMPSON,            WP_STEN     },  //	3
+	{WP_MP40,               WP_THOMPSON,            WP_STEN     },  //	3   // WP_AKIMBO MP40 & THOMPSON
 	{WP_MAUSER,             WP_GARAND,              0           },  //	4
 	{WP_FG42,               0,                      0           },  //	5
 	{WP_GRENADE_LAUNCHER,   WP_GRENADE_PINEAPPLE,   WP_DYNAMITE },  //	6
@@ -1504,12 +1504,32 @@ void CG_RegisterWeapon( int weaponNum ) {
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
+	case WP_AKIMBO_THOMPSON:
+		// same as thompson
+		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
+		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/thompson/thompson.wav" );
+		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
+		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/thompson/thompson_reload.wav" );
+		weaponInfo->overheatSound = trap_S_RegisterSound( "sound/weapons/thompson/thompson_overheat.wav" );
+		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
+		break;
+
 	case WP_THOMPSON:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
 		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/thompson/thompson.wav" );
 		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
 		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/thompson/thompson_reload.wav" );
 		weaponInfo->overheatSound = trap_S_RegisterSound( "sound/weapons/thompson/thompson_overheat.wav" );
+		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
+		break;
+
+	case WP_AKIMBO_MP40:
+		// same as MP40
+		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
+		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40f1.wav" );
+		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" );
+		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/mp40/mp40_reload.wav" );
+		weaponInfo->overheatSound = trap_S_RegisterSound( "sound/weapons/mp40/mp40_overheat.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
@@ -2087,8 +2107,8 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
         else if (ps->weapon != 0)
         {
             char cvar_name[64];
-            if (ps->weapon == WP_AKIMBO) {
-                Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", WP_COLT);
+            if (ps->weapon == WP_AKIMBO || ps->weapon == WP_AKIMBO_MP40 || ps->weapon == WP_AKIMBO_THOMPSON) {
+                Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", weapAlts[ps->weapon]);
             } else {
                 Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", ps->weapon);
             }
@@ -2877,8 +2897,13 @@ static qboolean CG_CalcMuzzlePoint( int entityNum, int dist, vec3_t muzzle ) {
     cent = &cg_entities[entityNum];
     if ( entityNum == cg.snap->ps.clientNum ) {
         vec3_t angles;
-        if (cent->currentState.weapon == WP_AKIMBO && BG_AkimboFireSequence(WP_AKIMBO, cg.snap->ps.ammoclip[WP_AKIMBO], cg.snap->ps.ammoclip[WP_COLT], cgVR->akimboTriggerState)) {
-            CG_CalculateVROffHandWeaponPosition(muzzle, angles);            
+        int weapon = cent->currentState.weapon;
+        if (weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON) {
+            if (BG_AkimboFireSequence(weapon, cg.snap->ps.ammoclip[weapon], cg.snap->ps.ammoclip[weapAlts[weapon]], cgVR->akimboTriggerState)) {
+                CG_CalculateVROffHandWeaponPosition(muzzle, angles);    
+            } else {
+                CG_CalculateVRWeaponPosition(weapon, muzzle, angles);    
+            }
         } else {
             CG_CalculateVRWeaponPosition(cent->currentState.weapon, muzzle, angles);
         }
@@ -2935,6 +2960,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	qboolean firing;    // Ridah
 
 	qboolean akimboFire = qfalse;       //----(SA)	added
+	qboolean useAkimbo = qfalse;
 
 	qboolean playerScaled;
 	qboolean drawpart, drawrealweap;
@@ -3002,8 +3028,20 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		}
 	} else {
 		if (weaponNum == WP_AKIMBO) {
+			CG_RegisterWeapon(WP_AKIMBO);
 			CG_RegisterWeapon(WP_COLT);
 			weapon = &cg_weapons[WP_COLT];
+			useAkimbo = qtrue;
+		} else if (weaponNum == WP_AKIMBO_MP40) {
+			CG_RegisterWeapon(WP_AKIMBO_MP40);
+			CG_RegisterWeapon(WP_MP40);
+			weapon = &cg_weapons[WP_MP40];
+			useAkimbo = qtrue;
+		} else if (weaponNum == WP_AKIMBO_THOMPSON) {
+			CG_RegisterWeapon(WP_AKIMBO_THOMPSON);
+			CG_RegisterWeapon(WP_THOMPSON);
+			weapon = &cg_weapons[WP_THOMPSON];
+			useAkimbo = qtrue;
 		} else {
 			CG_RegisterWeapon( weaponNum );
 			weapon = &cg_weapons[weaponNum];
@@ -3013,9 +3051,13 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 
 
 	if ( isPlayer ) {
-		akimboFire = BG_AkimboFireSequence( weaponNum, cg.predictedPlayerState.ammoclip[WP_AKIMBO], cg.predictedPlayerState.ammoclip[WP_COLT], cgVR->akimboTriggerState );
+		if (useAkimbo) {
+			akimboFire = BG_AkimboFireSequence( weaponNum, cg.predictedPlayerState.ammoclip[weaponNum], cg.predictedPlayerState.ammoclip[weapAlts[weaponNum]], cgVR->akimboTriggerState );
+		}
 	} else if ( ps ) {
-		akimboFire = BG_AkimboFireSequence( weaponNum, ps->ammoclip[WP_AKIMBO], ps->ammoclip[WP_AKIMBO], 0 );
+		if (useAkimbo) {
+			akimboFire = BG_AkimboFireSequence( weaponNum, ps->ammoclip[weaponNum], ps->ammoclip[weapAlts[weaponNum]], 0 );
+		}
 	}
 
 	// add the weapon
@@ -3136,7 +3178,9 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		brassOffset[WP_AKIMBO] = 1;
 		brassOffset[WP_FG42] = 1;
 		brassOffset[WP_MP40] = 2;
+		brassOffset[WP_AKIMBO_MP40] = 2;
 		brassOffset[WP_THOMPSON] = 2;
+		brassOffset[WP_AKIMBO_THOMPSON] = 2;
 		brassOffset[WP_STEN] = 6;
 		brassOffset[WP_VENOM] = 5;
 
@@ -3555,6 +3599,8 @@ CG_AddViewWeapon
 Add the weapon, and flash for the player's view
 ==============
 */
+#define TRIGGER_SECONDARY 1
+#define TRIGGER_PRIMARY   2
 void CG_AddViewWeapon( playerState_t *ps ) {
 	refEntity_t hand;
 	refEntity_t handAkimbo;
@@ -3565,6 +3611,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	vec3_t gunoffAkimbo;
 	weaponInfo_t    *weapon;
 	weaponInfo_t    *weaponAkimbo;
+	qboolean useAkimbo = qfalse;
 
 	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
 		return;
@@ -3640,6 +3687,19 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 				CG_RegisterWeapon( WP_AKIMBO );
 				weapon = &cg_weapons[ WP_COLT ];
 				weaponAkimbo = &cg_weapons[ WP_AKIMBO ];
+				useAkimbo = qtrue;
+			} else if (ps->weapon == WP_AKIMBO_MP40) {
+				CG_RegisterWeapon( WP_MP40 );
+				CG_RegisterWeapon( WP_AKIMBO_MP40 );
+				weapon = &cg_weapons[ WP_MP40 ];
+				weaponAkimbo = &cg_weapons[ WP_AKIMBO_MP40 ];
+				useAkimbo = qtrue;
+			} else if (ps->weapon == WP_AKIMBO_THOMPSON) {
+				CG_RegisterWeapon( WP_THOMPSON );
+				CG_RegisterWeapon( WP_AKIMBO_THOMPSON );
+				weapon = &cg_weapons[ WP_THOMPSON ];
+				weaponAkimbo = &cg_weapons[ WP_AKIMBO_THOMPSON ];
+				useAkimbo = qtrue;
 			} else {
 				CG_RegisterWeapon( ps->weapon );
 				weapon = &cg_weapons[ ps->weapon ];
@@ -3679,21 +3739,24 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 			handAkimbo.frame = handAkimbo.oldframe = cg_gun_frame.integer;
 			handAkimbo.backlerp = 0;
 		} else {  // get the animation state
-			if (ps->weapon == WP_AKIMBO) {
-				int weapAnim = ( ps->weapAnim & ~ANIM_TOGGLEBIT ); 
-				if (weapAnim == WEAP_ATTACK1 || weapAnim == WEAP_ATTACK2 || weapAnim == WEAP_ATTACK_LASTSHOT || weapAnim == WEAP_IDLE1 || weapAnim == WEAP_IDLE2) {
+			if (useAkimbo) {
+				int weapAnim = 0;
+				if ( ps->weapAnim & ~ANIM_TOGGLEBIT ) {
+					weapAnim = ps->weapAnim & ~ANIM_TOGGLEBIT;
+				}
+				if (ps->weaponstate == WEAPON_FIRING || weapAnim == WEAP_ATTACK1 || weapAnim == WEAP_ATTACK2 || weapAnim == WEAP_ATTACK_LASTSHOT || weapAnim == WEAP_IDLE1 || weapAnim == WEAP_IDLE2) {
 					// For akimbo attack animation, animate only firing weapon
 					if (cgVR->akimboFire) {
 						CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );
 					} else {
 						CG_WeaponAnimation( ps, weaponAkimbo, &handAkimbo.oldframe, &handAkimbo.frame, &handAkimbo.backlerp );
 					}
-				} else if (weapAnim == WEAP_RELOAD1 || weapAnim == WEAP_RELOAD2 || weapAnim == WEAP_RELOAD3) {
+				} else if (ps->weaponstate == WEAPON_RELOADING || weapAnim == WEAP_RELOAD1 || weapAnim == WEAP_RELOAD2 || weapAnim == WEAP_RELOAD3) {
 					// For akimbo reload, do not animate weapon with full clip
-					if (ps->ammoclip[WP_COLT] < 8) {
+					if (ps->ammoclip[weapAlts[ps->weapon]] < ammoTable[weapAlts[ps->weapon]].maxclip) {
 						CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );
 					}
-					if (ps->ammoclip[WP_AKIMBO] < 8) {
+					if (ps->ammoclip[ps->weapon] < ammoTable[ps->weapon].maxclip) {
 						CG_WeaponAnimation( ps, weaponAkimbo, &handAkimbo.oldframe, &handAkimbo.frame, &handAkimbo.backlerp );
 					}
 				} else {
@@ -3708,7 +3771,9 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		if (cgVR->backpackitemactive != 3 && !cgVR->binocularsActive)
 		{
 			hand.hModel = weapon->handsModel;
-			handAkimbo.hModel = weaponAkimbo->handsModel;
+			if (useAkimbo) {
+				handAkimbo.hModel = weaponAkimbo->handsModel;
+			}
 		}
 
         //Weapon offset debugging
@@ -3769,7 +3834,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 		// add everything onto the hand
 		CG_AddPlayerWeapon(&hand, ps, &cg.predictedPlayerEntity, qfalse);
-		if (ps->weapon == WP_AKIMBO && cgVR->backpackitemactive != 3 && !cgVR->binocularsActive) {
+		if (useAkimbo && cgVR->backpackitemactive != 3 && !cgVR->binocularsActive) {
 			CG_AddPlayerWeapon(&handAkimbo, ps, &cg.predictedPlayerEntity, qtrue);
 		}
 		// Ridah
@@ -3807,7 +3872,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
     }
 
 	CG_LaserSight(ps, qfalse);
-	if (ps->weapon == WP_AKIMBO) {
+	if (useAkimbo) {
 		CG_LaserSight(ps, qtrue);
 	}
 
@@ -3932,6 +3997,9 @@ void CG_DrawWeaponSelect( void ) {
 		case WP_FLAMETHROWER:
 		case WP_FG42:
 		case WP_FG42SCOPE:
+		case WP_SILENCER:
+		case WP_AKIMBO_MP40:
+		case WP_AKIMBO_THOMPSON:
 			wideweap = qtrue;
 			break;
 		default:
@@ -4634,9 +4702,22 @@ void CG_DrawWheelSelector( void )
 				selectorWheelEntity_t item;
 				memset(&item, 0, sizeof(item));
 				if (weaponNum == WP_LUGER && CG_WeaponAvailable(WP_SILENCER)) {
-					item.itemId = WP_SILENCER;
+					item.itemId = weapBanks[2][0];
 				} else if (weaponNum == WP_COLT && CG_WeaponAvailable(WP_AKIMBO)) {
-					item.itemId = WP_AKIMBO;
+					item.itemId = weapBanks[2][1];
+					if (!CG_WeaponHasAmmo(item.itemId)) {
+						item.itemId = weapAlts[item.itemId];
+					}
+				} else if (weaponNum == WP_MP40 && CG_WeaponAvailable(WP_AKIMBO_MP40)) {
+					item.itemId = weapBanks[3][0];
+					if (!CG_WeaponHasAmmo(item.itemId)) {
+						item.itemId = weapAlts[item.itemId];
+					}
+				} else if (weaponNum == WP_THOMPSON && CG_WeaponAvailable(WP_AKIMBO_THOMPSON)) {
+					item.itemId = weapBanks[3][1];
+					if (!CG_WeaponHasAmmo(item.itemId)) {
+						item.itemId = weapAlts[item.itemId];
+					}
 				} else {
 					item.itemId = weaponNum;   
 				}
@@ -4644,7 +4725,7 @@ void CG_DrawWheelSelector( void )
 				refEntity_t icon;
 				memset(&icon, 0, sizeof(icon));
 				icon.reType = RT_SPRITE;
-				icon.customShader = cgs.media.weaponIcons[i];
+				icon.customShader = cgs.media.weaponIcons[item.itemId];
 				icon.radius = 0.8f;
 				memset(icon.shaderRGBA, 0xff, 4);
 				item.icon = icon;
@@ -4652,12 +4733,12 @@ void CG_DrawWheelSelector( void )
 				refEntity_t iconSelected;
 				memset(&iconSelected, 0, sizeof(iconSelected));
 				iconSelected.reType = RT_SPRITE;
-				iconSelected.customShader = cgs.media.weaponIconsSelect[i];
+				iconSelected.customShader = cgs.media.weaponIconsSelect[item.itemId];
 				iconSelected.radius = 1.3f;
 				memset(iconSelected.shaderRGBA, 0xff, 4);
 				item.iconSelected = iconSelected;
 
-				if (!CG_WeaponHasAmmo(weaponNum)) {
+				if (!CG_WeaponHasAmmo(item.itemId)) {
 					item.notSelectable = qtrue;
 					refEntity_t labelNotSelectable;
 					memset(&labelNotSelectable, 0, sizeof(labelNotSelectable));
@@ -5309,6 +5390,20 @@ void CG_AltWeapon_f( void ) {
 			break;
 		case WP_COLT:
 			weapBanks[2][1] = WP_AKIMBO;
+			break;
+
+		case WP_AKIMBO_MP40:
+			weapBanks[3][0] = WP_MP40;
+			break;
+		case WP_MP40:
+			weapBanks[3][0] = WP_AKIMBO_MP40;
+			break;
+
+		case WP_AKIMBO_THOMPSON:
+			weapBanks[3][1] = WP_THOMPSON;
+			break;
+		case WP_THOMPSON:
+			weapBanks[3][1] = WP_AKIMBO_THOMPSON;
 			break;
 		}
 
@@ -6062,7 +6157,9 @@ void CG_WeaponFireRecoil( int weapon ) {
 	case WP_FG42SCOPE:
 	case WP_FG42:
 	case WP_MP40:
+	case WP_AKIMBO_MP40:
 	case WP_THOMPSON:
+	case WP_AKIMBO_THOMPSON:
 	case WP_STEN:
 		//pitchRecoilAdd = 1;
 		pitchAdd = 1 + rand() % 3;
@@ -6528,9 +6625,11 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, in
 	case WP_SNIPERRIFLE:
 	case WP_SNOOPERSCOPE:
 	case WP_MP40:
+	case WP_AKIMBO_MP40:
 	case WP_FG42:
 	case WP_FG42SCOPE:
 	case WP_THOMPSON:
+	case WP_AKIMBO_THOMPSON:
 	case WP_STEN:
 	case WP_SILENCER:
 	case WP_VENOM:

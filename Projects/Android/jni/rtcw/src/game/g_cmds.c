@@ -289,8 +289,8 @@ void Cmd_Give_f( gentity_t *ent ) {
 	if ( give_all || Q_stricmp( name, "weapons" ) == 0 ) {
 		//ent->client->ps.weapons[0] = (1 << (WP_MONSTER_ATTACK1)) - 1 - (1<<WP_NONE);	//----(SA)	gives the cross now as well
 
-		//(SA) we really don't want to give anything beyond WP_DYNAMITE
-		for ( i = 0; i <= WP_DYNAMITE; i++ )
+		//(SA) we really don't want to give anything beyond WP_AKIMBO_THOMPSON
+		for ( i = 0; i <= WP_AKIMBO_THOMPSON; i++ )
 			COM_BitSet( ent->client->ps.weapons, i );
 
 //		for (i=0; i<WP_NUM_WEAPONS; i++) {

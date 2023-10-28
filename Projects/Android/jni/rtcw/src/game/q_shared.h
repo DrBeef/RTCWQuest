@@ -1083,7 +1083,7 @@ typedef enum
 #define MAX_WEAPS_IN_BANK_MP    8
 #define MAX_WEAP_BANKS_MP   7
 // jpw
-#define MAX_WEAP_ALTS       WP_DYNAMITE
+#define MAX_WEAP_ALTS       WP_AKIMBO_THOMPSON
 
 
 // bit field limits

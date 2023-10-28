@@ -152,9 +152,11 @@ void P_DamageFeedback( gentity_t *player ) {
                 trap_Vibrate(1000, 1, (count / 255.0) + 0.5f, "damage_low_bullet", yaw, pitch);
                 break;
             case MOD_THOMPSON:
+            case MOD_AKIMBO_THOMPSON:
             case MOD_STEN:
             case MOD_MAUSER:
             case MOD_MP40:
+            case MOD_AKIMBO_MP40:
             case MOD_GARAND:
             case MOD_SPEARGUN:
             case MOD_CROSS:

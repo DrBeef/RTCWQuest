@@ -1126,8 +1126,8 @@ typedef struct {
 	qhandle_t loadIcon;
 	qhandle_t loadIconSelect;
 	qhandle_t arrowIcon;
-	qhandle_t weaponIcons[SELECTABLE_WEAPONS_NUM];
-	qhandle_t weaponIconsSelect[SELECTABLE_WEAPONS_NUM];
+	qhandle_t weaponIcons[WP_NUM_WEAPONS];
+	qhandle_t weaponIconsSelect[WP_NUM_WEAPONS];
 	qhandle_t itemSelectCursor;
 
 	qhandle_t reticleShader;

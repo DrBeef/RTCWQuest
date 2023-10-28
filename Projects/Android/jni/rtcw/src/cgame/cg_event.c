@@ -275,6 +275,12 @@ static void CG_Obituary( entityState_t *ent ) {
 		case MOD_AKIMBO:
 			message = "was killed (dual colts) by";
 			break;
+		case MOD_AKIMBO_MP40:
+			message = "was killed (dual MP40) by";
+			break;
+		case MOD_AKIMBO_THOMPSON:
+			message = "was killed (dual thompson) by";
+			break;
 		case MOD_ROCKET_LAUNCHER:
 			message = "was killed (rl) by";
 			break;
@@ -446,9 +452,9 @@ static void CG_ItemPickup( int itemNum ) {
 
 		weapon = itemid;
 
-		if ( weapon == WP_COLT ) {
+		if ( weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON ) {
 			if ( COM_BitCheck( cg.snap->ps.weapons, weapon ) ) {
-				weapon = WP_AKIMBO; // you have colt, now get akimbo (second)
+				weapon = weapAlts[weapon]; // you have one, now get akimbo (second)
 			}
 		}
 
@@ -525,6 +531,9 @@ static void CG_ItemPickup( int itemNum ) {
 		if ( selectIt ) {
 			cg.weaponSelectTime = cg.time;
 			cg.weaponSelect     = weapon;
+			if (cgVR) {
+				cgVR->weaponid = weapon;
+			}
 		}
 
 	}   // end bg_itemlist[itemNum].giType == IT_WEAPON
