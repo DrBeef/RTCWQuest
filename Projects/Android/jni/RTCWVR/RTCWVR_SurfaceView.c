@@ -1508,6 +1508,7 @@ void RTCWVR_Init()
 	vr_irl_crouch_to_stand_ratio = Cvar_Get ("vr_irl_crouch_to_stand_ratio", "0.65", CVAR_ARCHIVE);
 	vr_haptic_intensity = Cvar_Get ("vr_haptic_intensity", "1.0", CVAR_ARCHIVE);
 	vr_menu_item_touched = Cvar_Get ("vr_menu_item_touched", "0", CVAR_TEMP);
+	vr_refresh = Cvar_Get ("vr_refresh", "72", CVAR_ARCHIVE);
 
     //Defaults
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);
@@ -1649,6 +1650,14 @@ int GetRefresh()
     return vrapi_GetSystemPropertyInt(&java, VRAPI_SYS_PROP_DISPLAY_REFRESH_RATE);
 }
 
+int GetRequestedRefresh() {
+	float refresh = Cvar_VariableValue("vr_refresh");
+	if (!refresh) {
+		refresh = REFRESH;
+	}
+	return refresh;
+}
+
 void * AppThreadFunction(void * parm ) {
 	gAppThread = (ovrAppThread *) parm;
 
@@ -1783,7 +1792,7 @@ void RTCWVR_FrameSetup()
 	vrapi_SetTrackingSpace(gAppState.Ovr, VRAPI_TRACKING_SPACE_LOCAL_FLOOR);
 
 	//Set framerate so VrApi doesn't change it on us..
-    vrapi_SetDisplayRefreshRate(gAppState.Ovr, REFRESH);
+	vrapi_SetDisplayRefreshRate(gAppState.Ovr, GetRequestedRefresh());
 
 	vrapi_SetExtraLatencyMode(gAppState.Ovr, VRAPI_EXTRA_LATENCY_MODE_ON);
 }

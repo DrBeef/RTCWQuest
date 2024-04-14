@@ -2275,6 +2275,7 @@ Com_Frame
 =================
 */
 int GetRefresh();
+int GetRequestedRefresh();
 void Com_Frame( void ) {
 
 	int msec, minMsec;
