@@ -4146,12 +4146,19 @@ CG_WeaponHasAmmo
 ==============
 */
 static qboolean CG_WeaponHasAmmo( int i ) {
-	if ( !( cg.predictedPlayerState.ammo[BG_FindAmmoForWeapon( i )] ) &&
-		 !( cg.predictedPlayerState.ammoclip[BG_FindClipForWeapon( i )] ) ) {
-		return qfalse;
+	if ( cg.predictedPlayerState.ammo[BG_FindAmmoForWeapon( i )] ) {
+		return qtrue;
 	}
 
-	return qtrue;
+	if ( cg.predictedPlayerState.ammoclip[BG_FindClipForWeapon( i )] ) {
+		return qtrue;
+	}
+
+	if (i == WP_COLT || i == WP_MP40 || i == WP_THOMPSON) {
+		return cg.predictedPlayerState.ammoclip[BG_FindClipForWeapon(getAltWeapon(i))];
+	}
+
+	return qfalse;
 }
 
 /*

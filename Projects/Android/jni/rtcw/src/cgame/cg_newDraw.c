@@ -627,6 +627,10 @@ static void CG_DrawPlayerAmmoValue( rectDef_t *rect, int font, float scale, vec4
 
 	if ( type == 0 ) { // ammo
 		value = cg.snap->ps.ammo[BG_FindAmmoForWeapon( weap )];
+		if ( (weap == WP_COLT || weap == WP_MP40 || weap == WP_THOMPSON) && weapAlts[weap] ) {
+			// When holding single weapon, add akimbo clip to reserve
+			value += ps->ammoclip[weapAlts[weap]];
+		}
 	} else {        // clip
 		value = ps->ammoclip[BG_FindClipForWeapon( weap )];
 		if ( special ) {
@@ -634,7 +638,6 @@ static void CG_DrawPlayerAmmoValue( rectDef_t *rect, int font, float scale, vec4
 			if ( weapAlts[weap] ) {
 				value = ps->ammoclip[weapAlts[weap]];
 			}
-//				value2 = ps->ammoclip[weapAlts[weap]];
 		}
 	}
 

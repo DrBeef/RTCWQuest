@@ -2351,6 +2351,21 @@ static void PM_ReloadClip( int weapon ) {
 		pm->ps->ammoclip[BG_FindClipForWeapon( weapon )] += ammomove;
 	}
 
+	// If clip is not full, check if we have ammo in akimbo clip
+	// If so, fill main weapon clip from akimbo clip
+	ammoclip = pm->ps->ammoclip[BG_FindClipForWeapon( weapon )];
+	ammomove = ammoTable[weapon].maxclip - ammoclip;
+	if (ammomove && (weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON)) {
+		int altWeapon = weapAlts[weapon];
+		if (altWeapon != pm->ps->weapon) {
+			ammoreserve = pm->ps->ammoclip[ BG_FindClipForWeapon( altWeapon )];
+			if ( ammoreserve < ammomove ) {
+				ammomove = ammoreserve;
+			}
+			pm->ps->ammoclip[BG_FindClipForWeapon( altWeapon )] -= ammomove;
+			pm->ps->ammoclip[BG_FindClipForWeapon( weapon )] += ammomove;
+		}
+	}
 }
 
 /*
@@ -2441,6 +2456,13 @@ void PM_CheckForReload( int weapon ) {
 					doReload = qtrue;
 				}
 			}
+		} else if (weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON) {
+			// Allow to reload main weapon from akimbo clip
+			if ( pm->ps->ammoclip[BG_FindClipForWeapon( weapAlts[weapon] )] ) {
+				if ( pm->ps->ammoclip[clipWeap] < ammoTable[weapon].maxclip) {
+					doReload = qtrue;                    
+				}
+			}
 		}
 	}
 	// clip is empty, but you have reserves.  (auto reload)
@@ -2461,6 +2483,13 @@ void PM_CheckForReload( int weapon ) {
 				}
 			} else {
 				doReload = qtrue;
+			}
+		} else if (weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON) {
+			// Allow to reload main weapon from akimbo clip
+			if ( pm->ps->ammoclip[BG_FindClipForWeapon( weapAlts[weapon] )] ) {
+				if ( pm->ps->ammoclip[clipWeap] < ammoTable[weapon].maxclip) {
+					doReload = qtrue;                    
+				}
 			}
 		}
 	}
