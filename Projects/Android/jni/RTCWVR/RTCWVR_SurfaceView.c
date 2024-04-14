@@ -1494,7 +1494,7 @@ void RTCWVR_Init()
 	vr_turn_angle = Cvar_Get( "vr_turn_angle", "45", CVAR_ARCHIVE);
 	vr_reloadtimeoutms = Cvar_Get( "vr_reloadtimeoutms", "200", CVAR_ARCHIVE);
 	vr_positional_factor = Cvar_Get( "vr_positional_factor", "12", CVAR_ARCHIVE);
-    vr_walkdirection = Cvar_Get( "vr_walkdirection", "0", CVAR_ARCHIVE);
+    vr_walkdirection = Cvar_Get( "vr_walkdirection", "1", CVAR_ARCHIVE);
 	vr_movement_multiplier = Cvar_Get( "vr_movement_multiplier", "0.7", CVAR_ARCHIVE);
 	vr_weapon_pitchadjust = Cvar_Get( "vr_weapon_pitchadjust", "-20.0", CVAR_ARCHIVE);
 	vr_lasersight = Cvar_Get( "vr_lasersight", "0", CVAR_ARCHIVE);
@@ -1515,7 +1515,7 @@ void RTCWVR_Init()
 	vr_switch_sticks = Cvar_Get( "vr_switch_sticks", "0", CVAR_ARCHIVE);
 
 	vr_cinematic_stereo = Cvar_Get( "vr_cinematic_stereo", "0", CVAR_ARCHIVE); // Default to 2D
-	vr_screen_dist = Cvar_Get( "vr_screen_dist", "3.5", CVAR_ARCHIVE);
+	vr_screen_dist = Cvar_Get( "vr_screen_dist", "4.4", CVAR_ARCHIVE);
 
     //Set up vr client info
 	vr.backpackitemactive = 0;
