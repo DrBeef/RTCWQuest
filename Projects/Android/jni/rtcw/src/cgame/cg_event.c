@@ -453,8 +453,9 @@ static void CG_ItemPickup( int itemNum ) {
 		weapon = itemid;
 
 		if ( weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON ) {
-			if ( COM_BitCheck( cg.snap->ps.weapons, weapon ) ) {
-				weapon = weapAlts[weapon]; // you have one, now get akimbo (second)
+			int altWeapon = weapAlts[weapon];
+			if ( COM_BitCheck( cg.snap->ps.weapons, weapon ) && COM_BitCheck( cg.predictedPlayerState.weapons, altWeapon ) ) {
+				weapon = altWeapon; // you have one, now get akimbo (second)
 			}
 		}
 
