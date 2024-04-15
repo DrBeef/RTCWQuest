@@ -146,7 +146,6 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
             interactWithTouchScreen(menuYaw, vr.offhandangles);
             handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, offButton1, K_MOUSE1);
             handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, ovrButton_Trigger, K_MOUSE1);
-            handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, offButton2, K_ESCAPE);
             if ((pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) != (pDominantTrackedRemoteOld->Buttons & ovrButton_Trigger) && (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger)) {
                 vr.menu_right_handed = !vr.menu_right_handed;
                 RTCWVR_Vibrate(40, vr.menu_right_handed ? 1 : 0, 0.5);
@@ -155,12 +154,13 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
             interactWithTouchScreen(menuYaw, vr.dominanthandangles);
             handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton1, K_MOUSE1);
             handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, ovrButton_Trigger, K_MOUSE1);
-            handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton2, K_ESCAPE);
             if ((pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) != (pOffTrackedRemoteOld->Buttons & ovrButton_Trigger) && (pOffTrackedRemoteNew->Buttons & ovrButton_Trigger)) {
                 vr.menu_right_handed = !vr.menu_right_handed;
                 RTCWVR_Vibrate(40, vr.menu_right_handed ? 1 : 0, 0.5);
             }
         }
+        handleTrackedControllerButton(pOffTrackedRemoteNew, pOffTrackedRemoteOld, offButton2, K_ESCAPE);
+        handleTrackedControllerButton(pDominantTrackedRemoteNew, pDominantTrackedRemoteOld, domButton2, K_ESCAPE);
         if (vr_menu_item_touched->integer) {
             RTCWVR_Vibrate(40, vr.menu_right_handed ? 1 : 0, 0.5);
             Cvar_SetValue("vr_menu_item_touched", 0);
@@ -261,6 +261,13 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
             //Just copy to calculated offset, used to use this in case we wanted to apply any modifiers, but don't any more
             VectorCopy(vr.current_weaponoffset, vr.calculated_weaponoffset);
 
+            static qboolean wasVelocityTriggered = false;
+            if (!wasVelocityTriggered && vr.velocitytriggered) {
+                // In case we are switching from standard weapon to velocity triggered
+                // weapon disable ongoing attack to prevent attack being stuck.
+                sendButtonAction("+attack", false);
+            }
+            wasVelocityTriggered = vr.velocitytriggered;
             //Does weapon velocity trigger attack (knife) and is it fast enough
             static qboolean velocityTriggeredAttack = false;
             if (vr.velocitytriggered)
