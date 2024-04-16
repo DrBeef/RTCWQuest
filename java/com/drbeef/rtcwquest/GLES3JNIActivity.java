@@ -237,9 +237,6 @@ import static android.system.Os.setenv;
 		//Copy the command line params file
 		copy_asset("/sdcard/RTCWQuest", "commandline.txt", false);
 
-		//Copy the weapon adjustment config
-		copy_asset("/sdcard/RTCWQuest/Main", "weapons_vr.cfg", false);
-
 		//and the demo version - if required
 		copy_asset("/sdcard/RTCWQuest/Main", "pak0.pk3", false);
 
@@ -248,11 +245,20 @@ import static android.system.Os.setenv;
 
 		//and some additional vr assets
 		copy_asset("/sdcard/RTCWQuest/Main", "z_vr_assets.pk3", true);
-		// (also delete pak from previous version)
+		// (delete asset pak from previous version)
 		File oldAssetPak = new File("/sdcard/RTCWQuest/Main/z_rtcwquest_vrmenu.pk3");
 		if (oldAssetPak.exists()) {
 			try {
 				oldAssetPak.delete();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		// (weapon adjustment was moved to pak, users can still use weapons_user.cfg to re-adjust)
+		File oldWeaponAdjustment = new File("/sdcard/RTCWQuest/Main/weapons_vr.cfg");
+		if (oldWeaponAdjustment.exists()) {
+			try {
+				oldWeaponAdjustment.delete();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

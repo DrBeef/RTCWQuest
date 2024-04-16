@@ -3885,10 +3885,47 @@ void CG_AddViewHand( playerState_t *ps ) {
 	memset( &handEnt, 0, sizeof(refEntity_t) );
 	CG_CalculateVROffHandPosition( handEnt.origin, angles );
 
+	float scale = 1.0f;
+	char offhand_adjustment[256];
+	trap_Cvar_VariableStringBuffer("vr_offhand_adjustment", offhand_adjustment, 256);
+	if (strlen(offhand_adjustment) > 0) {
+		vec3_t adjust, offset, temp_offset;
+		VectorClear(adjust);
+		VectorClear(offset);
+		VectorClear(temp_offset);
+		sscanf(offhand_adjustment, "%f,%f,%f,%f,%f,%f,%f", &scale,
+			&(temp_offset[0]), &(temp_offset[1]), &(temp_offset[2]),
+			&(adjust[PITCH]), &(adjust[YAW]), &(adjust[ROLL]));
+		VectorScale(temp_offset, scale, offset);
+		if (cgVR->right_handed)
+		{
+			//yaw needs to go in the other direction as left handed model is reversed
+			adjust[YAW] *= -1.0f;
+		}
+		//Adjust angles for hand models that aren't aligned very well
+		matrix4x4 m1, m2, m3;
+		vec3_t zero;
+		VectorClear(zero);
+		Matrix4x4_CreateFromEntity(m1, angles, zero, 1.0);
+		Matrix4x4_CreateFromEntity(m2, adjust, zero, 1.0);
+		Matrix4x4_Concat(m3, m1, m2);
+		Matrix4x4_ConvertToEntity(m3, angles, zero);
+		//Now move weapon closer to proper origin
+		vec3_t forward, right, up;
+		AngleVectors( angles, forward, right, up );
+		VectorMA( handEnt.origin, offset[2], forward, handEnt.origin );
+		VectorMA( handEnt.origin, offset[1], up, handEnt.origin );
+		if (cgVR->right_handed) {
+			VectorMA(handEnt.origin, offset[0], right, handEnt.origin);
+		} else {
+			VectorMA(handEnt.origin, -offset[0], right, handEnt.origin);
+		}
+	}
+
 	vec3_t axis[3];
 	AnglesToAxis(angles, handEnt.axis);
 	for ( int i = 0; i < 3; i++ ) {
-		VectorScale( handEnt.axis[i], (cgVR->right_handed || i != 1) ? 1.0f : -1.0f, handEnt.axis[i] );
+		VectorScale( handEnt.axis[i], (cgVR->right_handed || i != 1) ? scale : -scale, handEnt.axis[i] );
 	}
 
 	handEnt.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON;

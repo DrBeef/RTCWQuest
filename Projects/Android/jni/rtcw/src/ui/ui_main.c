@@ -4570,6 +4570,9 @@ static void UI_RunMenuScript( char **args ) {
 			Controls_SetDefaults();
 			trap_Cvar_Set( "com_introPlayed", "1" );
 			trap_Cvar_Set( "com_recommendedSet", "1" );                   // NERVE - SMF
+			trap_Cmd_ExecuteText( EXEC_NOW, "exec models_vr.cfg\n" );
+			trap_Cmd_ExecuteText( EXEC_NOW, "exec weapons_vr.cfg\n" );
+			trap_Cmd_ExecuteText( EXEC_NOW, "exec weapons_user.cfg\n" );
 			trap_Cmd_ExecuteText( EXEC_APPEND, "vid_restart\n" );
 // end from MP
 		} else if ( Q_stricmp( name, "getCDKey" ) == 0 ) {
