@@ -1509,6 +1509,7 @@ void RTCWVR_Init()
 	vr_haptic_intensity = Cvar_Get ("vr_haptic_intensity", "1.0", CVAR_ARCHIVE);
 	vr_menu_item_touched = Cvar_Get ("vr_menu_item_touched", "0", CVAR_TEMP);
 	vr_refresh = Cvar_Get ("vr_refresh", "72", CVAR_ARCHIVE);
+	vr_spread_reduce = Cvar_Get ("vr_spread_reduce", "0", CVAR_ARCHIVE);
 
     //Defaults
 	vr_control_scheme = Cvar_Get( "vr_control_scheme", "0", CVAR_ARCHIVE);

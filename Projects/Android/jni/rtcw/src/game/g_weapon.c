@@ -2014,6 +2014,9 @@ void FireWeapon( gentity_t *ent ) {
 	}
 
 	// fire the specific weapon
+    float spreadReduce = 0;
+    trap_Cvar_VariableValue("vr_spread_reduce", &spreadReduce);
+    float spreadCorrection = 1 - spreadReduce;
 	switch ( ent->s.weapon ) {
 	case WP_KNIFE:
 		Weapon_Knife( ent );
@@ -2025,26 +2028,26 @@ void FireWeapon( gentity_t *ent ) {
 // jpw
 		break;
 	case WP_LUGER:
-		Bullet_Fire( ent, LUGER_SPREAD * aimSpreadScale, LUGER_DAMAGE );
+		Bullet_Fire( ent, LUGER_SPREAD * aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection), LUGER_DAMAGE );
 		if (gVR && !( ent->r.svFlags & SVF_CASTAI )) // only recoil the weapon if this is the player
 		    gVR->weapon_recoil = WEAPON_RECOIL;
 		break;
 	case WP_SILENCER:
-		Bullet_Fire( ent, SILENCER_SPREAD * aimSpreadScale, LUGER_DAMAGE );
+		Bullet_Fire( ent, SILENCER_SPREAD * aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection), LUGER_DAMAGE );
         if (gVR && !( ent->r.svFlags & SVF_CASTAI )) // only recoil the weapon if this is the player
             gVR->weapon_recoil = WEAPON_RECOIL;
 		break;
 	case WP_AKIMBO: //----(SA)	added
 	case WP_COLT:
-		Bullet_Fire( ent, COLT_SPREAD * aimSpreadScale, COLT_DAMAGE );
+		Bullet_Fire( ent, COLT_SPREAD * aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection), COLT_DAMAGE );
         if (gVR && !( ent->r.svFlags & SVF_CASTAI )) // only recoil the weapon if this is the player
             gVR->weapon_recoil = WEAPON_RECOIL;
 		break;
 	case WP_VENOM:
-		weapon_venom_fire( ent, qfalse, aimSpreadScale );
+		weapon_venom_fire( ent, qfalse, aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection) );
 		break;
 	case WP_SNIPERRIFLE:
-		Bullet_Fire( ent, SNIPER_SPREAD * aimSpreadScale, SNIPER_DAMAGE );
+		Bullet_Fire( ent, SNIPER_SPREAD * aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection), SNIPER_DAMAGE );
 // JPW NERVE -- added muzzle flip in multiplayer
 		if ( !ent->aiCharacter ) {
 //		if (g_gametype.integer != GT_SINGLE_PLAYER) {
@@ -2058,7 +2061,7 @@ void FireWeapon( gentity_t *ent ) {
 // jpw
 		break;
 	case WP_SNOOPERSCOPE:
-		Bullet_Fire( ent, SNOOPER_SPREAD * aimSpreadScale, SNOOPER_DAMAGE );
+		Bullet_Fire( ent, SNOOPER_SPREAD * aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection), SNOOPER_DAMAGE );
 // JPW NERVE -- added muzzle flip in multiplayer
 		if ( !ent->aiCharacter ) {
 //		if (g_gametype.integer != GT_SINGLE_PLAYER) {
@@ -2071,10 +2074,10 @@ void FireWeapon( gentity_t *ent ) {
 // jpw
 		break;
 	case WP_MAUSER:
-		Bullet_Fire( ent, MAUSER_SPREAD * aimSpreadScale, MAUSER_DAMAGE );
+		Bullet_Fire( ent, MAUSER_SPREAD * aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection), MAUSER_DAMAGE );
 		break;
 	case WP_GARAND:
-		Bullet_Fire( ent, GARAND_SPREAD * aimSpreadScale, GARAND_DAMAGE );
+		Bullet_Fire( ent, GARAND_SPREAD * aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection), GARAND_DAMAGE );
 		break;
 //----(SA)	added
 	case WP_FG42SCOPE:
@@ -2088,19 +2091,19 @@ void FireWeapon( gentity_t *ent ) {
 			SetClientViewAngle( ent,viewang );
 		}
 	case WP_FG42:
-		Bullet_Fire( ent, FG42_SPREAD * aimSpreadScale, FG42_DAMAGE );
+		Bullet_Fire( ent, FG42_SPREAD * aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection), FG42_DAMAGE );
 		break;
 //----(SA)	end
 	case WP_STEN:
-		Bullet_Fire( ent, STEN_SPREAD * aimSpreadScale, STEN_DAMAGE );
+		Bullet_Fire( ent, STEN_SPREAD * aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection), STEN_DAMAGE );
 		break;
 	case WP_AKIMBO_MP40:
 	case WP_MP40:
-		Bullet_Fire( ent, MP40_SPREAD * aimSpreadScale, MP40_DAMAGE );
+		Bullet_Fire( ent, MP40_SPREAD * aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection), MP40_DAMAGE );
 		break;
 	case WP_AKIMBO_THOMPSON:
 	case WP_THOMPSON:
-		Bullet_Fire( ent, THOMPSON_SPREAD * aimSpreadScale, THOMPSON_DAMAGE );
+		Bullet_Fire( ent, THOMPSON_SPREAD * aimSpreadScale * (ent->aiCharacter ? 1 : spreadCorrection), THOMPSON_DAMAGE );
 		break;
 	case WP_PANZERFAUST:
 		ent->client->ps.classWeaponTime = level.time; // JPW NERVE
