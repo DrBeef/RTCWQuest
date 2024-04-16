@@ -73,7 +73,7 @@ itemDef
 	textscale .22
 	group grpSystembutton
 	style WINDOW_STYLE_FILLED
-	rect 106 10 100 12
+	rect 86 10 100 12
 	textalign 1
 	textalignx 50
 	textaligny 10
@@ -307,7 +307,7 @@ itemDef {
 	textscale .22
 	group grpSystembutton
 	style WINDOW_STYLE_FILLED
-	rect 256 10 100 12
+	rect 186 10 100 12
 	textalign 1
 	textalignx 50
 	textaligny 10
@@ -407,7 +407,25 @@ itemDef {
     	}
 
 
-
+itemDef {
+	name ctr_help
+	text "Help"
+	type 1
+	textscale .22
+	group grpSystembutton
+	style WINDOW_STYLE_FILLED
+	rect 286 10 100 12
+	textalign 1
+	textalignx 50
+	textaligny 10
+	forecolor 1 1 1 1
+	backcolor .1 .1 .1 0
+	visible 1
+	action { play "sound/misc/kcaction.wav" ;
+	hide grpControls ; hide comfort ; open helpPopupMenu }
+	mouseEnter { show message_graphics ; setitemcolor ctr_help backcolor .3 .3 .3 0 }
+	mouseExit { hide message_graphics ; setitemcolor ctr_help backcolor .1 .1 .1 0 }
+	}
 
 
 itemDef {
