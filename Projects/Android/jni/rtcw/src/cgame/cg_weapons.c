@@ -230,6 +230,7 @@ int hWeaponSnd;
 int hflakWeaponSnd;
 int notebookModel;
 int propellerModel;
+int vrBinocularModel;
 
 extern vr_client_info_t *cgVR;
 
@@ -1706,7 +1707,8 @@ void CG_RegisterItemVisuals( int itemNum ) {
 	itemInfo->registered = qtrue;   //----(SA)	moved this down after the registerweapon()
 
 	binocularModel = trap_R_RegisterModel( "models/powerups/keys/binoculars.md3" );
-    fg42NoScopeModel = trap_R_RegisterModel( "models/weapons2/fg42/v_fg42_noscope.mdc" );
+	vrBinocularModel = trap_R_RegisterModel( "models/powerups/v_binocs.mdc" );
+	fg42NoScopeModel = trap_R_RegisterModel( "models/weapons2/fg42/v_fg42_noscope.mdc" );
 	wolfkickModel = trap_R_RegisterModel( "models/weapons2/foot/v_wolfoot_10f.md3" );
 	hWeaponSnd = trap_S_RegisterSound( "sound/weapons/mg42/37mm.wav" );
 
@@ -2087,27 +2089,12 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
 
         CG_CenterPrint( cgVR->test_name, SCREEN_HEIGHT * 0.45, SMALLCHAR_WIDTH );
     } else {
-        if (cgVR->backpackitemactive == 3 || cgVR->binocularsActive)
-        {
-            scale = 0.5f;
-            VectorSet(offset, 1, -3, 0);
-            vec3_t adjust;
-            VectorSet(adjust, 20, 140, 0);
-
-            //Adjust angles for weapon models that aren't aligned very well
-            matrix4x4 m1, m2, m3;
-            vec3_t zero;
-            VectorClear(zero);
-            Matrix4x4_CreateFromEntity(m1, angles, zero, 1.0);
-            Matrix4x4_CreateFromEntity(m2, adjust, zero, 1.0);
-            Matrix4x4_Concat(m3, m1, m2);
-            Matrix4x4_ConvertToEntity(m3, angles, zero);
-        }
         //Now adjust weapon:  scale, right, up, forward
-        else if (ps->weapon != 0)
-        {
+        if (ps->weapon != 0 || cgVR->backpackitemactive == 3 || cgVR->binocularsActive) {
             char cvar_name[64];
-            if (ps->weapon == WP_AKIMBO || ps->weapon == WP_AKIMBO_MP40 || ps->weapon == WP_AKIMBO_THOMPSON) {
+            if (cgVR->backpackitemactive == 3 || cgVR->binocularsActive) {
+                Com_sprintf(cvar_name, sizeof(cvar_name), "vr_binoculars_adjustment");
+            } else if (ps->weapon == WP_AKIMBO || ps->weapon == WP_AKIMBO_MP40 || ps->weapon == WP_AKIMBO_THOMPSON) {
                 Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", weapAlts[ps->weapon]);
             } else {
                 Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", ps->weapon);
@@ -3077,7 +3064,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	if ( ps ) {
 		if (cgVR->backpackitemactive == 3 || cgVR->binocularsActive)
 		{
-			gun.hModel = binocularModel;
+			gun.hModel = vrBinocularModel;
             CG_PositionEntityOnTag( &gun, parent, "tag_weapon", 0, NULL );
             CG_AddWeaponWithPowerups( &gun, 0, ps, cent );
             return;
