@@ -20,10 +20,16 @@ Authors		:	Simon Brown
 #include <src/qcommon/qcommon.h>
 #include <src/client/client.h>
 
-
-#define WP_AKIMBO           20
-#define WP_AKIMBO_MP40      23
-#define WP_AKIMBO_THOMPSON  24
+#define WP_KNIFE              1
+#define WP_LUGER              2
+#define WP_GRENADE_LAUNCHER   6
+#define WP_COLT              11
+#define WP_GRENADE_PINEAPPLE 14
+#define WP_SILENCER          19
+#define WP_AKIMBO            20
+#define WP_DYNAMITE          22
+#define WP_AKIMBO_MP40       23
+#define WP_AKIMBO_THOMPSON   24
 
 void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, int capsule );
 
@@ -185,8 +191,12 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
         float controllerYawHeading = 0.0f;
         //Turn on weapon stabilisation?
         qboolean stabilised = qfalse;
-        qboolean usingAkimbo = vr.weaponid == WP_AKIMBO || vr.weaponid == WP_AKIMBO_MP40 || vr.weaponid == WP_AKIMBO_THOMPSON; 
-        if (!vr.pistol && !usingAkimbo && // Don't stabilise pistols and dual guns
+        qboolean usingAkimbo = vr.weaponid == WP_AKIMBO || vr.weaponid == WP_AKIMBO_MP40 || vr.weaponid == WP_AKIMBO_THOMPSON;
+        qboolean usingSingleHandWeapon = vr.weaponid == WP_KNIFE || vr.weaponid == WP_LUGER || vr.weaponid == WP_GRENADE_LAUNCHER ||
+                                         vr.weaponid == WP_COLT || vr.weaponid == WP_GRENADE_PINEAPPLE  || vr.weaponid == WP_SILENCER ||
+                                         vr.weaponid == WP_DYNAMITE;
+        qboolean usingBinoculars = vr.backpackitemactive == 3 || vr.binocularsActive;
+        if (!usingAkimbo && !usingSingleHandWeapon && !usingBinoculars && // Don't stabilise dual guns, single hand weapons and binoculars
             (pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger) && (distance < STABILISATION_DISTANCE))
         {
             stabilised = qtrue;

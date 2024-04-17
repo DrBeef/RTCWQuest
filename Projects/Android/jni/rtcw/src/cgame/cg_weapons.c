@@ -3785,6 +3785,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		//Set some important flags based on the current weapon
         cgVR->mountedgun = qfalse;
 		cgVR->pistol = qfalse;
+        cgVR->weaponid = ps->weapon;
 		switch ( ps->weapon ) {
 			case WP_KNIFE:
 				cgVR->velocitytriggered = qtrue;
