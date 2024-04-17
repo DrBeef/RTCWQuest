@@ -1613,7 +1613,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		CG_AddViewWeapon( &cg.predictedPlayerState );
 		int weapon = cg.predictedPlayerState.weapon;
 		qboolean usingAkimbo = weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON;
-		if (!usingAkimbo && !cgVR->weapon_stabilised && !cg.renderingThirdPerson && trap_Cvar_VariableIntegerValue("vr_gesture_triggered_use")) {
+		if (!usingAkimbo && !cgVR->weapon_stabilised && !cg.renderingThirdPerson) {
 			CG_AddViewHand( &cg.predictedPlayerState);
 		}
 	}
