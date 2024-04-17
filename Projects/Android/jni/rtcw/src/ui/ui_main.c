@@ -4375,16 +4375,16 @@ static void UI_Update( const char *name ) {
 			break;
 		}
 	} else if ( Q_stricmp( name, "r_lodbias" ) == 0 ) {
-		switch ( val ) {
-		case 0:
+		float fval = trap_Cvar_VariableValue( name );
+		if (fval <= -2.4) {
+			// high
 			trap_Cvar_SetValue( "r_subdivisions", 4 );
-			break;
-		case 1:
-			trap_Cvar_SetValue( "r_subdivisions", 12 );
-			break;
-		case 2:
+		} else if (fval >= 2.0) {
+			// low
 			trap_Cvar_SetValue( "r_subdivisions", 20 );
-			break;
+		} else {
+			// medium
+			trap_Cvar_SetValue( "r_subdivisions", 12 );
 		}
 	} else if ( Q_stricmp( name, "ui_glCustom" ) == 0 ) {
 		switch ( val ) {
