@@ -1,4 +1,4 @@
 rootProject.projectDir = new File(settingsDir, '../../../..')
 rootProject.name = "RTCWQuest"
 
-include ':', 'VrSamples:RTCWQuest:Projects:Android'
+include ':', ':VrSamples:RTCWQuest:Projects:Android'
