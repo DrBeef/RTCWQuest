@@ -442,10 +442,10 @@ int Pickup_Weapon( gentity_t *ent, gentity_t *other ) {
 
 
 	//----(SA)	added
-	// check for special colt->akimbo add (if you've got a colt already, add the second now)
-	if ( weapon == WP_COLT ) {
-		if ( COM_BitCheck( other->client->ps.weapons, WP_COLT ) ) {
-			weapon = WP_AKIMBO;
+	// check for special gun->akimbo add (if you've got a gun already, add the second now)
+	if ( weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON ) {
+		if ( COM_BitCheck( other->client->ps.weapons, weapon ) ) {
+			weapon = weapAlts[weapon];
 		}
 	}
 //----(SA)	end

@@ -58,3 +58,13 @@ buildscript {
         google()
     }
 }
+
+task packResources(type: Zip) {
+    from "./z_vr_assets/"
+    destinationDir file("../../assets/")
+    archiveName "z_vr_assets.pk3"
+}
+
+tasks.matching {it.name.startsWith("assemble")}.all { Task task ->
+    task.dependsOn(packResources)
+}

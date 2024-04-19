@@ -1321,10 +1321,10 @@ qboolean AICast_ScriptAction_GiveWeapon( cast_state_t *cs, char *params ) {
 		}
 	}
 
-	if ( weapon == WP_COLT ) {
-		// if you had the colt already, now you've got two!
-		if ( COM_BitCheck( g_entities[cs->entityNum].client->ps.weapons, WP_COLT ) ) {
-			weapon = WP_AKIMBO;
+	if ( weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON ) {
+		// if you had one already, now you've got two!
+		if ( COM_BitCheck( g_entities[cs->entityNum].client->ps.weapons, weapon ) ) {
+			weapon = weapAlts[weapon];
 		}
 	}
 
@@ -1407,13 +1407,13 @@ qboolean AICast_ScriptAction_TakeWeapon( cast_state_t *cs, char *params ) {
 		if ( weapon != WP_NONE ) {
 			qboolean clear;
 
-			if ( weapon == WP_AKIMBO ) {
-				// take both the colt /and/ the akimbo weapons when 'akimbo' is specified
-				COM_BitClear( g_entities[cs->entityNum].client->ps.weapons, WP_COLT );
-			} else if ( weapon == WP_COLT ) {
-				// take 'akimbo' first if it's there, then take 'colt'
-				if ( COM_BitCheck( g_entities[cs->entityNum].client->ps.weapons, WP_AKIMBO ) ) {
-					weapon = WP_AKIMBO;
+			if ( weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON ) {
+				// take both the main gun /and/ the akimbo weapons when 'akimbo' is specified
+				COM_BitClear( g_entities[cs->entityNum].client->ps.weapons, weapAlts[weapon] );
+			} else if ( weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON ) {
+				// take 'akimbo' first if it's there, then take single gun
+				if ( COM_BitCheck( g_entities[cs->entityNum].client->ps.weapons, weapAlts[weapon] ) ) {
+					weapon = weapAlts[weapon];
 				}
 			}
 

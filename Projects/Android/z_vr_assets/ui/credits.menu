@@ -1,0 +1,258 @@
+#include "ui/menudef.h"
+{
+
+menuDef {
+  name "credits"
+  fullScreen 1
+  rect 0 0 640 480
+  visible 1
+  focusColor 1 1 1 1
+  style 0
+  onESC { uiScript Quit }
+
+itemDef {
+  name none
+  style WINDOW_STYLE_SHADER
+  rect 0 0 640 480
+  background "gfx/2d/backtile"
+  forecolor 0 0 0 1
+  backcolor 0 0 0 1
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 15 640 40
+  text "RTCWQuest by Team Beef"
+  forecolor 1 0 0 1
+  textscale .4
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 35 640 40
+  text "===================="
+  forecolor 1 1 1 1
+  textscale .4
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 70 640 40
+  text "Team Beef are DrBeef,  Baggyg,  Bummser"
+  forecolor 0 0 1 1
+  textscale .4
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 120 640 40
+  text "Lead programmer"
+  forecolor 1 0 0 1
+  textscale .4
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 140 640 40
+  text "DrBeef"
+  forecolor 1 1 1 1
+  textscale .3
+  textalign  ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 170 640 40
+  text "Additional Development Contributions"
+  forecolor 1 0 0 1
+  textscale .4
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 190 640 40
+  text "Baggyg, Eigenlaut, MuadDib"
+  forecolor 1 1 1 1
+  textscale .3
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 220 640 40
+  text "VR Compatible Weapon Models"
+  forecolor 1 0 0 1
+  textscale .4
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 240 640 40
+  text "Dark Matter Productions and William Faure"
+  forecolor 1 1 1 1
+  textscale .3
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 260 640 40
+  text "LennyGuy20"
+  forecolor 1 1 1 1
+  textscale .3
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 310 640 40
+  text "With Special Thanks to:"
+  forecolor 1 0 0 1
+  textscale .4
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 340 640 40
+  text "Emile Belanger for providing the android port upon which this is based,"
+  forecolor 1 1 1 1
+  textscale .3
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 360 640 40
+  text "HellBaron for allowing us to provide a custom version of his excellent Venom Mod,"
+  forecolor 1 1 1 1
+  textscale .3
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible  1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 380 640 40
+  text "ptitSeb for the OpenGL => OpenGLES2 translation making this project possible,"
+  forecolor 1 1 1 1
+  textscale .3
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 400 640 40
+  text "Team Beef patrons and all Team Beef discord members for supporting us."
+  forecolor 1 1 1 1
+  textscale .3
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  type ITEM_TYPE_TEXT
+  rect 0 455 640 40
+  text "Join our Patreon:  patreon.com/teambeef"
+  forecolor 1 0 0 1
+  textscale .4
+  textalign ITEM_ALIGN_CENTER
+  textalignx 320
+  textaligny 10
+  visible 1
+  decoration
+}
+
+itemDef {
+  name none
+  style WINDOW_STYLE_EMPTY
+  type ITEM_TYPE_BUTTON
+  rect 0 0 640 480
+  visible 1
+  action { uiScript Quit }
+}
+
+} // end menudef
+} // end all

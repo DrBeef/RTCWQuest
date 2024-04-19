@@ -916,6 +916,7 @@ void CalcMuzzlePoints( gentity_t *ent, int weapon );
 
 // Rafael - for activate
 void CalcMuzzlePointForActivate( gentity_t *ent, vec3_t forward, vec3_t right, vec3_t up, vec3_t muzzlePoint );
+void CalcMuzzlePointForHandActivate( gentity_t *ent, qboolean offHand, vec3_t offset, vec3_t forward, vec3_t end );
 // done.
 
 //
@@ -1052,6 +1053,8 @@ void BotTestAAS( vec3_t origin );
 
 // g_cmd.c
 void Cmd_Activate_f( gentity_t *ent );
+void Cmd_Activate2_f( gentity_t *ent );
+void Cmd_ActivateInternal_f( gentity_t *ent, vec3_t offset, vec3_t forward, vec3_t end, qboolean offhand );
 int Cmd_WolfKick_f( gentity_t *ent );
 // Ridah
 

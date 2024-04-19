@@ -230,6 +230,7 @@ int hWeaponSnd;
 int hflakWeaponSnd;
 int notebookModel;
 int propellerModel;
+int vrBinocularModel;
 
 extern vr_client_info_t *cgVR;
 
@@ -250,7 +251,7 @@ int weapBanks[MAX_WEAP_BANKS][MAX_WEAPS_IN_BANK] = {
 
 	{WP_KNIFE,              0,                      0           },  //	1
 	{WP_LUGER,              WP_COLT,                0           },  //	2	// WP_AKIMBO
-	{WP_MP40,               WP_THOMPSON,            WP_STEN     },  //	3
+	{WP_MP40,               WP_THOMPSON,            WP_STEN     },  //	3   // WP_AKIMBO MP40 & THOMPSON
 	{WP_MAUSER,             WP_GARAND,              0           },  //	4
 	{WP_FG42,               0,                      0           },  //	5
 	{WP_GRENADE_LAUNCHER,   WP_GRENADE_PINEAPPLE,   WP_DYNAMITE },  //	6
@@ -1504,12 +1505,32 @@ void CG_RegisterWeapon( int weaponNum ) {
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
+	case WP_AKIMBO_THOMPSON:
+		// same as thompson
+		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
+		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/thompson/thompson.wav" );
+		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
+		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/thompson/thompson_reload.wav" );
+		weaponInfo->overheatSound = trap_S_RegisterSound( "sound/weapons/thompson/thompson_overheat.wav" );
+		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
+		break;
+
 	case WP_THOMPSON:
 		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
 		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/thompson/thompson.wav" );
 		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" ); // use same as mp40
 		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/thompson/thompson_reload.wav" );
 		weaponInfo->overheatSound = trap_S_RegisterSound( "sound/weapons/thompson/thompson_overheat.wav" );
+		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
+		break;
+
+	case WP_AKIMBO_MP40:
+		// same as MP40
+		MAKERGB( weaponInfo->flashDlightColor, 1.0, 0.6, 0.23 );
+		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40f1.wav" );
+		weaponInfo->flashEchoSound[0] = trap_S_RegisterSound( "sound/weapons/mp40/mp40e1.wav" );
+		weaponInfo->reloadSound = trap_S_RegisterSound( "sound/weapons/mp40/mp40_reload.wav" );
+		weaponInfo->overheatSound = trap_S_RegisterSound( "sound/weapons/mp40/mp40_overheat.wav" );
 		weaponInfo->ejectBrassFunc = CG_MachineGunEjectBrass;
 		break;
 
@@ -1686,7 +1707,8 @@ void CG_RegisterItemVisuals( int itemNum ) {
 	itemInfo->registered = qtrue;   //----(SA)	moved this down after the registerweapon()
 
 	binocularModel = trap_R_RegisterModel( "models/powerups/keys/binoculars.md3" );
-    fg42NoScopeModel = trap_R_RegisterModel( "models/weapons2/fg42/v_fg42_noscope.mdc" );
+	vrBinocularModel = trap_R_RegisterModel( "models/powerups/v_binocs.mdc" );
+	fg42NoScopeModel = trap_R_RegisterModel( "models/weapons2/fg42/v_fg42_noscope.mdc" );
 	wolfkickModel = trap_R_RegisterModel( "models/weapons2/foot/v_wolfoot_10f.md3" );
 	hWeaponSnd = trap_S_RegisterSound( "sound/weapons/mg42/37mm.wav" );
 
@@ -1977,28 +1999,59 @@ void convertFromVR(vec3_t in, vec3_t offset, vec3_t out)
 }
 
 void CG_CalculateVRWeaponPosition( int weaponNum, vec3_t origin, vec3_t angles ) {
-
-	if (weaponNum != WP_AKIMBO || BG_AkimboFireSequence(weaponNum, cg.predictedPlayerState.ammoclip[WP_AKIMBO], cg.predictedPlayerState.ammoclip[WP_COLT] ))
-	{
-		convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, origin);
-	} else{
-		convertFromVR(cgVR->offhandoffset, cg.refdef.vieworg, origin);
-	}
-
+    convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, origin);
     origin[2] -= 64;
     origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
-
-    switch (cg.predictedPlayerState.weapon)
-    {
-        case WP_KNIFE:
-            VectorCopy(cgVR->weaponangles_knife, angles);
-            break;
-        default:
-            VectorCopy(cgVR->weaponangles, angles);
-            break;
+    if (cgVR->backpackitemactive == 3 || cgVR->binocularsActive) {
+        VectorCopy(cgVR->dominanthandangles, angles);
+    } else {
+        switch (cg.predictedPlayerState.weapon)
+        {
+            case WP_KNIFE:
+                VectorCopy(cgVR->weaponangles_knife, angles);
+                break;
+            default:
+                VectorCopy(cgVR->weaponangles, angles);
+                break;
+        }
     }
-
     angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
+}
+
+void CG_CalculateVRDominantHandPosition( vec3_t origin, vec3_t angles ) {
+	convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, origin);
+	origin[2] -= 64;
+	origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
+	VectorCopy(cgVR->dominanthandangles, angles);
+	angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
+}
+
+void CG_CalculateVROffHandPosition( vec3_t origin, vec3_t angles ) {
+    convertFromVR(cgVR->offhandoffset, cg.refdef.vieworg, origin);
+    origin[2] -= 64;
+    origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
+    VectorCopy(cgVR->offhandangles, angles);
+    angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
+}
+
+void CG_CalculateVROffHandWeaponPosition( vec3_t origin, vec3_t angles ) {
+    convertFromVR(cgVR->offhandoffset, cg.refdef.vieworg, origin);
+    origin[2] -= 64;
+    origin[2] += (cgVR->hmdposition[1] + cg_heightAdjust.value) * cg_worldScale.value;
+    VectorCopy(cgVR->offhandweaponangles, angles);
+    angles[YAW] += cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW];
+}
+
+void CG_CalculateVRPositionInWorld( const vec3_t in_position,  vec3_t in_offset, vec3_t in_orientation, vec3_t origin, vec3_t angles )
+{
+	vec3_t offset;
+	VectorCopy(in_offset, offset);
+	offset[1] = 0; // up/down is index 1 in this case
+	convertFromVR(offset, cg.refdef.vieworg, origin);
+	origin[2] -= 64;
+	origin[2] += (in_position[1] + cg_heightAdjust.value) * cg_worldScale.value;
+	VectorCopy(in_orientation, angles);
+	angles[YAW] += (cg.refdefViewAngles[YAW] - cgVR->hmdorientation[YAW]);
 }
 
 /*
@@ -2008,9 +2061,13 @@ CG_CalculateWeaponPositionAndScale
 */
 
 
-static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origin, vec3_t angles ) {
+static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origin, vec3_t angles, qboolean akimbo ) {
 
-    CG_CalculateVRWeaponPosition(0, origin, angles);
+    if (akimbo) {
+        CG_CalculateVROffHandWeaponPosition(origin, angles);
+    } else {
+        CG_CalculateVRWeaponPosition(0, origin, angles);
+    }
 
     vec3_t offset;
 
@@ -2032,27 +2089,16 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
 
         CG_CenterPrint( cgVR->test_name, SCREEN_HEIGHT * 0.45, SMALLCHAR_WIDTH );
     } else {
-        if (cgVR->backpackitemactive == 3)
-        {
-            scale = 0.5f;
-            VectorSet(offset, 1, -3, 0);
-            vec3_t adjust;
-            VectorSet(adjust, 20, 140, 0);
-
-            //Adjust angles for weapon models that aren't aligned very well
-            matrix4x4 m1, m2, m3;
-            vec3_t zero;
-            VectorClear(zero);
-            Matrix4x4_CreateFromEntity(m1, angles, zero, 1.0);
-            Matrix4x4_CreateFromEntity(m2, adjust, zero, 1.0);
-            Matrix4x4_Concat(m3, m1, m2);
-            Matrix4x4_ConvertToEntity(m3, angles, zero);
-        }
         //Now adjust weapon:  scale, right, up, forward
-        else if (ps->weapon != 0)
-        {
+        if (ps->weapon != 0 || cgVR->backpackitemactive == 3 || cgVR->binocularsActive) {
             char cvar_name[64];
-            Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", ps->weapon);
+            if (cgVR->backpackitemactive == 3 || cgVR->binocularsActive) {
+                Com_sprintf(cvar_name, sizeof(cvar_name), "vr_binoculars_adjustment");
+            } else if (ps->weapon == WP_AKIMBO || ps->weapon == WP_AKIMBO_MP40 || ps->weapon == WP_AKIMBO_THOMPSON) {
+                Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", weapAlts[ps->weapon]);
+            } else {
+                Com_sprintf(cvar_name, sizeof(cvar_name), "vr_weapon_adjustment_%i", ps->weapon);
+            }
 
             char weapon_adjustment[256];
             trap_Cvar_VariableStringBuffer(cvar_name, weapon_adjustment, 256);
@@ -2068,7 +2114,7 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
                        &(adjust[PITCH]), &(adjust[YAW]), &(adjust[ROLL]));
                 VectorScale(temp_offset, scale, offset);
 
-                if (!cgVR->right_handed)
+                if (!cgVR->right_handed != akimbo)
                 {
                     //yaw needs to go in the other direction as left handed model is reversed
                     adjust[YAW] *= -1.0f;
@@ -2092,7 +2138,7 @@ static float CG_CalculateWeaponPositionAndScale( playerState_t *ps, vec3_t origi
     AngleVectors( angles, forward, right, up );
     VectorMA( origin, offset[2], forward, origin );
     VectorMA( origin, offset[1], up, origin );
-    if (cgVR->right_handed) {
+    if (cgVR->right_handed != akimbo) {
         VectorMA(origin, offset[0], right, origin);
     } else {
         VectorMA(origin, -offset[0], right, origin);
@@ -2838,7 +2884,16 @@ static qboolean CG_CalcMuzzlePoint( int entityNum, int dist, vec3_t muzzle ) {
     cent = &cg_entities[entityNum];
     if ( entityNum == cg.snap->ps.clientNum ) {
         vec3_t angles;
-        CG_CalculateVRWeaponPosition(cent->currentState.weapon, muzzle, angles);
+        int weapon = cent->currentState.weapon;
+        if (weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON) {
+            if (BG_AkimboFireSequence(weapon, cg.snap->ps.ammoclip[weapon], cg.snap->ps.ammoclip[weapAlts[weapon]], cgVR->akimboTriggerState)) {
+                CG_CalculateVROffHandWeaponPosition(muzzle, angles);    
+            } else {
+                CG_CalculateVRWeaponPosition(weapon, muzzle, angles);    
+            }
+        } else {
+            CG_CalculateVRWeaponPosition(cent->currentState.weapon, muzzle, angles);
+        }
 
         AngleVectors( angles, forward, NULL, NULL );
         VectorMA( muzzle, dist, forward, muzzle );
@@ -2880,7 +2935,7 @@ sound should only be done on the world model case.
 */
 static qboolean debuggingweapon = qfalse;
 
-void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent ) {
+void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, qboolean akimbo ) {
 
 	refEntity_t gun;
 	refEntity_t barrel;
@@ -2892,6 +2947,7 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	qboolean firing;    // Ridah
 
 	qboolean akimboFire = qfalse;       //----(SA)	added
+	qboolean useAkimbo = qfalse;
 
 	qboolean playerScaled;
 	qboolean drawpart, drawrealweap;
@@ -2958,16 +3014,37 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 			break;
 		}
 	} else {
-		CG_RegisterWeapon( weaponNum );
-		weapon = &cg_weapons[weaponNum];
+		if (weaponNum == WP_AKIMBO) {
+			CG_RegisterWeapon(WP_AKIMBO);
+			CG_RegisterWeapon(WP_COLT);
+			weapon = &cg_weapons[WP_COLT];
+			useAkimbo = qtrue;
+		} else if (weaponNum == WP_AKIMBO_MP40) {
+			CG_RegisterWeapon(WP_AKIMBO_MP40);
+			CG_RegisterWeapon(WP_MP40);
+			weapon = &cg_weapons[WP_MP40];
+			useAkimbo = qtrue;
+		} else if (weaponNum == WP_AKIMBO_THOMPSON) {
+			CG_RegisterWeapon(WP_AKIMBO_THOMPSON);
+			CG_RegisterWeapon(WP_THOMPSON);
+			weapon = &cg_weapons[WP_THOMPSON];
+			useAkimbo = qtrue;
+		} else {
+			CG_RegisterWeapon( weaponNum );
+			weapon = &cg_weapons[weaponNum];
+		}
 	}
 	// dhm - end
 
 
 	if ( isPlayer ) {
-		akimboFire = BG_AkimboFireSequence( weaponNum, cg.predictedPlayerState.ammoclip[WP_AKIMBO], cg.predictedPlayerState.ammoclip[WP_COLT] );
+		if (useAkimbo) {
+			akimboFire = BG_AkimboFireSequence( weaponNum, cg.predictedPlayerState.ammoclip[weaponNum], cg.predictedPlayerState.ammoclip[weapAlts[weaponNum]], cgVR->akimboTriggerState );
+		}
 	} else if ( ps ) {
-		akimboFire = BG_AkimboFireSequence( weaponNum, ps->ammoclip[WP_AKIMBO], ps->ammoclip[WP_AKIMBO] );
+		if (useAkimbo) {
+			akimboFire = BG_AkimboFireSequence( weaponNum, ps->ammoclip[weaponNum], ps->ammoclip[weapAlts[weaponNum]], 0 );
+		}
 	}
 
 	// add the weapon
@@ -2985,9 +3062,9 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 	}
 
 	if ( ps ) {
-		if (cgVR->backpackitemactive == 3)
+		if (cgVR->backpackitemactive == 3 || cgVR->binocularsActive)
 		{
-			gun.hModel = binocularModel;
+			gun.hModel = vrBinocularModel;
             CG_PositionEntityOnTag( &gun, parent, "tag_weapon", 0, NULL );
             CG_AddWeaponWithPowerups( &gun, 0, ps, cent );
             return;
@@ -3083,20 +3160,21 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		int brassOffset[WP_NUM_WEAPONS];
 		memset (brassOffset, 0, sizeof brassOffset);
 		brassOffset[WP_LUGER] = 1;
+		brassOffset[WP_SILENCER] = 1;
 		brassOffset[WP_COLT] = 1;
+		brassOffset[WP_AKIMBO] = 1;
 		brassOffset[WP_FG42] = 1;
 		brassOffset[WP_MP40] = 2;
+		brassOffset[WP_AKIMBO_MP40] = 2;
 		brassOffset[WP_THOMPSON] = 2;
+		brassOffset[WP_AKIMBO_THOMPSON] = 2;
 		brassOffset[WP_STEN] = 6;
 		brassOffset[WP_VENOM] = 5;
 
-		// opposite tag in akimbo, since at this point the weapon
-		// has fired and the fire seq has switched over
-		if ( weaponNum == WP_AKIMBO && akimboFire ) {
-			CG_PositionRotatedEntityOnTag( &brass, &gun, "tag_brass2" );
-		} else if ( brassOffset[weaponNum] != 0) {
-		    //Correct bad tag on certain models
-            CG_CalcMuzzlePoint(cent->currentState.clientNum, brassOffset[weaponNum], brass.origin);
+		if ( brassOffset[weaponNum] != 0) {
+			//Correct bad tag on certain models
+			CG_CalcMuzzlePoint(cent->currentState.clientNum, brassOffset[weaponNum], brass.origin);
+			MatrixMultiply( brass.axis, gun.axis, brass.axis );
 		} else {
 			CG_PositionRotatedEntityOnTag( &brass, &gun, "tag_brass" );
 		}
@@ -3313,6 +3391,10 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 		return;
 	}
 
+	if (isPlayer && akimbo != akimboFire) {
+		return; // We are firing the other gun
+	}
+
 	if ( weaponNum == WP_STEN ) {  // sten has no muzzleflash
 		flash.hModel = 0;
 	}
@@ -3328,15 +3410,6 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 			}
 		}
 	}
-
-	if ( isPlayer ) {
-		if ( weaponNum == WP_AKIMBO ) {
-			if ( !cent->akimboFire ) {
-				CG_PositionRotatedEntityOnTag( &flash, &gun, "tag_flash2" );
-			}
-		}
-	}
-
 
 	if ( flash.hModel ) {
 		if ( weaponNum != WP_FLAMETHROWER && weaponNum != WP_TESLA ) {    //Ridah, hide the flash also for now
@@ -3453,10 +3526,10 @@ void CG_AddPlayerFoot( refEntity_t *parent, playerState_t *ps, centity_t *cent )
 
 }
 
-void CG_LaserSight(const playerState_t *ps) {
+void CG_LaserSight(const playerState_t *ps, qboolean akimbo) {
 
 	if (trap_Cvar_VariableIntegerValue("vr_lasersight") != 0 &&
-	    cgVR->backpackitemactive == 0 &&
+	    cgVR->backpackitemactive == 0 && !cgVR->binocularsActive &&
 	    cg.predictedPlayerState.stats[STAT_HEALTH] > 0 &&
 		!cgVR->screen &&
 		!cgVR->scopeengaged)
@@ -3485,7 +3558,11 @@ void CG_LaserSight(const playerState_t *ps) {
 			vec3_t endForward;
 			vec3_t angles;
 			clientInfo_t ci;
-			CG_CalculateVRWeaponPosition(0, origin, angles);
+			if (akimbo) {
+				CG_CalculateVROffHandWeaponPosition(origin, angles);
+			} else {
+				CG_CalculateVRWeaponPosition(0, origin, angles);
+			}
 
 			vec3_t forward, right, up;
 			AngleVectors(angles, forward, right, up);
@@ -3509,12 +3586,19 @@ CG_AddViewWeapon
 Add the weapon, and flash for the player's view
 ==============
 */
+#define TRIGGER_SECONDARY 1
+#define TRIGGER_PRIMARY   2
 void CG_AddViewWeapon( playerState_t *ps ) {
 	refEntity_t hand;
+	refEntity_t handAkimbo;
 	float fovOffset;
 	vec3_t angles;
+	vec3_t anglesAkimbo;
 	vec3_t gunoff;
+	vec3_t gunoffAkimbo;
 	weaponInfo_t    *weapon;
+	weaponInfo_t    *weaponAkimbo;
+	qboolean useAkimbo = qfalse;
 
 	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
 		return;
@@ -3585,59 +3669,123 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 				break;
 			}
 		} else {
-			CG_RegisterWeapon( ps->weapon );
-			weapon = &cg_weapons[ ps->weapon ];
+			if (ps->weapon == WP_AKIMBO) {
+				CG_RegisterWeapon( WP_COLT );
+				CG_RegisterWeapon( WP_AKIMBO );
+				weapon = &cg_weapons[ WP_COLT ];
+				weaponAkimbo = &cg_weapons[ WP_AKIMBO ];
+				useAkimbo = qtrue;
+			} else if (ps->weapon == WP_AKIMBO_MP40) {
+				CG_RegisterWeapon( WP_MP40 );
+				CG_RegisterWeapon( WP_AKIMBO_MP40 );
+				weapon = &cg_weapons[ WP_MP40 ];
+				weaponAkimbo = &cg_weapons[ WP_AKIMBO_MP40 ];
+				useAkimbo = qtrue;
+			} else if (ps->weapon == WP_AKIMBO_THOMPSON) {
+				CG_RegisterWeapon( WP_THOMPSON );
+				CG_RegisterWeapon( WP_AKIMBO_THOMPSON );
+				weapon = &cg_weapons[ WP_THOMPSON ];
+				weaponAkimbo = &cg_weapons[ WP_AKIMBO_THOMPSON ];
+				useAkimbo = qtrue;
+			} else {
+				CG_RegisterWeapon( ps->weapon );
+				weapon = &cg_weapons[ ps->weapon ];
+			}
 		}
 		// dhm - end
 
 		memset( &hand, 0, sizeof( hand ) );
+		memset( &handAkimbo, 0, sizeof( handAkimbo ) );
 
 		// set up gun position
-		float scale = CG_CalculateWeaponPositionAndScale( ps, hand.origin, angles );
+		float scale = CG_CalculateWeaponPositionAndScale( ps, hand.origin, angles, qfalse );
+		float scaleAkimbo = CG_CalculateWeaponPositionAndScale( ps, handAkimbo.origin, anglesAkimbo, qtrue );
 
 		gunoff[0] = cg_gun_x.value;
 		gunoff[1] = cg_gun_y.value;
 		gunoff[2] = cg_gun_z.value;
+		gunoffAkimbo[0] = cg_gun_x.value;
+		gunoffAkimbo[1] = cg_gun_y.value;
+		gunoffAkimbo[2] = cg_gun_z.value;
 
 //----(SA)	removed
 
 		VectorMA( hand.origin, gunoff[0], cg.refdef.viewaxis[0], hand.origin );
 		VectorMA( hand.origin, gunoff[1], cg.refdef.viewaxis[1], hand.origin );
 		VectorMA( hand.origin, gunoff[2], cg.refdef.viewaxis[2], hand.origin );
+		VectorMA( handAkimbo.origin, gunoffAkimbo[0], cg.refdef.viewaxis[0], handAkimbo.origin );
+		VectorMA( handAkimbo.origin, gunoffAkimbo[1], cg.refdef.viewaxis[1], handAkimbo.origin );
+		VectorMA( handAkimbo.origin, gunoffAkimbo[2], cg.refdef.viewaxis[2], handAkimbo.origin );
 
 		AnglesToAxis( angles, hand.axis );
+		AnglesToAxis( anglesAkimbo, handAkimbo.axis );
 
 		if ( cg_gun_frame.integer) {
 			hand.frame = hand.oldframe = cg_gun_frame.integer;
 			hand.backlerp = 0;
+			handAkimbo.frame = handAkimbo.oldframe = cg_gun_frame.integer;
+			handAkimbo.backlerp = 0;
 		} else {  // get the animation state
-			CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );   //----(SA)	changed
+			if (useAkimbo) {
+				int weapAnim = 0;
+				if ( ps->weapAnim & ~ANIM_TOGGLEBIT ) {
+					weapAnim = ps->weapAnim & ~ANIM_TOGGLEBIT;
+				}
+				if (ps->weaponstate == WEAPON_FIRING || weapAnim == WEAP_ATTACK1 || weapAnim == WEAP_ATTACK2 || weapAnim == WEAP_ATTACK_LASTSHOT || weapAnim == WEAP_IDLE1 || weapAnim == WEAP_IDLE2) {
+					// For akimbo attack animation, animate only firing weapon
+					if (cgVR->akimboFire) {
+						CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );
+					} else {
+						CG_WeaponAnimation( ps, weaponAkimbo, &handAkimbo.oldframe, &handAkimbo.frame, &handAkimbo.backlerp );
+					}
+				} else if (ps->weaponstate == WEAPON_RELOADING || weapAnim == WEAP_RELOAD1 || weapAnim == WEAP_RELOAD2 || weapAnim == WEAP_RELOAD3) {
+					// For akimbo reload, do not animate weapon with full clip
+					if (ps->ammoclip[weapAlts[ps->weapon]] < ammoTable[weapAlts[ps->weapon]].maxclip) {
+						CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );
+					}
+					if (ps->ammoclip[ps->weapon] < ammoTable[ps->weapon].maxclip) {
+						CG_WeaponAnimation( ps, weaponAkimbo, &handAkimbo.oldframe, &handAkimbo.frame, &handAkimbo.backlerp );
+					}
+				} else {
+					CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );
+					CG_WeaponAnimation( ps, weaponAkimbo, &handAkimbo.oldframe, &handAkimbo.frame, &handAkimbo.backlerp );
+				}
+			} else {
+				CG_WeaponAnimation( ps, weapon, &hand.oldframe, &hand.frame, &hand.backlerp );   //----(SA)	changed                
+			}
 		}
 
-		if (cgVR->backpackitemactive != 3)
+		if (cgVR->backpackitemactive != 3 && !cgVR->binocularsActive)
 		{
 			hand.hModel = weapon->handsModel;
+			if (useAkimbo) {
+				handAkimbo.hModel = weaponAkimbo->handsModel;
+			}
 		}
 
         //Weapon offset debugging
         if (weaponDebugging)
         {
             hand.renderfx = RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON; //No depth hack for weapon adjusting mode
+            handAkimbo.renderfx = RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON;
         }
         else
         {
             hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON;   //----(SA)
+            handAkimbo.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON;
         }
 
 		//scale the whole model (hand and weapon)
 		for ( int i = 0; i < 3; i++ ) {
-			VectorScale( hand.axis[i], (cgVR->right_handed || i != 1 || ps->weapon == WP_AKIMBO) ? scale : -scale, hand.axis[i] );
+			VectorScale( hand.axis[i], (cgVR->right_handed || i != 1) ? scale : -scale, hand.axis[i] );
+			VectorScale( handAkimbo.axis[i], (!cgVR->right_handed || i != 1) ? scaleAkimbo : -scaleAkimbo, handAkimbo.axis[i] );
 		}
 
 
 		//Set some important flags based on the current weapon
         cgVR->mountedgun = qfalse;
 		cgVR->pistol = qfalse;
+        cgVR->weaponid = ps->weapon;
 		switch ( ps->weapon ) {
 			case WP_KNIFE:
 				cgVR->velocitytriggered = qtrue;
@@ -3673,7 +3821,10 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 		}
 
 		// add everything onto the hand
-		CG_AddPlayerWeapon(&hand, ps, &cg.predictedPlayerEntity);
+		CG_AddPlayerWeapon(&hand, ps, &cg.predictedPlayerEntity, qfalse);
+		if (useAkimbo && cgVR->backpackitemactive != 3 && !cgVR->binocularsActive) {
+			CG_AddPlayerWeapon(&handAkimbo, ps, &cg.predictedPlayerEntity, qtrue);
+		}
 		// Ridah
 	}   // end  "if ( ps->weapon > WP_NONE)"
 
@@ -3708,9 +3859,67 @@ void CG_AddViewWeapon( playerState_t *ps ) {
         CG_RailTrail2(&ci, origin, endUp);
     }
 
-	CG_LaserSight(ps);
+	CG_LaserSight(ps, qfalse);
+	if (useAkimbo) {
+		CG_LaserSight(ps, qtrue);
+	}
 
 	cg.predictedPlayerEntity.lastWeaponClientFrame = cg.clientFrame;
+}
+
+void CG_AddViewHand( playerState_t *ps ) {
+	vec3_t end, forward, angles;
+	refEntity_t handEnt;
+	memset( &handEnt, 0, sizeof(refEntity_t) );
+	CG_CalculateVROffHandPosition( handEnt.origin, angles );
+
+	float scale = 1.0f;
+	char offhand_adjustment[256];
+	trap_Cvar_VariableStringBuffer("vr_offhand_adjustment", offhand_adjustment, 256);
+	if (strlen(offhand_adjustment) > 0) {
+		vec3_t adjust, offset, temp_offset;
+		VectorClear(adjust);
+		VectorClear(offset);
+		VectorClear(temp_offset);
+		sscanf(offhand_adjustment, "%f,%f,%f,%f,%f,%f,%f", &scale,
+			&(temp_offset[0]), &(temp_offset[1]), &(temp_offset[2]),
+			&(adjust[PITCH]), &(adjust[YAW]), &(adjust[ROLL]));
+		VectorScale(temp_offset, scale, offset);
+		if (cgVR->right_handed)
+		{
+			//yaw needs to go in the other direction as left handed model is reversed
+			adjust[YAW] *= -1.0f;
+		}
+		//Adjust angles for hand models that aren't aligned very well
+		matrix4x4 m1, m2, m3;
+		vec3_t zero;
+		VectorClear(zero);
+		Matrix4x4_CreateFromEntity(m1, angles, zero, 1.0);
+		Matrix4x4_CreateFromEntity(m2, adjust, zero, 1.0);
+		Matrix4x4_Concat(m3, m1, m2);
+		Matrix4x4_ConvertToEntity(m3, angles, zero);
+		//Now move weapon closer to proper origin
+		vec3_t forward, right, up;
+		AngleVectors( angles, forward, right, up );
+		VectorMA( handEnt.origin, offset[2], forward, handEnt.origin );
+		VectorMA( handEnt.origin, offset[1], up, handEnt.origin );
+		if (cgVR->right_handed) {
+			VectorMA(handEnt.origin, offset[0], right, handEnt.origin);
+		} else {
+			VectorMA(handEnt.origin, -offset[0], right, handEnt.origin);
+		}
+	}
+
+	vec3_t axis[3];
+	AnglesToAxis(angles, handEnt.axis);
+	for ( int i = 0; i < 3; i++ ) {
+		VectorScale( handEnt.axis[i], (cgVR->right_handed || i != 1) ? scale : -scale, handEnt.axis[i] );
+	}
+
+	handEnt.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON | RF_MINLIGHT | RF_VIEWWEAPON;
+	handEnt.hModel = cgs.media.handModel;
+
+	trap_R_AddRefEntityToScene( &handEnt );
 }
 
 /*
@@ -3813,6 +4022,9 @@ void CG_DrawWeaponSelect( void ) {
 		case WP_FLAMETHROWER:
 		case WP_FG42:
 		case WP_FG42SCOPE:
+		case WP_SILENCER:
+		case WP_AKIMBO_MP40:
+		case WP_AKIMBO_THOMPSON:
 			wideweap = qtrue;
 			break;
 		default:
@@ -3959,14 +4171,34 @@ CG_WeaponHasAmmo
 ==============
 */
 static qboolean CG_WeaponHasAmmo( int i ) {
-	if ( !( cg.predictedPlayerState.ammo[BG_FindAmmoForWeapon( i )] ) &&
-		 !( cg.predictedPlayerState.ammoclip[BG_FindClipForWeapon( i )] ) ) {
+	if ( cg.predictedPlayerState.ammo[BG_FindAmmoForWeapon( i )] ) {
+		return qtrue;
+	}
+
+	if ( cg.predictedPlayerState.ammoclip[BG_FindClipForWeapon( i )] ) {
+		return qtrue;
+	}
+
+	if (i == WP_COLT || i == WP_MP40 || i == WP_THOMPSON) {
+		return cg.predictedPlayerState.ammoclip[BG_FindClipForWeapon(getAltWeapon(i))];
+	}
+
+	return qfalse;
+}
+
+/*
+==============
+CG_WeaponAvailable
+	check if player has weapon
+==============
+*/
+static qboolean CG_WeaponAvailable( int i ) {
+	if ( !( COM_BitCheck( cg.predictedPlayerState.weapons, i ) ) ) {
 		return qfalse;
 	}
 
 	return qtrue;
 }
-
 
 /*
 ===============
@@ -4337,6 +4569,625 @@ void CG_WeaponSuggest( int weap ) {
 
 }
 
+void GC_HandleWheelSelector(selectorWheelEntity_t selectorWheelItems[] , int selectorWheelItemNum )
+{
+	if (cg.wheelSelectorTime == 0)
+	{
+		cg.wheelSelectorTime = cg.time;
+		convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, cg.wheelSelectorOrigin);
+		VectorCopy(cgVR->calculated_weaponoffset, cg.wheelSelectorOffset);
+	}
+
+	float dist = 10.0f;
+	float radius = 4.4f;
+	float scale = 0.05f;
+
+	float frac = (cg.time - cg.wheelSelectorTime) / 20.0f;
+	if (frac > 1.0f)
+	{
+		frac = 1.0f;
+	}
+	trap_Cvar_Set("timescale", "0.22");
+
+	vec3_t controllerOrigin, controllerAngles, controllerOffset, selectorOrigin, weaponPosition;
+	CG_CalculateVRDominantHandPosition(controllerOrigin, controllerAngles);
+	convertFromVR(cgVR->calculated_weaponoffset, cg.refdef.vieworg, weaponPosition);
+	VectorSubtract(weaponPosition, cg.wheelSelectorOrigin, controllerOffset);
+
+	vec3_t wheelAngles, wheelOrigin, beamOrigin, wheelForward, wheelRight, wheelUp;
+	vec3_t angles;
+	VectorClear(angles);
+	angles[YAW] = cgVR->hmdorientation[YAW];
+	CG_CalculateVRPositionInWorld(cg.wheelSelectorOrigin, cg.wheelSelectorOffset, angles, wheelOrigin, wheelAngles);
+	AngleVectors(wheelAngles, wheelForward, wheelRight, wheelUp);
+	VectorCopy(controllerOrigin, wheelOrigin);
+	VectorCopy(wheelOrigin, beamOrigin);
+	VectorMA(wheelOrigin, (dist * frac), wheelForward, wheelOrigin);
+	VectorCopy(wheelOrigin, selectorOrigin);
+
+	vec3_t pos;
+	memset(&pos, 0, sizeof pos);
+	{
+		pos[0] = (sinf(DEG2RAD(wheelAngles[YAW] - controllerAngles[YAW])) / sinf(DEG2RAD(22.5f)));
+		pos[1] = ((wheelAngles[PITCH] - controllerAngles[PITCH]) / 22.5f);
+		float len = VectorLength(pos);
+		if (len > 1.0f)
+		{
+			pos[0] *= (1.0f / len);
+			pos[1] *= (1.0f / len);
+		}
+	}
+
+	VectorMA(selectorOrigin, radius * pos[0], wheelRight, selectorOrigin);
+	VectorMA(selectorOrigin, radius * pos[1], wheelUp, selectorOrigin);
+
+	for (int s = -1; s < 2; s += 2) {
+		refEntity_t arrowIcon;
+		memset(&arrowIcon, 0, sizeof(arrowIcon));
+		vec3_t right;
+		AngleVectors(wheelAngles, NULL, right, NULL);
+		float offset = ((float) s * 7.0f) + (((float) s * 0.3f) *
+				sinf(DEG2RAD(AngleNormalize360(cg.time - cg.wheelSelectorTime))));
+		VectorMA(wheelOrigin, offset, right, arrowIcon.origin);
+		arrowIcon.reType = RT_SPRITE;
+		arrowIcon.customShader = cgs.media.arrowIcon;
+		arrowIcon.radius = 0.3f;
+		arrowIcon.rotation = 180.0f * ((s - 1.0f) / 2.0f);
+		memset(arrowIcon.shaderRGBA, 0xff, 4);
+		trap_R_AddRefEntityToScene(&arrowIcon);
+	}
+
+	refEntity_t selectCursor;
+	memset(&selectCursor, 0, sizeof(selectCursor));
+	selectCursor.reType = RT_SPRITE;
+	selectCursor.customShader = cgs.media.itemSelectCursor;
+	selectCursor.radius = 1.3f;
+	memset(selectCursor.shaderRGBA, 0xff, 4);
+	vec3_t forward;
+	AngleVectors(wheelAngles, forward, NULL, NULL);
+	VectorMA(selectorOrigin, -0.6f, forward, selectCursor.origin);
+	trap_R_AddRefEntityToScene(&selectCursor);
+
+	if (selectorWheelItemNum == 0) {
+		cg.wheelSelectorSelection = WP_NONE;
+		return;
+	}
+
+	qboolean selected = qfalse;
+	for (int i = 0; i < selectorWheelItemNum; i++) {
+		selectorWheelEntity_t item = selectorWheelItems[i];
+
+		//first calculate wheel slot position
+		vec3_t angles, iconOrigin, notSelectableLabelOrigin, selectorFrameOrigin, selectedIconOrigin;
+		VectorClear(angles);
+		angles[YAW] = wheelAngles[YAW];
+		angles[PITCH] = wheelAngles[PITCH];
+		angles[ROLL] = (float)(360 / selectorWheelItemNum) * i;
+		vec3_t forward, up;
+		AngleVectors(angles, forward, NULL, up);
+		VectorMA(wheelOrigin, (radius * frac), up, iconOrigin);
+		VectorMA(iconOrigin, -0.2f, forward, notSelectableLabelOrigin);
+		VectorMA(iconOrigin, -0.2f, forward, selectorFrameOrigin);
+		VectorMA(iconOrigin, -0.4f, forward, selectedIconOrigin);
+
+		vec3_t diff;
+		VectorSubtract(selectorOrigin, iconOrigin, diff);
+		float length = VectorLength(diff);
+		if (length <= 1.0f && frac == 1.0f && !item.notSelectable) {
+
+			selected = qtrue;
+			cg.wheelSelectorSelection = item.itemId;
+
+			refEntity_t selectorFrame;
+			memset(&selectorFrame, 0, sizeof(selectorFrame));
+			selectorFrame.reType = RT_SPRITE;
+			selectorFrame.customShader = cgs.media.selectShader;
+			float radius = 1.4f + (0.2f * sinf(DEG2RAD(AngleNormalize360(cg.time - cg.wheelSelectorTime))));
+			selectorFrame.radius = radius;
+			memset(selectorFrame.shaderRGBA, 0xff, 4);
+			VectorCopy(selectorFrameOrigin, selectorFrame.origin);
+			trap_R_AddRefEntityToScene(&selectorFrame);
+
+			VectorCopy(selectedIconOrigin, item.iconSelected.origin);
+			trap_R_AddRefEntityToScene(&item.iconSelected);
+
+			trap_Haptic(1, cgVR->right_handed ? 1 : 0, 0.7f, "switch_weapon", 0.0f, 0.0f);
+
+		} else {
+
+			VectorCopy(iconOrigin, item.icon.origin);
+			trap_R_AddRefEntityToScene(&item.icon);
+
+			if (item.notSelectable) {
+				VectorCopy(notSelectableLabelOrigin, item.labelNotSelectable.origin);
+				trap_R_AddRefEntityToScene(&item.labelNotSelectable);
+			}
+
+		}
+	}
+
+	if (!selected)
+	{
+		cg.wheelSelectorSelection = -1;
+	}
+}
+
+void CG_DrawWheelSelector( void )
+{
+	if (cg.predictedPlayerState.stats[STAT_HEALTH] <= 0)
+	{
+		return;
+	}
+
+	selectorWheelEntity_t selectorWheelItems[32];
+	int selectorWheelItemNum = 0;
+
+	if (cg.wheelSelectorType == WST_WEAPON) {
+
+		int availableWeapons[SELECTABLE_WEAPONS_NUM];
+		int weaponCount = 0;
+		for (int i = 0; i < SELECTABLE_WEAPONS_NUM; i++) {
+			int weaponNum = SELECTABLE_WEAPONS[i];
+			if (CG_WeaponAvailable(weaponNum)) {
+				CG_RegisterWeapon(weaponNum);
+
+				selectorWheelEntity_t item;
+				memset(&item, 0, sizeof(item));
+				if (weaponNum == WP_LUGER && CG_WeaponAvailable(WP_SILENCER)) {
+					item.itemId = weapBanks[2][0];
+				} else if (weaponNum == WP_COLT && CG_WeaponAvailable(WP_AKIMBO)) {
+					item.itemId = weapBanks[2][1];
+					if (!CG_WeaponHasAmmo(item.itemId)) {
+						item.itemId = weapAlts[item.itemId];
+					}
+				} else if (weaponNum == WP_MP40 && CG_WeaponAvailable(WP_AKIMBO_MP40)) {
+					item.itemId = weapBanks[3][0];
+					if (!CG_WeaponHasAmmo(item.itemId)) {
+						item.itemId = weapAlts[item.itemId];
+					}
+				} else if (weaponNum == WP_THOMPSON && CG_WeaponAvailable(WP_AKIMBO_THOMPSON)) {
+					item.itemId = weapBanks[3][1];
+					if (!CG_WeaponHasAmmo(item.itemId)) {
+						item.itemId = weapAlts[item.itemId];
+					}
+				} else {
+					item.itemId = weaponNum;   
+				}
+
+				refEntity_t icon;
+				memset(&icon, 0, sizeof(icon));
+				icon.reType = RT_SPRITE;
+				icon.customShader = cgs.media.weaponIcons[item.itemId];
+				icon.radius = 0.8f;
+				memset(icon.shaderRGBA, 0xff, 4);
+				item.icon = icon;
+
+				refEntity_t iconSelected;
+				memset(&iconSelected, 0, sizeof(iconSelected));
+				iconSelected.reType = RT_SPRITE;
+				iconSelected.customShader = cgs.media.weaponIconsSelect[item.itemId];
+				iconSelected.radius = 1.3f;
+				memset(iconSelected.shaderRGBA, 0xff, 4);
+				item.iconSelected = iconSelected;
+
+				if (!CG_WeaponHasAmmo(item.itemId)) {
+					item.notSelectable = qtrue;
+					refEntity_t labelNotSelectable;
+					memset(&labelNotSelectable, 0, sizeof(labelNotSelectable));
+					labelNotSelectable.reType = RT_SPRITE;
+					labelNotSelectable.customShader = cgs.media.noammoIcon;
+					labelNotSelectable.radius = 0.5f;
+					memset(labelNotSelectable.shaderRGBA, 0xff, 4);
+					item.labelNotSelectable = labelNotSelectable;
+				}
+
+				selectorWheelItems[selectorWheelItemNum++] = item;
+			}
+
+		}
+
+	} else if (cg.wheelSelectorType == WST_ITEM) {
+
+		if (cgVR->hasbinoculars) {
+			selectorWheelEntity_t binocularsItem;
+			memset(&binocularsItem, 0, sizeof(binocularsItem));
+			binocularsItem.itemId = WSI_BINOCULARS;
+			refEntity_t binocularsIcon;
+            memset(&binocularsIcon, 0, sizeof(binocularsIcon));
+			binocularsIcon.reType = RT_SPRITE;
+			binocularsIcon.customShader = cgs.media.binocularsIcon;
+			binocularsIcon.radius = 0.6f;
+			memset(binocularsIcon.shaderRGBA, 0xff, 4);
+			binocularsItem.icon = binocularsIcon;
+			refEntity_t binocularsIconSelected;
+			memset(&binocularsIconSelected, 0, sizeof(binocularsIconSelected));
+			binocularsIconSelected.reType = RT_SPRITE;
+			binocularsIconSelected.customShader = cgs.media.binocularsIconSelect;
+            binocularsIconSelected.radius = 1.3f;
+			memset(binocularsIconSelected.shaderRGBA, 0xff, 4);
+			binocularsItem.iconSelected = binocularsIconSelected;
+			selectorWheelItems[selectorWheelItemNum++] = binocularsItem;
+		}
+
+		if (CG_WeaponAvailable(WP_GRENADE_LAUNCHER) && CG_WeaponHasAmmo(WP_GRENADE_LAUNCHER)) {
+			selectorWheelEntity_t grenadeItem;
+			memset(&grenadeItem, 0, sizeof(grenadeItem));
+			grenadeItem.itemId = WSI_GRENADE;
+			refEntity_t grenadeIcon;
+			memset(&grenadeIcon, 0, sizeof(grenadeIcon));
+			grenadeIcon.reType = RT_SPRITE;
+			grenadeIcon.customShader = cgs.media.grenadeIcon;
+			grenadeIcon.radius = 0.8f;
+			memset(grenadeIcon.shaderRGBA, 0xff, 4);
+			grenadeItem.icon = grenadeIcon;
+			refEntity_t grenadeIconSelected;
+			memset(&grenadeIconSelected, 0, sizeof(grenadeIconSelected));
+			grenadeIconSelected.reType = RT_SPRITE;
+            grenadeIconSelected.customShader = cgs.media.grenadeIconSelect;
+			grenadeIconSelected.radius = 1.3f;
+			memset(grenadeIconSelected.shaderRGBA, 0xff, 4);
+			grenadeItem.iconSelected = grenadeIconSelected;
+			selectorWheelItems[selectorWheelItemNum++] = grenadeItem;
+		}
+
+		if (CG_WeaponAvailable(WP_GRENADE_PINEAPPLE) && CG_WeaponHasAmmo(WP_GRENADE_PINEAPPLE)) {
+			selectorWheelEntity_t pineappleItem;
+			memset(&pineappleItem, 0, sizeof(pineappleItem));
+			pineappleItem.itemId = WSI_PINEAPPLE;
+			refEntity_t pineappleIcon;
+			memset(&pineappleIcon, 0, sizeof(pineappleIcon));
+			pineappleIcon.reType = RT_SPRITE;
+			pineappleIcon.customShader = cgs.media.pineappleIcon;
+			pineappleIcon.radius = 0.8f;
+			memset(pineappleIcon.shaderRGBA, 0xff, 4);
+			pineappleItem.icon = pineappleIcon;
+			refEntity_t pineappleIconSelected;
+			memset(&pineappleIconSelected, 0, sizeof(pineappleIconSelected));
+			pineappleIconSelected.reType = RT_SPRITE;
+			pineappleIconSelected.customShader = cgs.media.pineappleIconSelect;
+			pineappleIconSelected.radius = 1.3f;
+			memset(pineappleIconSelected.shaderRGBA, 0xff, 4);
+			pineappleItem.iconSelected = pineappleIconSelected;
+			selectorWheelItems[selectorWheelItemNum++] = pineappleItem;
+		}
+
+		if (CG_WeaponAvailable(WP_DYNAMITE) && CG_WeaponHasAmmo(WP_DYNAMITE)) {
+			selectorWheelEntity_t dynamiteItem;
+			memset(&dynamiteItem, 0, sizeof(dynamiteItem));
+			dynamiteItem.itemId = WSI_DYNAMITE;
+			refEntity_t dynamiteIcon;
+			memset(&dynamiteIcon, 0, sizeof(dynamiteIcon));
+			dynamiteIcon.reType = RT_SPRITE;
+			dynamiteIcon.customShader = cgs.media.dynamiteIcon;
+			dynamiteIcon.radius = 0.8f;
+			memset(dynamiteIcon.shaderRGBA, 0xff, 4);
+			dynamiteItem.icon = dynamiteIcon;
+			refEntity_t dynamiteIconSelected;
+			memset(&dynamiteIconSelected, 0, sizeof(dynamiteIconSelected));
+			dynamiteIconSelected.reType = RT_SPRITE;
+			dynamiteIconSelected.customShader = cgs.media.dynamiteIconSelect;
+			dynamiteIconSelected.radius = 1.3f;
+			memset(dynamiteIconSelected.shaderRGBA, 0xff, 4);
+			dynamiteItem.iconSelected = dynamiteIconSelected;
+			selectorWheelItems[selectorWheelItemNum++] = dynamiteItem;
+		}
+
+		gitem_t *wine = BG_FindItemForHoldable(HI_WINE);
+		if (wine) {
+			int quantity = cg.predictedPlayerState.holdable[HI_WINE];
+			if (quantity) {
+				selectorWheelEntity_t wineItem;
+				memset(&wineItem, 0, sizeof(wineItem));
+				wineItem.itemId = WSI_WINE;
+				refEntity_t wineIcon;
+				memset(&wineIcon, 0, sizeof(wineIcon));
+				wineIcon.reType = RT_SPRITE;
+				if (quantity >= 3) {
+					wineIcon.customShader = cgs.media.wine1Icon;    
+				} else if (quantity == 2) {
+					wineIcon.customShader = cgs.media.wine2Icon;
+				} else {
+					wineIcon.customShader = cgs.media.wine3Icon;
+				}
+				wineIcon.radius = 0.8f;
+				memset(wineIcon.shaderRGBA, 0xff, 4);
+				wineItem.icon = wineIcon;
+				refEntity_t wineIconSelected;
+				memset(&wineIconSelected, 0, sizeof(wineIconSelected));
+				wineIconSelected.reType = RT_SPRITE;
+				if (quantity >= 3) {
+					wineIconSelected.customShader = cgs.media.wine1IconSelect;    
+				} else if (quantity == 2) {
+					wineIconSelected.customShader = cgs.media.wine2IconSelect;
+				} else {
+					wineIconSelected.customShader = cgs.media.wine3IconSelect;
+				}
+				wineIconSelected.radius = 1.3f;
+				memset(wineIconSelected.shaderRGBA, 0xff, 4);
+				wineItem.iconSelected = wineIconSelected;
+				selectorWheelItems[selectorWheelItemNum++] = wineItem;
+			}
+		}
+
+		gitem_t *stamina = BG_FindItemForHoldable(HI_STAMINA);
+		if (stamina) {
+			int quantity = cg.predictedPlayerState.holdable[HI_STAMINA];
+			if (quantity) {
+				selectorWheelEntity_t staminaItem;
+				memset(&staminaItem, 0, sizeof(staminaItem));
+				staminaItem.itemId = WSI_STAMINA;
+				refEntity_t staminaIcon;
+				memset(&staminaIcon, 0, sizeof(staminaIcon));
+				staminaIcon.reType = RT_SPRITE;
+				staminaIcon.customShader = cgs.media.staminaIcon;    
+				staminaIcon.radius = 0.8f;
+				memset(staminaIcon.shaderRGBA, 0xff, 4);
+				staminaItem.icon = staminaIcon;
+				refEntity_t staminaIconSelected;
+				memset(&staminaIconSelected, 0, sizeof(staminaIconSelected));
+				staminaIconSelected.reType = RT_SPRITE;
+				staminaIconSelected.customShader = cgs.media.staminaIconSelect;    
+				staminaIconSelected.radius = 1.3f;
+				memset(staminaIconSelected.shaderRGBA, 0xff, 4);
+				staminaItem.iconSelected = staminaIconSelected;
+				selectorWheelItems[selectorWheelItemNum++] = staminaItem;
+			}
+		}
+
+		gitem_t *vbook = BG_FindItemForHoldable(HI_BOOK1);
+		if (vbook) {
+			int quantity = cg.predictedPlayerState.holdable[HI_BOOK1];
+			if (quantity) {
+				selectorWheelEntity_t vbookItem;
+				memset(&vbookItem, 0, sizeof(vbookItem));
+				vbookItem.itemId = WSI_VBOOK;
+				refEntity_t vbookIcon;
+				memset(&vbookIcon, 0, sizeof(vbookIcon));
+				vbookIcon.reType = RT_SPRITE;
+				vbookIcon.customShader = cgs.media.vbookIcon;    
+				vbookIcon.radius = 0.8f;
+				memset(vbookIcon.shaderRGBA, 0xff, 4);
+				vbookItem.icon = vbookIcon;
+				refEntity_t vbookIconSelected;
+				memset(&vbookIconSelected, 0, sizeof(vbookIconSelected));
+				vbookIconSelected.reType = RT_SPRITE;
+				vbookIconSelected.customShader = cgs.media.vbookIconSelect;    
+				vbookIconSelected.radius = 1.3f;
+				memset(vbookIconSelected.shaderRGBA, 0xff, 4);
+				vbookItem.iconSelected = vbookIconSelected;
+				selectorWheelItems[selectorWheelItemNum++] = vbookItem;
+			}
+		}
+
+		gitem_t *pbook = BG_FindItemForHoldable(HI_BOOK2);
+		if (pbook) {
+			int quantity = cg.predictedPlayerState.holdable[HI_BOOK2];
+			if (quantity) {
+				selectorWheelEntity_t pbookItem;
+				memset(&pbookItem, 0, sizeof(pbookItem));
+				pbookItem.itemId = WSI_PBOOK;
+				refEntity_t pbookIcon;
+				memset(&pbookIcon, 0, sizeof(pbookIcon));
+				pbookIcon.reType = RT_SPRITE;
+				pbookIcon.customShader = cgs.media.pbookIcon;    
+				pbookIcon.radius = 0.8f;
+				memset(pbookIcon.shaderRGBA, 0xff, 4);
+				pbookItem.icon = pbookIcon;
+				refEntity_t pbookIconSelected;
+				memset(&pbookIconSelected, 0, sizeof(pbookIconSelected));
+				pbookIconSelected.reType = RT_SPRITE;
+				pbookIconSelected.customShader = cgs.media.pbookIconSelect;    
+				pbookIconSelected.radius = 1.3f;
+				memset(pbookIconSelected.shaderRGBA, 0xff, 4);
+				pbookItem.iconSelected = pbookIconSelected;
+				selectorWheelItems[selectorWheelItemNum++] = pbookItem;
+			}
+		}
+
+		gitem_t *zbook = BG_FindItemForHoldable(HI_BOOK3);
+		if (zbook) {
+			int quantity = cg.predictedPlayerState.holdable[HI_BOOK3];
+			if (quantity) {
+				selectorWheelEntity_t zbookItem;
+				memset(&zbookItem, 0, sizeof(zbookItem));
+				zbookItem.itemId = WSI_ZBOOK;
+				refEntity_t zbookIcon;
+				memset(&zbookIcon, 0, sizeof(zbookIcon));
+				zbookIcon.reType = RT_SPRITE;
+				zbookIcon.customShader = cgs.media.zbookIcon;    
+				zbookIcon.radius = 0.8f;
+				memset(zbookIcon.shaderRGBA, 0xff, 4);
+				zbookItem.icon = zbookIcon;
+				refEntity_t zbookIconSelected;
+				memset(&zbookIconSelected, 0, sizeof(zbookIconSelected));
+				zbookIconSelected.reType = RT_SPRITE;
+				zbookIconSelected.customShader = cgs.media.zbookIconSelect;    
+				zbookIconSelected.radius = 1.3f;
+				memset(zbookIconSelected.shaderRGBA, 0xff, 4);
+				zbookItem.iconSelected = zbookIconSelected;
+				selectorWheelItems[selectorWheelItemNum++] = zbookItem;
+			}
+		}
+
+	} else if (cg.wheelSelectorType == WST_SYSTEM) {
+
+		selectorWheelEntity_t exitItem;
+		memset(&exitItem, 0, sizeof(exitItem));
+		exitItem.itemId = WSI_EXIT_MENU;
+
+		refEntity_t exitIcon;
+		memset(&exitIcon, 0, sizeof(exitIcon));
+		exitIcon.reType = RT_SPRITE;
+		exitIcon.customShader = cgs.media.exitIcon;
+		exitIcon.radius = 0.6f;
+		memset(exitIcon.shaderRGBA, 0xff, 4);
+		exitItem.icon = exitIcon;
+
+		refEntity_t exitIconSelected;
+		memset(&exitIconSelected, 0, sizeof(exitIconSelected));
+		exitIconSelected.reType = RT_SPRITE;
+		exitIconSelected.customShader = cgs.media.exitIconSelect;
+		exitIconSelected.radius = 1.3f;
+		memset(exitIconSelected.shaderRGBA, 0xff, 4);
+		exitItem.iconSelected = exitIconSelected;
+
+		selectorWheelItems[selectorWheelItemNum++] = exitItem;
+
+		selectorWheelEntity_t loadItem;
+		memset(&loadItem, 0, sizeof(loadItem));
+		loadItem.itemId = WSI_QUICK_LOAD;
+
+		refEntity_t loadIcon;
+		memset(&loadIcon, 0, sizeof(loadIcon));
+		loadIcon.reType = RT_SPRITE;
+		loadIcon.customShader = cgs.media.loadIcon;
+		loadIcon.radius = 0.6f;
+		memset(loadIcon.shaderRGBA, 0xff, 4);
+		loadItem.icon = loadIcon;
+
+		refEntity_t loadIconSelected;
+		memset(&loadIconSelected, 0, sizeof(loadIconSelected));
+		loadIconSelected.reType = RT_SPRITE;
+		loadIconSelected.customShader = cgs.media.loadIconSelect;
+		loadIconSelected.radius = 1.3f;
+		memset(loadIconSelected.shaderRGBA, 0xff, 4);
+		loadItem.iconSelected = loadIconSelected;
+
+		selectorWheelItems[selectorWheelItemNum++] = loadItem;
+
+		selectorWheelEntity_t saveItem;
+		memset(&saveItem, 0, sizeof(saveItem));
+		saveItem.itemId = WSI_QUICK_SAVE;
+
+		refEntity_t saveIcon;
+		memset(&saveIcon, 0, sizeof(saveIcon));
+		saveIcon.reType = RT_SPRITE;
+		saveIcon.customShader = cgs.media.saveIcon;
+		saveIcon.radius = 0.6f;
+		memset(saveIcon.shaderRGBA, 0xff, 4);
+		saveItem.icon = saveIcon;
+
+		refEntity_t saveIconSelected;
+		memset(&saveIconSelected, 0, sizeof(saveIconSelected));
+		saveIconSelected.reType = RT_SPRITE;
+		saveIconSelected.customShader = cgs.media.saveIconSelect;
+		saveIconSelected.radius = 1.3f;
+		memset(saveIconSelected.shaderRGBA, 0xff, 4);
+		saveItem.iconSelected = saveIconSelected;
+
+		selectorWheelItems[selectorWheelItemNum++] = saveItem;
+	}
+
+	GC_HandleWheelSelector(selectorWheelItems, selectorWheelItemNum);
+}
+
+void CG_WheelSelectorSelect_f( void )
+{
+	trap_Cvar_Set("timescale", "1.0");
+
+	if (cg.wheelSelectorSelection != -1) {
+		if (cg.wheelSelectorType == WST_WEAPON) {
+
+			cgVR->binocularsActive = qfalse;
+			cgVR->weaponid = cg.wheelSelectorSelection;
+			if (cg.wheelSelectorSelection != cg.weaponSelect) {
+				cg.weaponSelectTime = cg.time;
+				cg.weaponSelect = cg.wheelSelectorSelection;
+			}
+
+		}
+		else if (cg.wheelSelectorType == WST_ITEM) {
+
+			if (cg.wheelSelectorSelection == WSI_BINOCULARS) {
+				cgVR->binocularsActive = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_GRENADE) {
+				cgVR->binocularsActive = qfalse;
+				cgVR->weaponid = WP_GRENADE_LAUNCHER;
+				cg.weaponSelectTime = cg.time;
+				cg.weaponSelect = WP_GRENADE_LAUNCHER;
+			}
+			else if (cg.wheelSelectorSelection == WSI_PINEAPPLE) {
+				cgVR->binocularsActive = qfalse;
+				cgVR->weaponid = WP_GRENADE_PINEAPPLE;
+				cg.weaponSelectTime = cg.time;
+				cg.weaponSelect = WP_GRENADE_PINEAPPLE;
+			}
+			else if (cg.wheelSelectorSelection == WSI_DYNAMITE) {
+				cgVR->binocularsActive = qfalse;
+				cgVR->weaponid = WP_DYNAMITE;
+				cg.weaponSelectTime = cg.time;
+				cg.weaponSelect = WP_DYNAMITE;
+			}
+			else if (cg.wheelSelectorSelection == WSI_WINE) {
+				cg.holdableSelectTime = cg.time;
+				cg.holdableSelect = HI_WINE;
+				cgVR->useHoldableItem = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_STAMINA) {
+				cg.holdableSelectTime = cg.time;
+				cg.holdableSelect = HI_STAMINA;
+				cgVR->useHoldableItem = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_VBOOK) {
+				cg.holdableSelectTime = cg.time;
+				cg.holdableSelect = HI_BOOK1;
+				cgVR->useHoldableItem = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_PBOOK) {
+				cg.holdableSelectTime = cg.time;
+				cg.holdableSelect = HI_BOOK2;
+				cgVR->useHoldableItem = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_ZBOOK) {
+				cg.holdableSelectTime = cg.time;
+				cg.holdableSelect = HI_BOOK3;
+				cgVR->useHoldableItem = qtrue;
+			}
+
+		}
+		else if (cg.wheelSelectorType == WST_SYSTEM) {
+
+			if (cg.wheelSelectorSelection == WSI_EXIT_MENU) {
+				//  TODO Why this does not work?
+				//  trap_SendConsoleCommand("togglemenu\n");
+				cgVR->toggleMainMenu = qtrue;
+			}
+			else if (cg.wheelSelectorSelection == WSI_QUICK_SAVE) {
+				trap_SendConsoleCommand("savegame quicksave\n");
+			}
+			else if (cg.wheelSelectorSelection == WSI_QUICK_LOAD) {
+				trap_SendConsoleCommand("loadgame quicksave\n");
+			}
+
+		}
+	}
+
+	//reset ready for next time
+	cg.wheelSelectorSelection = -1;
+	cg.wheelSelectorType = 0;
+	cg.wheelSelectorTime = 0;
+}
+
+void CG_WheelSelectorNext_f( void )
+{
+	cg.wheelSelectorType++;
+	if (cg.wheelSelectorType >= NUM_WST) {
+		cg.wheelSelectorType = 0;
+	}
+	cg.wheelSelectorTime = cg.time;
+	cg.wheelSelectorSelection = -1;
+}
+
+void CG_WheelSelectorPrev_f( void )
+{
+	cg.wheelSelectorType--;
+	if (cg.wheelSelectorType < 0) {
+		cg.wheelSelectorType = NUM_WST - 1;
+	}
+	cg.wheelSelectorTime = cg.time;
+	cg.wheelSelectorSelection = -1;  
+}
 
 /*
 ==============
@@ -4487,8 +5338,6 @@ void CG_FinishWeaponChange( int lastweap, int newweap ) {
 		}
 	}
 
-    cgVR->dualwield = (newweap == WP_AKIMBO);
-
 	cg.weaponSelect     = newweap;
 	cgVR->weaponid    = newweap; //Store in case we use backpack
 }
@@ -4573,6 +5422,20 @@ void CG_AltWeapon_f( void ) {
 			break;
 		case WP_COLT:
 			weapBanks[2][1] = WP_AKIMBO;
+			break;
+
+		case WP_AKIMBO_MP40:
+			weapBanks[3][0] = WP_MP40;
+			break;
+		case WP_MP40:
+			weapBanks[3][0] = WP_AKIMBO_MP40;
+			break;
+
+		case WP_AKIMBO_THOMPSON:
+			weapBanks[3][1] = WP_THOMPSON;
+			break;
+		case WP_THOMPSON:
+			weapBanks[3][1] = WP_AKIMBO_THOMPSON;
 			break;
 		}
 
@@ -5326,7 +6189,9 @@ void CG_WeaponFireRecoil( int weapon ) {
 	case WP_FG42SCOPE:
 	case WP_FG42:
 	case WP_MP40:
+	case WP_AKIMBO_MP40:
 	case WP_THOMPSON:
+	case WP_AKIMBO_THOMPSON:
 	case WP_STEN:
 		//pitchRecoilAdd = 1;
 		pitchAdd = 1 + rand() % 3;
@@ -5792,9 +6657,11 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, in
 	case WP_SNIPERRIFLE:
 	case WP_SNOOPERSCOPE:
 	case WP_MP40:
+	case WP_AKIMBO_MP40:
 	case WP_FG42:
 	case WP_FG42SCOPE:
 	case WP_THOMPSON:
+	case WP_AKIMBO_THOMPSON:
 	case WP_STEN:
 	case WP_SILENCER:
 	case WP_VENOM:

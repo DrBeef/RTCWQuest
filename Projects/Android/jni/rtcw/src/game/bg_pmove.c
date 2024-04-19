@@ -50,6 +50,8 @@ extern vmCvar_t g_gametype;
 extern vr_client_info_t* gVR;
 #endif
 
+#define TRIGGER_SECONDARY 1
+#define TRIGGER_PRIMARY   2
 
 // JPW NERVE -- stuck this here so it can be seen client & server side
 float Com_GetFlamethrowerRange( void ) {
@@ -1620,9 +1622,20 @@ static void PM_CheckDuck( void ) {
 
 	pm->mins[2] = pm->ps->mins[2];
 
+	vr_client_info_t* vr;
+#ifdef CGAMEDLL
+	vr = cgVR;
+#endif
+#ifdef GAMEDLL
+	vr = gVR;
+#endif
+
 	if ( pm->ps->pm_type == PM_DEAD ) {
 		pm->maxs[2] = pm->ps->maxs[2];          // NOTE: must set death bounding box in game code
 		pm->ps->viewheight = pm->ps->deadViewHeight;
+		if (vr && !pm->ps->clientNum && vr->vrIrlCrouchEnabled) {
+			vr->viewHeight = pm->ps->deadViewHeight;
+		}
 		return;
 	}
 
@@ -1630,6 +1643,60 @@ static void PM_CheckDuck( void ) {
 	if ( pm->ps->eFlags & EF_MG42_ACTIVE ) {
 		pm->maxs[2] = pm->ps->maxs[2];
 		pm->ps->viewheight = pm->ps->standViewHeight;
+		if (vr && !pm->ps->clientNum && vr->vrIrlCrouchEnabled) {
+			vr->viewHeight = pm->ps->standViewHeight;
+		}
+		return;
+	}
+
+	// IRL Crouch
+	if (vr && !pm->ps->clientNum && vr->vrIrlCrouchEnabled) {
+		int viewOffset = pm->ps->maxs[2] - pm->ps->standViewHeight; // 8
+		int standHeight = pm->ps->maxs[2]; // 48
+		int crouchHeight = pm->ps->crouchMaxZ; // 24
+		// In case of IRL crouch we must use separate var for view height so
+		// we can change ps.viewheight without affecting camera view (we do not
+		// want to lower camera view as we are crouching IRL).
+		// But ps.viewheight needs to be changed as it affects how AI sees the
+		// player.
+		vr->viewHeight = pm->ps->standViewHeight; // 40
+
+		// Compute in-game height based on HMD height above floor
+		// (adjust height only when crouching, ignore IRL jumps)
+		int computedHeight = standHeight;
+		if (crouchHeight < standHeight && vr->curHeight < vr->maxHeight) {
+			// Count minimum IRL crouch height based on maximum IRL height
+			float minHeight = vr->maxHeight * vr->vrIrlCrouchToStandRatio;
+			if (vr->curHeight < minHeight) { // Do not allow to crawl (set min height)
+				computedHeight = crouchHeight;
+			} else {
+				float heightRatio = (vr->curHeight - minHeight) / (vr->maxHeight - minHeight);
+				computedHeight = crouchHeight + (int)(heightRatio * (standHeight - crouchHeight));
+			}
+		}
+
+		// Adjust height based on where are you standing
+		// (cannot stand up if there is no place, find nearest possible height)
+		for (int i = computedHeight; i > 0; i--) {
+			pm->maxs[2] = i;
+			pm->ps->viewheight = i - viewOffset;
+			pm->trace( &trace, pm->ps->origin, pm->mins, pm->maxs, pm->ps->origin, pm->ps->clientNum, pm->tracemask );
+			if ( !trace.allsolid ) {
+				break;
+			} else {
+				// Lower camera view height to not see through ceiling
+				// (in case you stand up IRL in tight place)
+				vr->viewHeight--;
+			}
+		}
+
+		// Toggle duck flag based on in-game height (need to be at least half-way crouched)
+		if (pm->maxs[2] < crouchHeight + (standHeight - crouchHeight)/2) {
+			pm->ps->pm_flags |= PMF_DUCKED;
+		} else {
+			pm->ps->pm_flags &= ~PMF_DUCKED;
+		}
+
 		return;
 	}
 
@@ -2001,7 +2068,7 @@ static void PM_BeginWeaponReload( int weapon ) {
 		return;
 	}
 
-	if ( weapon < WP_BEGINGERMAN || weapon > WP_DYNAMITE ) {
+	if ( weapon < WP_BEGINGERMAN || weapon > WP_AKIMBO_THOMPSON ) {
 		return;
 	}
 
@@ -2083,7 +2150,10 @@ static void PM_BeginWeaponChange( int oldweapon, int newweapon, qboolean reload 
 		return;
 	}
 
-	altswitch = (qboolean)( newweapon == weapAlts[oldweapon] );
+	altswitch = (qboolean)( newweapon == weapAlts[oldweapon]
+							&& newweapon != WP_AKIMBO && newweapon != WP_COLT
+							&& newweapon != WP_AKIMBO_MP40 && newweapon != WP_MP40
+							&& newweapon != WP_AKIMBO_THOMPSON && newweapon != WP_THOMPSON );
 
 	showdrop = qtrue;
 
@@ -2259,6 +2329,12 @@ PM_ReloadClip
 ==============
 */
 static void PM_ReloadClip( int weapon ) {
+	if ( weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON ) {
+		// When using akimbo, reload main weapon first to be able
+		// to use it as single weapon in case ammo runs out.
+		PM_ReloadClip( weapAlts[weapon] );
+	}
+
 	int ammoreserve, ammoclip, ammomove;
 
 	ammoreserve = pm->ps->ammo[ BG_FindAmmoForWeapon( weapon )];
@@ -2275,8 +2351,20 @@ static void PM_ReloadClip( int weapon ) {
 		pm->ps->ammoclip[BG_FindClipForWeapon( weapon )] += ammomove;
 	}
 
-	if ( weapon == WP_AKIMBO ) { // reload colt too
-		PM_ReloadClip( WP_COLT );
+	// If clip is not full, check if we have ammo in akimbo clip
+	// If so, fill main weapon clip from akimbo clip
+	ammoclip = pm->ps->ammoclip[BG_FindClipForWeapon( weapon )];
+	ammomove = ammoTable[weapon].maxclip - ammoclip;
+	if (ammomove && (weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON)) {
+		int altWeapon = weapAlts[weapon];
+		if (altWeapon != pm->ps->weapon) {
+			ammoreserve = pm->ps->ammoclip[ BG_FindClipForWeapon( altWeapon )];
+			if ( ammoreserve < ammomove ) {
+				ammomove = ammoreserve;
+			}
+			pm->ps->ammoclip[BG_FindClipForWeapon( altWeapon )] -= ammomove;
+			pm->ps->ammoclip[BG_FindClipForWeapon( weapon )] += ammomove;
+		}
 	}
 }
 
@@ -2362,10 +2450,17 @@ void PM_CheckForReload( int weapon ) {
 			if ( pm->ps->ammoclip[clipWeap] < ammoTable[weapon].maxclip ) {
 				doReload = qtrue;
 			}
-			if ( weapon == WP_AKIMBO ) {
-				// akimbo should also check Colt status
-				if ( pm->ps->ammoclip[BG_FindClipForWeapon( WP_COLT )] < ammoTable[BG_FindClipForWeapon( WP_COLT )].maxclip ) {
+			if ( weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON ) {
+				// akimbo should also check main status
+				if ( pm->ps->ammoclip[BG_FindClipForWeapon( weapAlts[weapon] )] < ammoTable[BG_FindClipForWeapon( weapAlts[weapon] )].maxclip ) {
 					doReload = qtrue;
+				}
+			}
+		} else if (weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON) {
+			// Allow to reload main weapon from akimbo clip
+			if ( pm->ps->ammoclip[BG_FindClipForWeapon( weapAlts[weapon] )] ) {
+				if ( pm->ps->ammoclip[clipWeap] < ammoTable[weapon].maxclip) {
+					doReload = qtrue;                    
 				}
 			}
 		}
@@ -2373,14 +2468,14 @@ void PM_CheckForReload( int weapon ) {
 	// clip is empty, but you have reserves.  (auto reload)
 	else if ( !( pm->ps->ammoclip[clipWeap] ) ) {   // clip is empty...
 		if ( pm->ps->ammo[ammoWeap] ) {         // and you have reserves
-			if ( weapon == WP_AKIMBO ) {    // if colt's got ammo, don't force reload yet (you know you've got it 'out' since you've got the akimbo selected
-				if ( !( pm->ps->ammoclip[WP_COLT] ) ) {
+			if ( weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON ) {  // reload only if both clips are empty
+				if ( !( pm->ps->ammoclip[weapAlts[weapon]] ) ) {
 					doReload = qtrue;
 				}
-				// likewise.  however, you need to check if you've got the akimbo selected, since you could have the colt alone
-			} else if ( weapon == WP_COLT ) {   // weapon checking for reload is colt...
-				if ( pm->ps->weapon == WP_AKIMBO ) {    // you've got the akimbo selected...
-					if ( !( pm->ps->ammoclip[WP_AKIMBO] ) ) {   // and it's got no ammo either
+				// likewise.  however, you need to check if you've got the akimbo selected, since you could have the main alone
+			} else if ( weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON ) {   // weapon checking for reload is colt...
+				if ( pm->ps->weapon == weapAlts[weapon] ) {  // reload only if both clips are empty
+					if ( !( pm->ps->ammoclip[weapon] ) && !( pm->ps->ammoclip[weapAlts[weapon]] ) ) {
 						doReload = qtrue;       // so reload
 					}
 				} else {     // single colt selected
@@ -2388,6 +2483,13 @@ void PM_CheckForReload( int weapon ) {
 				}
 			} else {
 				doReload = qtrue;
+			}
+		} else if (weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON) {
+			// Allow to reload main weapon from akimbo clip
+			if ( pm->ps->ammoclip[BG_FindClipForWeapon( weapAlts[weapon] )] ) {
+				if ( pm->ps->ammoclip[clipWeap] < ammoTable[weapon].maxclip) {
+					doReload = qtrue;                    
+				}
 			}
 		}
 	}
@@ -2470,9 +2572,16 @@ void PM_WeaponUseAmmo( int wp, int amount ) {
 		pm->ps->ammo[ BG_FindAmmoForWeapon( wp )] -= amount;
 	} else {
 		takeweapon = BG_FindClipForWeapon( wp );
-		if ( wp == WP_AKIMBO ) {
-			if ( !BG_AkimboFireSequence( wp, pm->ps->ammoclip[WP_AKIMBO], pm->ps->ammoclip[WP_COLT] ) ) {
-				takeweapon = WP_COLT;
+		if ( wp == WP_AKIMBO || wp == WP_AKIMBO_MP40 || wp == WP_AKIMBO_THOMPSON ) {
+			int triggerState = 0;
+#ifdef CGAMEDLL
+			triggerState = cgVR->akimboTriggerState;
+#endif
+#ifdef GAMEDLL
+			triggerState = gVR->akimboTriggerState;
+#endif
+			if ( !BG_AkimboFireSequence( wp, pm->ps->ammoclip[wp], pm->ps->ammoclip[weapAlts[wp]], triggerState ) ) {
+				takeweapon = weapAlts[wp];
 			}
 		}
 
@@ -2495,9 +2604,16 @@ int PM_WeaponAmmoAvailable( int wp ) {
 	} else {
 //		return pm->ps->ammoclip[BG_FindClipForWeapon( wp )];
 		takeweapon = BG_FindClipForWeapon( wp );
-		if ( wp == WP_AKIMBO ) {
-			if ( !BG_AkimboFireSequence( pm->ps->weapon, pm->ps->ammoclip[WP_AKIMBO], pm->ps->ammoclip[WP_COLT] ) ) {
-				takeweapon = WP_COLT;
+		if ( wp == WP_AKIMBO || wp == WP_AKIMBO_MP40 || wp == WP_AKIMBO_THOMPSON ) {
+			int triggerState = 0;
+#ifdef CGAMEDLL
+			triggerState = cgVR->akimboTriggerState;
+#endif
+#ifdef GAMEDLL
+			triggerState = gVR->akimboTriggerState;
+#endif
+			if ( !BG_AkimboFireSequence( pm->ps->weapon, pm->ps->ammoclip[wp], pm->ps->ammoclip[weapAlts[wp]], triggerState ) ) {
+				takeweapon = weapAlts[wp];
 			}
 		}
 
@@ -2593,10 +2709,8 @@ void PM_AdjustAimSpreadScale( void ) {
 	case WP_SILENCER:
 		wpnScale = 0.5f;
 		break;
-	case WP_AKIMBO: //----(SA)	added
-		wpnScale = 0.5;
-		break;
 	case WP_COLT:
+	case WP_AKIMBO:
 		wpnScale = 0.4f;        // doesn't fire as fast, but easier to handle than luger
 		break;
 	case WP_VENOM:
@@ -2615,6 +2729,7 @@ void PM_AdjustAimSpreadScale( void ) {
 		wpnScale = 0.5f;
 		break;
 	case WP_MP40:
+	case WP_AKIMBO_MP40:
 		wpnScale = 0.5f;        // 2 handed, but not as long as mauser, so harder to keep aim
 		break;
 	case WP_FG42:
@@ -2624,6 +2739,7 @@ void PM_AdjustAimSpreadScale( void ) {
 		wpnScale = 0.7f;
 		break;
 	case WP_THOMPSON:
+	case WP_AKIMBO_THOMPSON:
 		wpnScale = 0.4f;
 		break;
 	case WP_STEN:
@@ -2786,7 +2902,22 @@ static void PM_Weapon( void ) {
 	// RF, remoed this, was preventing lava from hurting player
 	//pm->watertype = 0;
 
-	akimboFire = BG_AkimboFireSequence( pm->ps->weapon, pm->ps->ammoclip[WP_AKIMBO], pm->ps->ammoclip[WP_COLT] );
+	int triggerState = 0;
+#ifdef CGAMEDLL
+	if (cgVR) {
+		triggerState = cgVR->akimboTriggerState;
+	}
+#endif
+#ifdef GAMEDLL
+	if (gVR) {
+		triggerState = gVR->akimboTriggerState;
+	}
+#endif
+	if (pm->ps->weapon == WP_AKIMBO || pm->ps->weapon == WP_AKIMBO_MP40 || pm->ps->weapon == WP_AKIMBO_THOMPSON) {
+		akimboFire = BG_AkimboFireSequence( pm->ps->weapon, pm->ps->ammoclip[pm->ps->weapon], pm->ps->ammoclip[weapAlts[pm->ps->weapon]], triggerState );
+	} else {
+		akimboFire = qfalse;
+	}
 
 	if ( 0 ) {
 		switch ( pm->ps->weaponstate ) {
@@ -3061,7 +3192,6 @@ if ( pm->ps->weapon == WP_NONE ) {  // this is possible since the player starts 
 	return;
 }
 
-
 // JPW NERVE -- in multiplayer, don't allow panzerfaust or dynamite to fire if charge bar isn't full
 #ifdef GAMEDLL
 if ( g_gametype.integer == GT_WOLF ) {
@@ -3096,6 +3226,21 @@ if ( cg_gameType.integer == GT_WOLF ) {
 
 // check for fire
 if ( !( pm->cmd.buttons & ( BUTTON_ATTACK | WBUTTON_ATTACK2 ) ) && !delayedFire ) {     // if not on fire button and there's not a delayed shot this frame...
+	pm->ps->weaponTime  = 0;
+	pm->ps->weaponDelay = 0;
+
+	if ( weaponstateFiring ) {  // you were just firing, time to relax
+		PM_ContinueWeaponAnim( WEAP_IDLE1 );
+	}
+
+	pm->ps->weaponstate = WEAPON_READY;
+	return;
+}
+
+// In case of akimbo, fire only if player still holds at least one of triggers
+// (Sometimes with really quick tap +attack is spawned but trigger state is no longer
+// set when reaching here. Exiting solves problem of "random" weapon fire)
+if ((pm->ps->weapon == WP_AKIMBO || pm->ps->weapon == WP_AKIMBO_MP40 || pm->ps->weapon == WP_AKIMBO_THOMPSON) && !triggerState) {
 	pm->ps->weaponTime  = 0;
 	pm->ps->weaponDelay = 0;
 
@@ -3145,7 +3290,9 @@ default:
 	break;
 	// machineguns should continue the anim, rather than start each fire
 case WP_MP40:
+case WP_AKIMBO_MP40:
 case WP_THOMPSON:
+case WP_AKIMBO_THOMPSON:
 case WP_STEN:
 case WP_VENOM:
 case WP_FG42:
@@ -3251,6 +3398,18 @@ if ( pm->ps->weapon ) {
 			playswitchsound = qfalse;
 			break;
 
+		case WP_AKIMBO:
+		case WP_AKIMBO_MP40:
+		case WP_AKIMBO_THOMPSON:
+			// do not reload but continue fire if there is ammo in other gun
+			if (pm->ps->ammoclip[pm->ps->weapon] || pm->ps->ammoclip[weapAlts[pm->ps->weapon]]) {
+				reloadingW = qfalse;
+				playswitchsound = qfalse;
+				// notify player that one gun is empty
+				PM_AddEvent( EV_EMPTYCLIP );
+			}
+			break;
+
 			// some weapons not allowed to reload.  must switch back to primary first
 		case WP_SNOOPERSCOPE:
 		case WP_SNIPERRIFLE:
@@ -3306,18 +3465,10 @@ if ( ammoTable[pm->ps->weapon].maxHeat ) {
 
 // if this was the last round in the clip, play the 'lastshot' animation
 // this animation has the weapon in a "ready to reload" state
-if ( pm->ps->weapon == WP_AKIMBO ) {
-	if ( akimboFire ) {
-		weapattackanim = WEAP_ATTACK1;      // attack1 is right hand
-	} else {
-		weapattackanim = WEAP_ATTACK2;      // attack2 is left hand
-	}
+if ( PM_WeaponClipEmpty( pm->ps->weapon ) ) {
+	weapattackanim = WEAP_ATTACK_LASTSHOT;
 } else {
-	if ( PM_WeaponClipEmpty( pm->ps->weapon ) ) {
-		weapattackanim = WEAP_ATTACK_LASTSHOT;
-	} else {
-		weapattackanim = WEAP_ATTACK1;
-	}
+	weapattackanim = WEAP_ATTACK1;
 }
 
 switch ( pm->ps->weapon ) {
@@ -3333,7 +3484,9 @@ case WP_DYNAMITE:
 
 case WP_VENOM:
 case WP_MP40:
+case WP_AKIMBO_MP40:
 case WP_THOMPSON:
+case WP_AKIMBO_THOMPSON:
 case WP_STEN:
 	PM_ContinueWeaponAnim( weapattackanim );
 	break;
@@ -3347,9 +3500,9 @@ default:
 
 
 
-if ( pm->ps->weapon == WP_AKIMBO ) {
-	if ( pm->ps->weapon == WP_AKIMBO && !akimboFire ) {
-		PM_AddEvent( EV_FIRE_WEAPONB );     // really firing colt
+if ( pm->ps->weapon == WP_AKIMBO || pm->ps->weapon == WP_AKIMBO_MP40 || pm->ps->weapon == WP_AKIMBO_THOMPSON ) {
+	if ( !akimboFire ) {
+		PM_AddEvent( EV_FIRE_WEAPONB );     // really firing main
 	} else {
 		PM_AddEvent( EV_FIRE_WEAPON );
 	}
@@ -3395,19 +3548,36 @@ case WP_COLT:
 
 //----(SA)	added
 case WP_AKIMBO:
-	// if you're firing an akimbo colt, and your other gun is dry,
-	// nextshot needs to take 2x time
+case WP_AKIMBO_MP40:
+case WP_AKIMBO_THOMPSON:
+	// if you're firing an akimbo, and you are firing only single gun,
+	// or other gun is dry, nextshot needs to take 2x time
 
 	addTime = ammoTable[pm->ps->weapon].nextShotTime;
-
-	// (SA) (added check for last shot in both guns so there's no delay for the last shot)
-	if ( !pm->ps->ammoclip[WP_AKIMBO] || !pm->ps->ammoclip[WP_COLT] ) {
-		if ( ( !pm->ps->ammoclip[WP_AKIMBO] && !akimboFire ) || ( !pm->ps->ammoclip[WP_COLT] && akimboFire ) ) {
-			addTime = 2 * ammoTable[pm->ps->weapon].nextShotTime;
+	if (triggerState < 3) {
+		// firing only single gun
+		addTime = ammoTable[weapAlts[pm->ps->weapon]].nextShotTime;
+	} else {
+		// (SA) (added check for last shot in both guns so there's no delay for the last shot)
+		if ( !pm->ps->ammoclip[pm->ps->weapon] || !pm->ps->ammoclip[weapAlts[pm->ps->weapon]] ) {
+			if ( ( !pm->ps->ammoclip[pm->ps->weapon] && !akimboFire ) || ( !pm->ps->ammoclip[weapAlts[pm->ps->weapon]] && akimboFire ) ) {
+				addTime = ammoTable[weapAlts[pm->ps->weapon]].nextShotTime;
+			}
 		}
 	}
 
-	aimSpreadScaleAdd = 20;
+	switch ( pm->ps->weapon ) {
+		case WP_AKIMBO:
+			aimSpreadScaleAdd = 20;
+            break;
+		case WP_AKIMBO_MP40:
+			aimSpreadScaleAdd = 15 + rand() % 10;
+			break;
+		case WP_AKIMBO_THOMPSON:
+			aimSpreadScaleAdd = 15 + rand() % 10;
+			break;
+	}
+
 	break;
 //----(SA)	end
 

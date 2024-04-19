@@ -929,6 +929,12 @@ typedef struct {
 	int weaponAnimation;
 	int weaponAnimationTime;
 
+	int wheelSelectorType;
+	int wheelSelectorSelection;
+	int wheelSelectorTime;
+	vec3_t wheelSelectorOrigin;
+	vec3_t wheelSelectorOffset;
+
 	// blend blobs
 	viewDamage_t viewDamage[MAX_VIEWDAMAGE];
 	float damageTime;           // last time any kind of damage was recieved
@@ -1089,6 +1095,40 @@ typedef struct {
 	qhandle_t lagometerShader;
 	qhandle_t backTileShader;
 	qhandle_t noammoShader;
+	qhandle_t noammoIcon;
+
+	qhandle_t binocularsIcon;
+	qhandle_t binocularsIconSelect;
+	qhandle_t grenadeIcon;
+	qhandle_t grenadeIconSelect;
+	qhandle_t pineappleIcon;
+	qhandle_t pineappleIconSelect;
+	qhandle_t dynamiteIcon;
+	qhandle_t dynamiteIconSelect;
+	qhandle_t wine1Icon;
+	qhandle_t wine1IconSelect;
+	qhandle_t wine2Icon;
+	qhandle_t wine2IconSelect;
+	qhandle_t wine3Icon;
+	qhandle_t wine3IconSelect;
+	qhandle_t staminaIcon;
+	qhandle_t staminaIconSelect;
+	qhandle_t pbookIcon;
+	qhandle_t pbookIconSelect;
+	qhandle_t vbookIcon;
+	qhandle_t vbookIconSelect;
+	qhandle_t zbookIcon;
+	qhandle_t zbookIconSelect;
+	qhandle_t exitIcon;
+	qhandle_t exitIconSelect;
+	qhandle_t saveIcon;
+	qhandle_t saveIconSelect;
+	qhandle_t loadIcon;
+	qhandle_t loadIconSelect;
+	qhandle_t arrowIcon;
+	qhandle_t weaponIcons[WP_NUM_WEAPONS];
+	qhandle_t weaponIconsSelect[WP_NUM_WEAPONS];
+	qhandle_t itemSelectCursor;
 
 	qhandle_t reticleShader;
 //	qhandle_t	reticleShaderSimple;
@@ -1470,6 +1510,11 @@ typedef struct {
 	qhandle_t cursor;
 	qhandle_t selectCursor;
 	qhandle_t sizeCursor;
+
+	// comfort vignette
+	qhandle_t vignetteShader;
+	// left hand
+	qhandle_t handModel;
 
 } cgMedia_t;
 
@@ -2059,9 +2104,11 @@ void CG_Bullet( vec3_t origin, int sourceEntityNum, vec3_t normal, qboolean fles
 void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end, int type );   //----(SA)	added 'type'
 void CG_GrappleTrail( centity_t *ent, const weaponInfo_t *wi );
 void CG_AddViewWeapon( playerState_t *ps );
-void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent );
+void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent, qboolean akimbo );
 void CG_DrawWeaponSelect( void );
 void CG_DrawHoldableSelect( void );
+void CG_AddViewHand( playerState_t *ps );
+void CG_DrawWheelSelector( void );
 
 void CG_OutOfAmmoChange( void );
 void CG_HoldableUsedupChange( void ); //----(SA)	added

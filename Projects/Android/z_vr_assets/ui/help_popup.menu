@@ -1,0 +1,41 @@
+#include "ui/menudef.h"
+
+{
+	menuDef
+	{
+		name							helpPopupMenu
+		visible						0
+		fullScreen				0
+		rect							0 0 640 480
+		focusColor				1 1 1 1
+ 	  style 						WINDOW_STYLE_FILLED
+		outOfBoundsClick
+		popup
+		onEsc { open foo }
+
+		itemDef
+		{
+			group						none
+			name						background
+			rect						0 0 640 480
+			style						WINDOW_STYLE_SHADER
+			type						ITEM_TYPE_BUTTON
+			background			"gfx/menus/background_dim.tga"
+			forecolor				1 1 1 1
+			visible					1
+			action { open foo }
+		}
+
+		itemDef
+		{
+			group						none
+			name						scheme
+			rect						20 15 600 450
+			style						WINDOW_STYLE_SHADER
+			background			"gfx/menus/control_scheme.tga"
+			forecolor				1 1 1 1
+      visible 				1
+		}
+
+	}
+}

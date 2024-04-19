@@ -377,10 +377,10 @@ static void CG_TouchItem( centity_t *cent ) {
 //----(SA)	added
 		weapon = item->giTag;
 
-		if ( weapon == WP_COLT ) {
-			if ( COM_BitCheck( cg.predictedPlayerState.weapons, WP_COLT ) ) {
-				// you got the colt, you gettin' another
-				weapon = WP_AKIMBO;
+		if ( weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON ) {
+			if ( COM_BitCheck( cg.predictedPlayerState.weapons, weapon ) ) {
+				// you got one, you gettin' another
+				weapon = weapAlts[weapon];
 			}
 		}
 //----(SA)	end

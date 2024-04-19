@@ -640,16 +640,20 @@ static void CG_OffsetFirstPersonView( void ) {
 //===================================
 
 	// add view height
-	origin[2] += cg.predictedPlayerState.viewheight;
+	if (cgVR->vrIrlCrouchEnabled) {
+		origin[2] += cgVR->viewHeight;
+	} else {
+		origin[2] += cg.predictedPlayerState.viewheight;
 
-	// smooth out duck height changes
-	timeDelta = cg.time - cg.duckTime;
-	if ( timeDelta < 0 ) { // Ridah
-		cg.duckTime = cg.time - DUCK_TIME;
-	}
-	if ( timeDelta < DUCK_TIME ) {
-		cg.refdef.vieworg[2] -= cg.duckChange
-								* ( DUCK_TIME - timeDelta ) / DUCK_TIME;
+		// smooth out duck height changes
+		timeDelta = cg.time - cg.duckTime;
+		if ( timeDelta < 0 ) { // Ridah
+			cg.duckTime = cg.time - DUCK_TIME;
+		}
+		if ( timeDelta < DUCK_TIME ) {
+			cg.refdef.vieworg[2] -= cg.duckChange
+									* ( DUCK_TIME - timeDelta ) / DUCK_TIME;
+		}
 	}
 
 	// add bob height
@@ -1603,9 +1607,16 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		DEBUGTIME
 	}
 
-
-	CG_AddViewWeapon( &cg.predictedPlayerState );
-
+	if (cgVR->wheelSelectorEnabled) {
+		CG_DrawWheelSelector();
+	} else if (!cgVR->screen){
+		CG_AddViewWeapon( &cg.predictedPlayerState );
+		int weapon = cg.predictedPlayerState.weapon;
+		qboolean usingAkimbo = weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON;
+		if (!usingAkimbo && !cgVR->weapon_stabilised && !cg.renderingThirdPerson) {
+			CG_AddViewHand( &cg.predictedPlayerState);
+		}
+	}
 
 	DEBUGTIME
 

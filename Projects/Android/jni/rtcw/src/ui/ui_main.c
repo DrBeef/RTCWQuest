@@ -4375,16 +4375,16 @@ static void UI_Update( const char *name ) {
 			break;
 		}
 	} else if ( Q_stricmp( name, "r_lodbias" ) == 0 ) {
-		switch ( val ) {
-		case 0:
+		float fval = trap_Cvar_VariableValue( name );
+		if (fval <= -2.4) {
+			// high
 			trap_Cvar_SetValue( "r_subdivisions", 4 );
-			break;
-		case 1:
-			trap_Cvar_SetValue( "r_subdivisions", 12 );
-			break;
-		case 2:
+		} else if (fval >= 2.0) {
+			// low
 			trap_Cvar_SetValue( "r_subdivisions", 20 );
-			break;
+		} else {
+			// medium
+			trap_Cvar_SetValue( "r_subdivisions", 12 );
 		}
 	} else if ( Q_stricmp( name, "ui_glCustom" ) == 0 ) {
 		switch ( val ) {
@@ -4490,6 +4490,7 @@ UI_RunMenuScript
 ==============
 */
 
+qboolean showCredits = qtrue;
 static void UI_RunMenuScript( char **args ) {
 	const char *name, *name2;
 	char buff[1024];
@@ -4569,6 +4570,9 @@ static void UI_RunMenuScript( char **args ) {
 			Controls_SetDefaults();
 			trap_Cvar_Set( "com_introPlayed", "1" );
 			trap_Cvar_Set( "com_recommendedSet", "1" );                   // NERVE - SMF
+			trap_Cmd_ExecuteText( EXEC_NOW, "exec models_vr.cfg\n" );
+			trap_Cmd_ExecuteText( EXEC_NOW, "exec weapons_vr.cfg\n" );
+			trap_Cmd_ExecuteText( EXEC_NOW, "exec weapons_user.cfg\n" );
 			trap_Cmd_ExecuteText( EXEC_APPEND, "vid_restart\n" );
 // end from MP
 		} else if ( Q_stricmp( name, "getCDKey" ) == 0 ) {
@@ -4775,8 +4779,14 @@ static void UI_RunMenuScript( char **args ) {
 			}
 			//#endif	// #ifdef MISSIONPACK
 		} else if ( Q_stricmp( name, "Quit" ) == 0 ) {
-			trap_Cvar_Set( "ui_singlePlayerActive", "0" );
-			trap_Cmd_ExecuteText( EXEC_NOW, "quit" );
+			if (showCredits) {
+				showCredits = qfalse;
+				Menus_CloseAll();
+				Menus_OpenByName( "credits" );
+			} else {
+				trap_Cvar_Set( "ui_singlePlayerActive", "0" );
+				trap_Cmd_ExecuteText( EXEC_NOW, "quit" );
+			}
 		} else if ( Q_stricmp( name, "Controls" ) == 0 ) {
 			trap_Cvar_Set( "cl_paused", "1" );
 			trap_Key_SetCatcher( KEYCATCH_UI );
@@ -6782,20 +6792,22 @@ void _UI_MouseEvent( int dx, int dy ) {
 UI_MouseEvent
 =================
 */
+const int cursorSize = 16;
 void _UI_MouseEventAbs( int x, int y ) {
 	// update mouse screen position
+    // allow to hide cursor beyond the screen edges
 	uiInfo.uiDC.cursorx = x;
-	if ( uiInfo.uiDC.cursorx < 0 ) {
-		uiInfo.uiDC.cursorx = 0;
-	} else if ( uiInfo.uiDC.cursorx > SCREEN_WIDTH ) {
-		uiInfo.uiDC.cursorx = SCREEN_WIDTH;
+	if ( uiInfo.uiDC.cursorx < -cursorSize ) {
+		uiInfo.uiDC.cursorx = -cursorSize;
+	} else if ( uiInfo.uiDC.cursorx > SCREEN_WIDTH + cursorSize ) {
+		uiInfo.uiDC.cursorx = SCREEN_WIDTH + cursorSize;
 	}
 
 	uiInfo.uiDC.cursory = y;
-	if ( uiInfo.uiDC.cursory < 0 ) {
-		uiInfo.uiDC.cursory = 0;
-	} else if ( uiInfo.uiDC.cursory > SCREEN_HEIGHT ) {
-		uiInfo.uiDC.cursory = SCREEN_HEIGHT;
+	if ( uiInfo.uiDC.cursory < -cursorSize ) {
+		uiInfo.uiDC.cursory = -cursorSize;
+	} else if ( uiInfo.uiDC.cursory > SCREEN_HEIGHT + cursorSize) {
+		uiInfo.uiDC.cursory = SCREEN_HEIGHT + cursorSize;
 	}
 
 	if ( Menu_Count() > 0 ) {

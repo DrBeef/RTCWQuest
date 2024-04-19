@@ -11,8 +11,7 @@ menuDef {
 	focusColor 1 .75 0 1
 	style 1
 	border 1
-	onOpen { setitemcolor fadebox backcolor 0 0 0 1 ;
-			fadeout fadebox }
+	onOpen { setitemcolor fadebox backcolor 0 0 0 1 ; fadeout fadebox; hide grpOptions ; show view }
 	onEsc { close options_menu ; close setup_menu ; open main }
 
 
@@ -73,7 +72,7 @@ itemDef
 	textscale .22
 	group grpSystembutton
 	style WINDOW_STYLE_FILLED
-	rect 172 10 100 12
+	rect 256 10 100 12
 	textalign 1
 	textalignx 50
 	textaligny 10
@@ -177,7 +176,6 @@ itemDef {
 		visible 1  
 	}	
 
-
 	itemDef {
 		name performance
 		type ITEM_TYPE_MULTI	
@@ -196,8 +194,6 @@ itemDef {
 		visible 1
 		}
 
-
-
 	itemDef {
 		name performance
 		group grpOptions
@@ -215,6 +211,24 @@ itemDef {
 		visible 1 
     		}
 
+	itemDef {
+		name performance
+		group grpOptions
+		type ITEM_TYPE_MULTI	
+		text "Particle Dist:"
+		cvar "cg_particleDist"
+		cvarFloatList { "normal" 1024 "far" 2048 "off" 0 "near" 512 }
+		rect 82 135 290 12
+		textalign ITEM_ALIGN_RIGHT
+		textalignx 142
+		textaligny 10
+		textscale .23
+		style WINDOW_STYLE_FILLED
+		backcolor 1 1 1 .07
+		forecolor 1 1 1 1
+		visible 1 
+		}
+
 
 
 itemDef {
@@ -224,7 +238,7 @@ itemDef {
 	textscale .22
 	group grpSystembutton
 	style WINDOW_STYLE_FILLED
-	rect 270 10 100 12
+	rect 106 10 100 12
 	textalign 1
 	textalignx 50
 	textaligny 10
@@ -259,7 +273,22 @@ itemDef {
 		visible 0
 	}
 
-
+	itemDef {
+		name view
+		group grpOptions
+		type ITEM_TYPE_YESNO
+		text "Draw HUD: "
+		cvar "vr_draw_hud"
+		rect 82 45 290 12
+      	textalign ITEM_ALIGN_RIGHT
+      	textalignx 142
+      	textaligny 10
+		textscale .23
+		style WINDOW_STYLE_FILLED
+		backcolor 1 1 1 .07
+      	forecolor 1 1 1 1
+      	visible 1
+    	}
 
 	itemDef {
 		name view
@@ -267,7 +296,7 @@ itemDef {
 		type ITEM_TYPE_SLIDER
 		text "HUD Alpha:"
 		cvarfloat "cg_hudAlpha" .6 .1 1
-		rect 82 45 290 12
+		rect 82 60 290 12
       	textalign ITEM_ALIGN_RIGHT
       	textalignx 142
       	textaligny 10
@@ -278,7 +307,43 @@ itemDef {
       	visible 0
    		}
 
+	itemDef {
+		name view
+		group grpOptions
+		type ITEM_TYPE_YESNO
+		text "Laser Sight:  "
+		cvar "vr_lasersight"
+		rect 82 75 290 12
+		textalign ITEM_ALIGN_RIGHT
+		textalignx 142
+		textaligny 10
+		textscale .22
+		style WINDOW_STYLE_FILLED
+		backcolor 1 1 1 .07
+		forecolor 1 1 1 1
+		visible 1 
+    		}
 
+	itemDef {
+		cvarTest "r_ignorehwgamma"
+		showcvar { "0" }
+		name view
+		group grpOptions
+		type ITEM_TYPE_SLIDER
+		text "Brightness:"
+		cvarfloat "r_gamma" 1 0.5 3
+		rect 82 90 290 12
+    textalign ITEM_ALIGN_RIGHT
+    textalignx 142
+    textaligny 10
+		textscale .23
+		style WINDOW_STYLE_FILLED
+		backcolor 1 1 1 .07
+      	forecolor 1 1 1 1
+      	visible 0 
+    		}
+
+	}
 
 	itemDef {
 		name fadebox

@@ -2006,9 +2006,10 @@ void Com_Init( char *commandLine ) {
 
 	Cbuf_AddText( "exec autoexec.cfg\n" );
 
+	//Execute to overwrite additional vr models location with our desired adjustments
+	Cbuf_AddText( "exec models_vr.cfg\n" );
 	//Execute to overwrite weapon locations with our desired adjustments
 	Cbuf_AddText( "exec weapons_vr.cfg\n" );
-
 	//Execute last to allow user adjustment of weapon models if they have something else to use
 	Cbuf_AddText( "exec weapons_user.cfg\n" );
 
@@ -2275,6 +2276,7 @@ Com_Frame
 =================
 */
 int GetRefresh();
+int GetRequestedRefresh();
 void Com_Frame( void ) {
 
 	int msec, minMsec;

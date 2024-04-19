@@ -9,7 +9,16 @@ cvar_t	*vr_lasersight;
 cvar_t	*vr_control_scheme;
 cvar_t	*vr_teleport;
 cvar_t	*vr_virtual_stock;
+cvar_t	*vr_comfort_vignette;
 cvar_t	*vr_switch_sticks;
 cvar_t	*vr_cinematic_stereo;
 cvar_t	*vr_screen_dist;
-
+cvar_t	*vr_gesture_triggered_use;
+cvar_t	*vr_use_gesture_boundary;
+cvar_t	*vr_draw_hud;
+cvar_t	*vr_irl_crouch_enabled;
+cvar_t	*vr_irl_crouch_to_stand_ratio;
+cvar_t	*vr_haptic_intensity;
+cvar_t	*vr_menu_item_touched;
+cvar_t	*vr_refresh;
+cvar_t	*vr_spread_reduce;

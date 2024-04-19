@@ -2212,11 +2212,13 @@ void G_TryDoor( gentity_t *ent, gentity_t *other, gentity_t *activator ) {
 				ent->active = qtrue;
 				if ( walking || 1 == 1) {
 					ent->flags |= FL_SOFTACTIVATE;      // no noise
-					if(gVR)
-					    trap_Vibrate(1, gVR->right_handed ? 0 : 1, 0.3f, "door_open", 0, 0); //I've reversed the hands as I presume you will open it with the hand your gun isn't in.
+					// Replaced by "use trigger" haptics
+					//if(gVR)
+					//    trap_Vibrate(1, gVR->right_handed ? 0 : 1, 0.3f, "door_open", 0, 0); //I've reversed the hands as I presume you will open it with the hand your gun isn't in.
 				} else {
-                    if(gVR)
-				        trap_Vibrate(1, gVR->right_handed ? 0 : 1, 0.5f, "door_open", 0, 0); //I've reversed the hands as I presume you will open it with the hand your gun isn't in.
+					// Replaced by "use trigger" haptics
+					//if(gVR)
+					//    trap_Vibrate(1, gVR->right_handed ? 0 : 1, 0.5f, "door_open", 0, 0); //I've reversed the hands as I presume you will open it with the hand your gun isn't in.
 					if ( activator ) {
 						soundrange = HEAR_RANGE_DOOR_OPEN;
 					}

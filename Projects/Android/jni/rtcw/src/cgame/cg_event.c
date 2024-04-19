@@ -275,6 +275,12 @@ static void CG_Obituary( entityState_t *ent ) {
 		case MOD_AKIMBO:
 			message = "was killed (dual colts) by";
 			break;
+		case MOD_AKIMBO_MP40:
+			message = "was killed (dual MP40) by";
+			break;
+		case MOD_AKIMBO_THOMPSON:
+			message = "was killed (dual thompson) by";
+			break;
 		case MOD_ROCKET_LAUNCHER:
 			message = "was killed (rl) by";
 			break;
@@ -446,9 +452,10 @@ static void CG_ItemPickup( int itemNum ) {
 
 		weapon = itemid;
 
-		if ( weapon == WP_COLT ) {
-			if ( COM_BitCheck( cg.snap->ps.weapons, weapon ) ) {
-				weapon = WP_AKIMBO; // you have colt, now get akimbo (second)
+		if ( weapon == WP_COLT || weapon == WP_MP40 || weapon == WP_THOMPSON ) {
+			int altWeapon = weapAlts[weapon];
+			if ( COM_BitCheck( cg.snap->ps.weapons, weapon ) && COM_BitCheck( cg.predictedPlayerState.weapons, altWeapon ) ) {
+				weapon = altWeapon; // you have one, now get akimbo (second)
 			}
 		}
 
@@ -525,6 +532,9 @@ static void CG_ItemPickup( int itemNum ) {
 		if ( selectIt ) {
 			cg.weaponSelectTime = cg.time;
 			cg.weaponSelect     = weapon;
+			if (cgVR) {
+				cgVR->weaponid = weapon;
+			}
 		}
 
 	}   // end bg_itemlist[itemNum].giType == IT_WEAPON
@@ -1947,6 +1957,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_EMPTYCLIP:
 		DEBUGNAME( "EV_EMPTYCLIP" );
+		if ( ( es->weapon != WP_GRENADE_LAUNCHER ) && ( es->weapon != WP_GRENADE_PINEAPPLE ) && ( es->weapon != WP_DYNAMITE ) ) {
+			trap_S_StartSound( NULL, es->number, CHAN_AUTO, cgs.media.noAmmoSound );
+		}
 		break;
 
 	case EV_FILL_CLIP:
@@ -2022,8 +2035,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		CG_FireWeapon( cent );
 		if ( event == EV_FIRE_WEAPONB ) {  // akimbo firing colt
 			cent->akimboFire = qtrue;
+			cgVR->akimboFire = qtrue;
 		} else {
 			cent->akimboFire = qfalse;
+			cgVR->akimboFire = qfalse;
 		}
 		break;
 	case EV_FIRE_WEAPON_LASTSHOT:

@@ -255,6 +255,9 @@ static int weapIconDrawSize( int weap ) {
 	case WP_FG42SCOPE:
 	case WP_SNOOPERSCOPE:
 	case WP_SNIPERRIFLE:
+	case WP_SILENCER:
+	case WP_AKIMBO_MP40:
+	case WP_AKIMBO_THOMPSON:
 		return 2;
 	}
 
@@ -602,6 +605,8 @@ static void CG_DrawPlayerAmmoValue( rectDef_t *rect, int font, float scale, vec4
 		return;
 
 	case WP_AKIMBO:
+	case WP_AKIMBO_MP40:
+	case WP_AKIMBO_THOMPSON:
 		special = qtrue;
 		break;
 
@@ -622,6 +627,10 @@ static void CG_DrawPlayerAmmoValue( rectDef_t *rect, int font, float scale, vec4
 
 	if ( type == 0 ) { // ammo
 		value = cg.snap->ps.ammo[BG_FindAmmoForWeapon( weap )];
+		if ( (weap == WP_COLT || weap == WP_MP40 || weap == WP_THOMPSON) && weapAlts[weap] ) {
+			// When holding single weapon, add akimbo clip to reserve
+			value += ps->ammoclip[weapAlts[weap]];
+		}
 	} else {        // clip
 		value = ps->ammoclip[BG_FindClipForWeapon( weap )];
 		if ( special ) {
@@ -629,7 +638,6 @@ static void CG_DrawPlayerAmmoValue( rectDef_t *rect, int font, float scale, vec4
 			if ( weapAlts[weap] ) {
 				value = ps->ammoclip[weapAlts[weap]];
 			}
-//				value2 = ps->ammoclip[weapAlts[weap]];
 		}
 	}
 
@@ -645,7 +653,11 @@ static void CG_DrawPlayerAmmoValue( rectDef_t *rect, int font, float scale, vec4
 
 //			if(special) {	// draw '0' for akimbo guns
 			if ( value2 || ( special && type == 1 ) ) {
-				Com_sprintf( num, sizeof( num ), "%i /", value2 );
+				if (weap == WP_AKIMBO_MP40 || weap == WP_AKIMBO_THOMPSON) {
+					Com_sprintf( num, sizeof( num ), "%i/ ", value2 );
+				} else {
+					Com_sprintf( num, sizeof( num ), "%i /", value2 );
+				}
 				value = CG_Text_Width( num, font, scale, 0 );
 				CG_Text_Paint( -30 + rect->x + ( rect->w - value ) / 2, rect->y + rect->h, font, scale, color, num, 0, 0, textStyle );
 			}
@@ -1436,7 +1448,12 @@ float CG_GetValue( int ownerDraw, int type ) {
 	case CG_PLAYER_AMMOCLIP_VALUE:
 		if ( cent->currentState.weapon ) {
 			if ( type == RANGETYPE_RELATIVE ) {
-				return (float)ps->ammoclip[BG_FindClipForWeapon( cent->currentState.weapon )] / (float)ammoTable[cent->currentState.weapon].maxclip;
+				int weapon = cent->currentState.weapon;
+				if (weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON) {
+					return (float)(ps->ammoclip[BG_FindClipForWeapon(weapon)] + ps->ammoclip[BG_FindClipForWeapon(weapAlts[weapon])]) / (float)(ammoTable[weapon].maxclip * 4);
+				} else {
+					return (float)ps->ammoclip[BG_FindClipForWeapon( cent->currentState.weapon )] / (float)ammoTable[cent->currentState.weapon].maxclip;
+				}
 			} else {
 				return ps->ammoclip[BG_FindClipForWeapon( cent->currentState.weapon )];
 			}

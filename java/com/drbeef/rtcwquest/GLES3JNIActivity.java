@@ -50,7 +50,7 @@ import static android.system.Os.setenv;
 	private static final String TAG = "RTCWQuest";
 	private static final String APPLICATION = "RTCWQuest";
 
-	private int permissionCount = 0;
+	private boolean permissionsGranted = false;
 	private static final int READ_EXTERNAL_STORAGE_PERMISSION_ID = 1;
 	private static final int WRITE_EXTERNAL_STORAGE_PERMISSION_ID = 2;
 
@@ -194,15 +194,8 @@ import static android.system.Os.setenv;
 					GLES3JNIActivity.this,
 					new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
 					WRITE_EXTERNAL_STORAGE_PERMISSION_ID);
-		}
-		else
-		{
-			permissionCount++;
-		}
-
-		if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-				!= PackageManager.PERMISSION_GRANTED)
-		{
+		} else if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+				!= PackageManager.PERMISSION_GRANTED){
 			ActivityCompat.requestPermissions(
 					GLES3JNIActivity.this,
 					new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
@@ -210,10 +203,10 @@ import static android.system.Os.setenv;
 		}
 		else
 		{
-			permissionCount++;
+			permissionsGranted = true;
 		}
 
-		if (permissionCount == 2) {
+		if (permissionsGranted) {
 			// Permissions have already been granted.
 			create();
 		}
@@ -223,21 +216,13 @@ import static android.system.Os.setenv;
 	@Override
 	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
 		if (requestCode == READ_EXTERNAL_STORAGE_PERMISSION_ID) {
-			if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) {
-				permissionCount++;
-			}
-			else
-			{
+			if (results.length > 0 && results[0] != PackageManager.PERMISSION_GRANTED) {
 				System.exit(0);
 			}
 		}
 
 		if (requestCode == WRITE_EXTERNAL_STORAGE_PERMISSION_ID) {
-			if (results.length > 0 && results[0] == PackageManager.PERMISSION_GRANTED) {
-				permissionCount++;
-			}
-			else
-			{
+			if (results.length > 0 && results[0] != PackageManager.PERMISSION_GRANTED) {
 				System.exit(0);
 			}
 		}
@@ -252,17 +237,32 @@ import static android.system.Os.setenv;
 		//Copy the command line params file
 		copy_asset("/sdcard/RTCWQuest", "commandline.txt", false);
 
-		//Copy the weapon adjustment config
-		copy_asset("/sdcard/RTCWQuest/Main", "weapons_vr.cfg", false);
-
 		//and the demo version - if required
 		copy_asset("/sdcard/RTCWQuest/Main", "pak0.pk3", false);
 
 		//and the vr weapons
 		copy_asset("/sdcard/RTCWQuest/Main", "z_zvr_weapons.pk3", true);
 
-		//and the vr menu pk3
-		copy_asset("/sdcard/RTCWQuest/Main", "z_rtcwquest_vrmenu.pk3", true);
+		//and some additional vr assets
+		copy_asset("/sdcard/RTCWQuest/Main", "z_vr_assets.pk3", true);
+		// (delete asset pak from previous version)
+		File oldAssetPak = new File("/sdcard/RTCWQuest/Main/z_rtcwquest_vrmenu.pk3");
+		if (oldAssetPak.exists()) {
+			try {
+				oldAssetPak.delete();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		// (weapon adjustment was moved to pak, users can still use weapons_user.cfg to re-adjust)
+		File oldWeaponAdjustment = new File("/sdcard/RTCWQuest/Main/weapons_vr.cfg");
+		if (oldWeaponAdjustment.exists()) {
+			try {
+				oldWeaponAdjustment.delete();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
 		//and the venom scripting improvements pak (thank-you _HELLBARON_ !!)
 		copy_asset("/sdcard/RTCWQuest/Main", "sp_vpak8.pk3", false);
