@@ -558,10 +558,13 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
             //Jump (B Button)
             if (vr.backpackitemactive != 2 && !canUseBackpack) {
-
                 if ((primaryButtonsNew & primaryButton2) != (primaryButtonsOld & primaryButton2))
                 {
-                    Sys_QueEvent( 0, SE_KEY, K_SPACE, (primaryButtonsNew & primaryButton2) != 0, 0, NULL );
+                    if (vr.mountedgun) {
+                        sendButtonAction("+activate", (primaryButtonsNew & primaryButton2) != 0);
+                    } else {
+                        Sys_QueEvent( 0, SE_KEY, K_SPACE, (primaryButtonsNew & primaryButton2) != 0, 0, NULL );
+                    }
                 }
             }
 
