@@ -1611,9 +1611,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 		CG_DrawWheelSelector();
 	} else if (!cgVR->screen){
 		CG_AddViewWeapon( &cg.predictedPlayerState );
-		int weapon = cg.predictedPlayerState.weapon;
-		qboolean usingAkimbo = weapon == WP_AKIMBO || weapon == WP_AKIMBO_MP40 || weapon == WP_AKIMBO_THOMPSON;
-		if (!usingAkimbo && !cgVR->weapon_stabilised && !cg.renderingThirdPerson) {
+		if (!cg.renderingThirdPerson && (cgVR->backpackitemactive == 3 || cgVR->binocularsActive || (!cgVR->dualwielding && !cgVR->weapon_stabilised))) {
 			CG_AddViewHand( &cg.predictedPlayerState);
 		}
 	}

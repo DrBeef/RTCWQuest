@@ -52,7 +52,9 @@ typedef struct {
 
     qboolean hasbinoculars;
 
-    qboolean velocitytriggered; // Weapon attack triggered by velocity (knife)
+    qboolean velocitytriggered;  // Weapon attack triggered by velocity (knife)
+    qboolean weaponstabilizable; // Flag if currently held weapon can be stabilized
+    qboolean dualwielding;       // Flag if dual wielding is active
 
     vec3_t offhandweaponangles;
     vec3_t offhandangles;

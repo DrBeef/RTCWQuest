@@ -20,17 +20,6 @@ Authors		:	Simon Brown
 #include <src/qcommon/qcommon.h>
 #include <src/client/client.h>
 
-#define WP_KNIFE              1
-#define WP_LUGER              2
-#define WP_GRENADE_LAUNCHER   6
-#define WP_COLT              11
-#define WP_GRENADE_PINEAPPLE 14
-#define WP_SILENCER          19
-#define WP_AKIMBO            20
-#define WP_DYNAMITE          22
-#define WP_AKIMBO_MP40       23
-#define WP_AKIMBO_THOMPSON   24
-
 void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, int passEntityNum, int contentmask, int capsule );
 
 void RTCWVR_HapticEvent(const char* event, int position, int flags, int intensity, float angle, float yHeight );
@@ -114,7 +103,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
         QuatToYawPitchRoll(pDominantTracking->HeadPose.Pose.Orientation, rotation, vr.dominanthandangles);
         rotation[PITCH] = 30;
         QuatToYawPitchRoll(pWeapon->HeadPose.Pose.Orientation, rotation, vr.weaponangles_knife);
-        qboolean addRecoil = vr.pistol && (vr.weaponid != WP_AKIMBO || vr.akimboFire);
+        qboolean addRecoil = vr.pistol && (!vr.dualwielding || vr.akimboFire);
         rotation[PITCH] = vr_weapon_pitchadjust->value + (addRecoil ? vr.weapon_recoil : 0.0f); // Our hacked recoil effect
         QuatToYawPitchRoll(pWeapon->HeadPose.Pose.Orientation, rotation, vr.weaponangles);
 
@@ -127,7 +116,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
         vec3_t rotation_off = {0};
         rotation_off[PITCH] = -25;
         QuatToYawPitchRoll(pOff->HeadPose.Pose.Orientation, rotation_off, vr.offhandangles);
-        qboolean addRecoil_off = vr.pistol && (vr.weaponid != WP_AKIMBO || !vr.akimboFire);
+        qboolean addRecoil_off = vr.pistol && (!vr.dualwielding || !vr.akimboFire);
         rotation_off[PITCH] = vr_weapon_pitchadjust->value + (addRecoil_off ? vr.weapon_recoil : 0.0f); // Our hacked recoil effect
         QuatToYawPitchRoll(pOff->HeadPose.Pose.Orientation, rotation_off, vr.offhandweaponangles);
 
@@ -191,12 +180,8 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
         float controllerYawHeading = 0.0f;
         //Turn on weapon stabilisation?
         qboolean stabilised = qfalse;
-        qboolean usingAkimbo = vr.weaponid == WP_AKIMBO || vr.weaponid == WP_AKIMBO_MP40 || vr.weaponid == WP_AKIMBO_THOMPSON;
-        qboolean usingSingleHandWeapon = vr.weaponid == WP_KNIFE || vr.weaponid == WP_LUGER || vr.weaponid == WP_GRENADE_LAUNCHER ||
-                                         vr.weaponid == WP_COLT || vr.weaponid == WP_GRENADE_PINEAPPLE  || vr.weaponid == WP_SILENCER ||
-                                         vr.weaponid == WP_DYNAMITE;
         qboolean usingBinoculars = vr.backpackitemactive == 3 || vr.binocularsActive;
-        if (!usingAkimbo && !usingSingleHandWeapon && !usingBinoculars && // Don't stabilise dual guns, single hand weapons and binoculars
+        if (vr.weaponstabilizable && !usingBinoculars && // Don't stabilise dual guns, single hand weapons and binoculars
             (pOffTrackedRemoteNew->Buttons & ovrButton_GripTrigger) && (distance < STABILISATION_DISTANCE))
         {
             stabilised = qtrue;
@@ -208,7 +193,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
         qboolean scopeready = vr.weapon_stabilised && (distanceToHMD < SCOPE_ENGAGE_DISTANCE);
         static qboolean lastScopeReady = qfalse;
         if (scopeready != lastScopeReady) {
-            if (vr.scopedweapon && !vr.scopedetached) {
+            if (vr.scopedweapon && (!vr.detachablescope || !vr.scopedetached)) {
                 if (!vr.scopeengaged && scopeready) {
                     ALOGV("**WEAPON EVENT**  trigger scope mode");
                     sendButtonActionSimple("weapalt");
@@ -591,7 +576,7 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
                 ALOGV("**WEAPON EVENT**  Not Grip Pushed %sattack", (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");
                 qboolean firing = (pDominantTrackedRemoteNew->Buttons & ovrButton_Trigger);
-                if (usingAkimbo) {
+                if (vr.dualwielding) {
                     if (firing) {
                         vr.akimboTriggerState |= ACTIVE_WEAPON_HAND;
                         sendButtonAction("+attack", firing);
@@ -733,9 +718,9 @@ void HandleInput_Default( ovrInputStateGamepad *pFootTrackingNew, ovrInputStateG
 
             //We need to record if we have started firing primary so that releasing trigger will stop definitely firing, if user has pushed grip
             //in meantime, then it wouldn't stop the gun firing and it would get stuck
-            if (!vr.teleportenabled || usingAkimbo)
+            if (!vr.teleportenabled || vr.dualwielding)
             {
-                if ((usingAkimbo) && vr.backpackitemactive != 3 && !vr.binocularsActive) {
+                if ((vr.dualwielding) && vr.backpackitemactive != 3 && !vr.binocularsActive) {
                     // Fire off-hand weapon
                     if ((pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) != (pOffTrackedRemoteOld->Buttons & ovrButton_Trigger)) {
                         ALOGV("**WEAPON EVENT**  Off-hand trigger %sattack", (pOffTrackedRemoteNew->Buttons & ovrButton_Trigger) ? "+" : "-");

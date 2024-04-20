@@ -3783,40 +3783,46 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 
 		//Set some important flags based on the current weapon
-        cgVR->mountedgun = qfalse;
+		cgVR->mountedgun = qfalse;
 		cgVR->pistol = qfalse;
-        cgVR->weaponid = ps->weapon;
+		cgVR->velocitytriggered = qfalse;
+		cgVR->scopedweapon = qfalse;
+		cgVR->detachablescope = qfalse;
+		cgVR->weaponstabilizable = qfalse;
+		cgVR->dualwielding = qfalse;
 		switch ( ps->weapon ) {
 			case WP_KNIFE:
 				cgVR->velocitytriggered = qtrue;
-				cgVR->scopedweapon = qfalse;
 				break;
+			case WP_AKIMBO:
+				cgVR->dualwielding = qtrue;
 			case WP_LUGER:
 			case WP_SILENCER:
 			case WP_COLT:
-			case WP_AKIMBO:
-				cgVR->velocitytriggered = qfalse;
-				cgVR->scopedweapon = qfalse;
-                cgVR->pistol = qtrue;
+				cgVR->pistol = qtrue;
 				break;
-            case WP_FG42:
+			case WP_AKIMBO_MP40:
+			case WP_AKIMBO_THOMPSON:
+				cgVR->dualwielding = qtrue;
+				break;
+			case WP_MP40:
+			case WP_STEN:
+			case WP_THOMPSON:
+			case WP_PANZERFAUST:
+			case WP_VENOM:
+			case WP_FLAMETHROWER:
+			case WP_TESLA:
+				cgVR->weaponstabilizable = qtrue;
+				break;
+			case WP_FG42:
 			case WP_MAUSER:
-				cgVR->velocitytriggered = qfalse;
-				cgVR->scopedweapon = qtrue;
-                cgVR->detachablescope = qtrue;
-				break;
+				cgVR->detachablescope = qtrue;
 			case WP_GARAND:
 			case WP_SNOOPERSCOPE:
-            case WP_SNIPERRIFLE:
-            case WP_FG42SCOPE:
-				cgVR->velocitytriggered = qfalse;
+			case WP_SNIPERRIFLE:
+			case WP_FG42SCOPE:
 				cgVR->scopedweapon = qtrue;
-                cgVR->scopedetached = qfalse;
-                cgVR->detachablescope = qfalse;
-				break;
-			default:
-				cgVR->velocitytriggered = qfalse;
-				cgVR->scopedweapon = qfalse;
+				cgVR->weaponstabilizable = qtrue;
 				break;
 		}
 
